@@ -56,6 +56,55 @@ The prefix is an opt-in to publication, not a secret store.
 The anon key being public is why Row Level Security is mandatory:
 that key reaches every visitor's browser, so a table without
 policies is readable and writable by the whole internet.
+## Working with Claude Code
+
+The repo ships with Claude Code skills and commands in `.claude/`,
+so they load automatically. No plugin installs needed.
+
+| Framework | What it's for | Try |
+|---|---|---|
+| `husky-geocaching` | Our project conventions | Loads on its own |
+| Superpowers | Brainstorming, planning, debugging | "Use the brainstorming skill" |
+| OpenSpec | Writing a reviewable plan for each feature | `/opsx:explore`, `/opsx:propose` |
+| GSD Core | Phase-based planning for bigger chunks of work | `/gsd-help` |
+
+All three plan-then-build frameworks overlap. Pick one per task
+rather than mixing them mid-feature.
+
+### Setup
+
+1. `git pull`, then start a **new** Claude Code chat. Skills load
+   at session start.
+2. **OpenSpec** needs its CLI installed once:
+```bash
+   npm install -g @fission-ai/openspec@1.14.1
+```
+   On a Mac, if that fails with `EACCES: permission denied`, do
+   **not** use `sudo`. Give npm a folder you own instead:
+```bash
+   mkdir -p ~/.npm-global
+   npm config set prefix ~/.npm-global
+   echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.zshrc
+   source ~/.zshrc
+```
+   then rerun the install.
+3. **GSD hooks (optional).** GSD's automatic guards (e.g. blocking
+   Claude from reading `.env` files) live in your personal
+   `.claude/settings.local.json`, which is gitignored. To get them,
+   run from the repo root:
+```bash
+   npx @opengsd/gsd-core@1.16.0 --claude --local --profile=core
+```
+
+### Rules
+
+- **Never run `claude --dangerously-skip-permissions`.** Some tools
+  recommend it. It lets Claude run anything without asking.
+- **Review changes to `.claude/` like code.** Skills are instructions
+  Claude follows and hooks run automatically, so a bad edit there
+  affects everyone.
+- **Pin versions when installing tools.** Pick a release at least two
+  weeks old (`npm view <package> time`), never `@latest`.
 
 ## Scripts
 
