@@ -26,6 +26,9 @@ build/
 .env.*
 !.env.example
 *.local
+# Claude Code personal settings (hooks, permissions) -- per-machine,
+# never shared. Shared team settings go in .claude/settings.json.
+.claude/settings.local.json
 
 # Supabase CLI local state.
 supabase/.branches/
