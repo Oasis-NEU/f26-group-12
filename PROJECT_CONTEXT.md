@@ -35,14 +35,14 @@ Frontend goals: great design, clean and easy UI, fast.
 
 - **Frontend:** React + Vite + Tailwind
 - **Database:** Supabase (Postgres), accessed from React with `@supabase/supabase-js`
-- **Backend:** Python (venv set up), role still being defined
-- Supabase URL and public key live in the frontend `.env` file, which must stay in `.gitignore`. Share keys privately, never in the repo.
+- **Server-side:** Supabase Edge Functions in supabase/functions/ (Deno). No separate backend folder.
+- Supabase URL and public key live in `frontend/.env.local` (copied from `frontend/.env.example`), which must stay in `.gitignore`. Share keys privately, never in the repo.
 
 ## Database schema
 
 Every table has `id` (primary key) and `created_at` (`timestamptz`, default `now()`). `caches`, `hints`, and `profiles` use `uuid` ids; `finds` and `messages` currently use `int8` ids, which works fine.
 
-The SQL copy of the schema lives at `backend/supabase/schema.sql`. Update it whenever a table changes.
+The SQL copy of the schema lives at `supabase/schema.sql`. Update it whenever a table changes.
 
 ### `profiles` (one row per user)
 | column | type | notes |
@@ -129,5 +129,5 @@ Club sessions for reference: HS 4 AI Implementation (10/18), HS 5 API Developmen
 ## Team conventions
 
 - Track work in GitHub Projects; plan at the start of each hack session.
-- When you change the Supabase schema, update `backend/supabase/schema.sql` and this file.
+- When you change the Supabase schema, update `supabase/schema.sql` and this file.
 - Never commit `.env`.
