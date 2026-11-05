@@ -15,19 +15,32 @@ Core:
 - Map of campus/Boston showing existing caches
 - Find a cache and log it (confirmed with a secret code, see Decisions)
 - Hints per cache (up to 3, revealed in order)
-- Journal of each user's finds
+- Journal of each user's finds with difficulty and star rating
 - Rate caches after finding them
+- Log in and sign up with email
+- Account menu, and people need a way to log out.
+- Automatic secret codes for every cache before it's saved.
+- Success screen where person hiding the cache has to see code so they can put it on the slip.
+- Print a slip, code only
+- Page not found for unfindable pages
 
 Next:
 - Score and leaderboard (points based on cache difficulty)
-- Messaging between geocachers (about finds or hints)
 - "Found" tab in the UI separating caches you've found from ones you haven't
+- Log in with Google, plus the “Choose a username”
+- Forgot password
+- Map filters (All / To find / My finds): this replaces the “Found” tab already listed under Next.
+- My caches page
+- Edit cache and take down
+- Landing page
 
 Nice-to-have:
 - AI-generated hints from images
 - Google Maps routes through multiple caches (toggle to hide found caches, or search within a radius)
 - Location check as a second layer when logging finds
 - Warning when someone adds a cache within ~10 m of an existing one
+- Messaging between geocachers (about finds or hints)
+- The QR code on a slip
 
 Frontend goals: great design, clean and easy UI, fast.
 
