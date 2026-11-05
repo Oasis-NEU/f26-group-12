@@ -54,6 +54,26 @@ Frontend goals: great design, clean and easy UI, fast.
 - **Icons:** Lucide (`lucide-react`), matching the Lucide icons in Figma
 - **Design:** Figma file "Husky Design" (ask a teammate for access). Gray layouts for every page are on the Sketches page.
 
+## Routes
+
+Defined in `frontend/src/App.jsx`. Every route sits inside `Layout` (`frontend/src/components/Layout.jsx`), which shows the nav bar. Page components live in `frontend/src/pages/`.
+
+| path | page component | notes |
+|---|---|---|
+| `/` | `MapPage` | home page |
+| `/caches/new` | `AddCachePage` | shows the "Cache hidden!" success state after saving |
+| `/caches/:cacheId` | `CacheDetailPage` | |
+| `/caches/:cacheId/log` | `LogFindPage` | shows the "Find logged!" success state after saving |
+| `/caches/:cacheId/edit` | `EditCachePage` | |
+| `/journal` | `JournalPage` | |
+| `/login` | `LoginPage` | |
+| `/leaderboard` | `LeaderboardPage` | |
+| `/my-caches` | `MyCachesPage` | |
+| `/welcome` | `LandingPage` | landing page lives here for now |
+| `*` | `NotFoundPage` | any URL not listed above |
+
+There is no Messages page; messaging is on hold. Link between pages with `<Link>` / `<NavLink>` from `react-router`, not `<a>`.
+
 ## Database schema
 
 Every table has `id` (primary key) and `created_at` (`timestamptz`, default `now()`). `caches`, `hints`, and `profiles` use `uuid` ids; `finds` and `messages` currently use `int8` ids, which works fine.
