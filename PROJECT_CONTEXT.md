@@ -50,6 +50,9 @@ Frontend goals: great design, clean and easy UI, fast.
 - **Database:** Supabase (Postgres), accessed from React with `@supabase/supabase-js`
 - **Server-side:** Supabase Edge Functions in supabase/functions/ (Deno). No separate backend folder.
 - Supabase URL and public key live in `frontend/.env.local` (copied from `frontend/.env.example`), which must stay in `.gitignore`. Share keys privately, never in the repo.
+- **Routing:** React Router (`react-router` package, not `react-router-dom`)
+- **Icons:** Lucide (`lucide-react`), matching the Lucide icons in Figma
+- **Design:** Figma file "Husky Design" (ask a teammate for access). Gray layouts for every page are on the Sketches page.
 
 ## Database schema
 
@@ -118,6 +121,15 @@ Realtime is enabled on `messages` only.
 - **Caches are never deleted.** If a creator deletes their account, their caches stay up (`created_by` becomes null). To take a cache down, set `is_active = false`.
 - **We don't store users' locations.** If we add a location check, it runs in the browser only and nothing gets saved (the "collect less" rule from the data ethics session).
 - **No real personal data until security is in place.** Use fake test accounts and test caches for now.
+- **The map is the home page** ("/"). The landing page is at /welcome for now.
+- **Secret codes are generated automatically:** 6 characters, uppercase, never
+  0, O, 1, I, or L. The hider can swap it with "New code" before saving;
+  after saving it's locked.
+- **Wrong codes show an inline error** under the code box, not a new screen.
+- **Difficulty is always bars + "Difficulty N"; ratings are always stars.**
+- **Map filters (All / To find / My finds) are about the logged-in user's finds.**
+  Hidden when logged out. Found caches show a checkmark.
+- **Success screens ("Cache hidden!", "Find logged!") are page states, not routes.**
 
 ## Security to-do (before real users)
 
@@ -144,3 +156,11 @@ Club sessions for reference: HS 4 AI Implementation (10/18), HS 5 API Developmen
 - Track work in GitHub Projects; plan at the start of each hack session.
 - When you change the Supabase schema, update `supabase/schema.sql` and this file.
 - Never commit `.env`.
+
+## Design
+- Each page has a phone frame (393 wide) and a desktop frame (1440 wide) in Figma.
+  Phone is the base Tailwind styles; desktop uses lg: classes.
+- Notes beside frames describe states and what changes on desktop. They are
+  instructions, not page content. Frames and their notes are grouped in sections;
+  link the section, not just the frame.
+- Colors and fonts: TBD (being set up on the Foundations page).
