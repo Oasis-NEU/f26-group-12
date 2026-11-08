@@ -87,6 +87,8 @@ The SQL copy of the schema lives at `supabase/schema.sql`. Update it whenever a 
 | username | text | unique, required |
 | avatar_url | text | optional |
 
+A profile is created automatically on signup by the `on_auth_user_created` trigger (function `handle_new_user`). It uses the `username` passed in `signUp({ options: { data: { username } } })`, or a placeholder like `user_1a2b3c4d`. The frontend never inserts profiles itself.
+
 ### `caches`
 | column | type | notes |
 |---|---|---|
@@ -107,6 +109,8 @@ The SQL copy of the schema lives at `supabase/schema.sql`. Update it whenever a 
 | hint_order | int2 | 1–3, no default |
 | hint_text | text | required |
 | is_ai_generated | bool | default false |
+
+Unique constraint `one_hint_per_order` on (`cache_id`, `hint_order`): each cache has at most one hint 1, one hint 2, and one hint 3.
 
 ### `finds` (journal, ratings, and scoring)
 | column | type | notes |
@@ -153,10 +157,11 @@ Realtime is enabled on `messages` only.
 
 ## Security to-do (before real users)
 
-- **Row Level Security (RLS) is currently OFF** on all tables, following the club's demo. This means anyone with our public key can read, edit, or delete anything. Fine for development, not for launch.
-- Before launch, turn RLS on and write policies, e.g. anyone can read caches, logged-in users can add caches, only the creator can edit their own, nobody can delete.
-- `secret_code` is currently readable by anyone through the API. Before launch, code checking needs to happen server-side (e.g. a Supabase database function) so the frontend never sees the codes.
-- Expected timing: around the club's Auth session (HS 7), and definitely before we place real caches (11/08).
+- **Row Level Security (RLS) is ON for every table** (as of 11/08). RLS means the database checks a rule ("policy") before letting the frontend read or change a row.
+  - `profiles` has policies: anyone can read profiles; users can only edit their own.
+  - `caches`, `hints`, `finds`, and `messages` have **no policies yet**, so the frontend gets back empty results (`[]`) from them. That's expected, not a bug. Policies are next: anyone can read active caches and hints, logged-in users can add caches, only the creator can edit their own, nobody can delete, and messages are only visible to their sender and receiver.
+- `secret_code` still lives in `caches`. Before real caches go out, it moves to a creator-only table, and finds are logged through a database function that checks the code, so the frontend never sees codes.
+- Deadline: all of this before we place real caches (11/22).
 
 ## Timeline (subject to change)
 
