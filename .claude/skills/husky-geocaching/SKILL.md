@@ -40,7 +40,8 @@ The repo layout and setup steps are in `README.md`.
 
 - **Never commit env files.** Credentials live in `frontend/.env.local` (copied from the committed `frontend/.env.example`). Never paste keys into code, commits, issues, or chat.
 - `VITE_`-prefixed variables are shipped to the browser and are public. Secret keys (`SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`) are only ever set with `supabase secrets set` and used in Edge Functions, never in frontend code.
-- **RLS is currently OFF** on all tables. That's fine for development, but warn about it when relevant, and don't let anyone treat the app as launch-ready until RLS policies exist.
+- **RLS is ON for every table**, but only `profiles` has policies so far. A table with RLS on and no policies returns `[]` to the frontend, which is expected, not a bug. Don't let anyone treat the app as launch-ready until every table has policies. Check `supabase/schema.sql` for the current ones.
+- **Profiles are created by a database trigger on signup**, using the `username` passed in `supabase.auth.signUp({ email, password, options: { data: { username } } })`. Frontend code never inserts into `profiles`.
 - **`secret_code` is sensitive.** Don't build UI that displays it to finders. Long-term, code checking moves to a server-side Supabase function so the frontend never sees codes. Prefer designs that move toward that.
 - **Don't store users' locations.** Any location check runs in the browser only and saves nothing.
 - **Test data only** (fake accounts, test caches) until security is in place.
