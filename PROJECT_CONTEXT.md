@@ -99,8 +99,17 @@ A profile is created automatically on signup by the `on_auth_user_created` trigg
 | difficulty | int2 | required, default 1, check 1–5 |
 | image | text | optional, photo URL |
 | is_active | bool | default true; set false instead of deleting |
-| secret_code | text | required; code hidden inside the physical cache |
 | created_by | uuid | FK → `profiles.id`, nullable, default `auth.uid()`, on delete **set null** |
+
+New caches are created only through the `create_cache` database function (see "Database functions" below), never with a direct insert.
+
+### `cache_secrets` (creator-only)
+| column | type | notes |
+|---|---|---|
+| cache_id | uuid | FK → `caches.id`, unique, on delete cascade |
+| secret_code | text | required; check: 6 characters from `A–Z` and `2–9`, never 0, O, 1, I, or L |
+
+The code hidden inside the physical cache. Only the cache's creator can read it. Finders never see it: `log_find` checks it inside the database.
 
 ### `hints`
 | column | type | notes |
@@ -133,6 +142,17 @@ Unique constraint `one_find_per_person` on (`cache_id`, `finder_id`): a person c
 
 Realtime is enabled on `messages` only.
 
+### Database functions (call with `supabase.rpc(...)`)
+All three need a logged-in user.
+
+| function | what it does | returns |
+|---|---|---|
+| `generate_secret_code()` | a fresh random code, for the "New code" button | `'K7MQ2X'` |
+| `create_cache(p_title, p_latitude, p_longitude, p_difficulty, p_description, p_location_name, p_image, p_hints, p_secret_code)` | saves the cache, up to 3 hints (array of text, blanks skipped), and its code in one step. `p_secret_code` is optional (random if left out). | `{ cache_id, secret_code }` |
+| `log_find(p_cache_id, p_secret_code, p_rating, p_journal_note, p_photo)` | checks the code, then saves the find. Codes are case-insensitive. | the new find's `id` |
+
+`log_find` errors have friendly messages you can show directly with `error.message`: wrong code, already logged ("You've already logged this cache!"), inactive cache, or trying to log a cache you hid yourself.
+
 ### Calculated, not stored
 - **Number of caches:** count rows in `caches`
 - **A user's journal / found list:** rows in `finds` for that user
@@ -155,13 +175,22 @@ Realtime is enabled on `messages` only.
   Hidden when logged out. Found caches show a checkmark.
 - **Success screens ("Cache hidden!", "Find logged!") are page states, not routes.**
 
-## Security to-do (before real users)
+## Security
 
-- **Row Level Security (RLS) is ON for every table** (as of 11/08). RLS means the database checks a rule ("policy") before letting the frontend read or change a row.
-  - `profiles` has policies: anyone can read profiles; users can only edit their own.
-  - `caches`, `hints`, `finds`, and `messages` have **no policies yet**, so the frontend gets back empty results (`[]`) from them. That's expected, not a bug. Policies are next: anyone can read active caches and hints, logged-in users can add caches, only the creator can edit their own, nobody can delete, and messages are only visible to their sender and receiver.
-- `secret_code` still lives in `caches`. Before real caches go out, it moves to a creator-only table, and finds are logged through a database function that checks the code, so the frontend never sees codes.
-- Deadline: all of this before we place real caches (11/22).
+**Row Level Security (RLS) is ON for every table.** RLS means the database checks a rule ("policy") before letting the frontend read or change a row. As of 11/15:
+
+| table | who can read | who can change |
+|---|---|---|
+| `profiles` | anyone | users edit their own; created only by the signup trigger |
+| `caches` | anyone sees active caches; creators also see their own inactive ones | add via `create_cache` only; creators edit their own; **nobody can delete** |
+| `cache_secrets` | only the cache's creator | written only by `create_cache`; locked after saving |
+| `hints` | anyone who can see the cache | the cache's creator can add, edit, remove |
+| `finds` | users see only their own | add via `log_find` only; users can edit rating / note / photo on their own |
+| `messages` | nobody yet (locked) | nobody yet |
+
+Still to do:
+- Leaderboard function (step 5), since users can't read other people's finds directly.
+- Messages policies, once messaging is built.
 
 ## Timeline (subject to change)
 
