@@ -217,4 +217,8 @@ Club sessions for reference: HS 4 AI Implementation (10/18), HS 5 API Developmen
 - Notes beside frames describe states and what changes on desktop. They are
   instructions, not page content. Frames and their notes are grouped in sections;
   link the section, not just the frame.
-- Colors and fonts: TBD (being set up on the Foundations page).
+- Colors, fonts, text styles and corners come from the Figma Foundations page and
+  live as Tailwind tokens in `frontend/src/index.css` (`@theme`). Use the token
+  classes (`bg-accent`, `text-text-secondary`, `text-title`), never raw hex or
+  pixel font sizes. Black, white and Husky red; Inter; square corners
+  (`rounded-full` only for pins and avatars).
