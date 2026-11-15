@@ -1,7 +1,7 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- It's a readable copy of what's live in Supabase. Table order and
 -- constraints may not be valid for execution.
--- Last synced with the live database: 2026-11-08.
+-- Last synced with the live database: 2026-11-15.
 
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
@@ -22,11 +22,20 @@ CREATE TABLE public.caches (
   difficulty smallint NOT NULL DEFAULT '1'::smallint,
   image text,
   is_active boolean NOT NULL DEFAULT true,
-  secret_code text NOT NULL,
   created_by uuid DEFAULT auth.uid(),
   CONSTRAINT caches_pkey PRIMARY KEY (id),
   CONSTRAINT difficulty_range CHECK (difficulty >= 1 AND difficulty <= 5),
   CONSTRAINT caches_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id) ON DELETE SET NULL
+);
+-- Secret codes, readable only by the cache's creator.
+CREATE TABLE public.cache_secrets (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  cache_id uuid NOT NULL UNIQUE,
+  secret_code text NOT NULL,
+  CONSTRAINT cache_secrets_pkey PRIMARY KEY (id),
+  CONSTRAINT secret_code_format CHECK (secret_code ~ '^[A-HJKMNP-Z2-9]{6}$'),
+  CONSTRAINT cache_secrets_cache_id_fkey FOREIGN KEY (cache_id) REFERENCES public.caches(id) ON DELETE CASCADE
 );
 CREATE TABLE public.hints (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -95,16 +104,34 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ---------------------------------------------------------------------------
--- Row Level Security (RLS)
--- RLS is ON for every table. A table with RLS on and no policies returns
--- nothing to the frontend, so caches/hints/finds/messages are blocked
--- until their policies are added (step 4 of the backend plan).
+-- Database functions the frontend calls with supabase.rpc(...).
+-- Full code: supabase/changes/2026-11-15_secret-codes-and-policies.sql
+-- create_cache and log_find are SECURITY DEFINER (run as the database owner)
+-- so they can write caches/finds and read cache_secrets for the user.
+-- All three: execute revoked from public/anon, granted to authenticated.
 -- ---------------------------------------------------------------------------
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.caches   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.hints    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.finds    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+-- public.generate_secret_code() RETURNS text
+-- public.create_cache(p_title text, p_latitude double precision,
+--   p_longitude double precision, p_difficulty smallint DEFAULT 1,
+--   p_description text DEFAULT NULL, p_location_name text DEFAULT NULL,
+--   p_image text DEFAULT NULL, p_hints text[] DEFAULT '{}',
+--   p_secret_code text DEFAULT NULL) RETURNS json  -- {cache_id, secret_code}
+-- public.log_find(p_cache_id uuid, p_secret_code text,
+--   p_rating smallint DEFAULT NULL, p_journal_note text DEFAULT NULL,
+--   p_photo text DEFAULT NULL) RETURNS bigint      -- new find id
+
+-- ---------------------------------------------------------------------------
+-- Row Level Security (RLS)
+-- RLS is ON for every table. GRANTs say which actions/columns a role may
+-- use at all; policies say which rows. Both must allow it.
+-- messages has no policies yet, so it's fully locked.
+-- ---------------------------------------------------------------------------
+ALTER TABLE public.profiles      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.caches        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cache_secrets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hints         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.finds         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages      ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Profiles are viewable by everyone"
   ON public.profiles FOR SELECT USING (true);
@@ -113,3 +140,71 @@ CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
   USING ((select auth.uid()) = id) WITH CHECK ((select auth.uid()) = id);
 -- No INSERT policy on purpose: profiles are only created by the trigger above.
+
+-- caches: anyone sees active ones; creators edit their own; no insert
+-- (use create_cache) and no delete (set is_active = false instead).
+REVOKE ALL ON public.caches FROM anon, authenticated;
+GRANT SELECT ON public.caches TO anon, authenticated;
+GRANT UPDATE (title, description, latitude, longitude, location_name, difficulty, image, is_active)
+  ON public.caches TO authenticated;
+
+CREATE POLICY "Anyone can see active caches"
+  ON public.caches FOR SELECT TO anon, authenticated
+  USING (is_active OR created_by = (select auth.uid()));
+
+CREATE POLICY "Creators can update their own caches"
+  ON public.caches FOR UPDATE TO authenticated
+  USING (created_by = (select auth.uid()))
+  WITH CHECK (created_by = (select auth.uid()));
+
+-- cache_secrets: creator-only read; written only by create_cache.
+REVOKE ALL ON public.cache_secrets FROM anon, authenticated;
+GRANT SELECT ON public.cache_secrets TO authenticated;
+
+CREATE POLICY "Creators can see their own cache's code"
+  ON public.cache_secrets FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.caches c
+    WHERE c.id = cache_secrets.cache_id AND c.created_by = (select auth.uid())
+  ));
+
+-- hints: visible with their cache; the cache's creator manages them.
+REVOKE ALL ON public.hints FROM anon, authenticated;
+GRANT SELECT ON public.hints TO anon, authenticated;
+GRANT INSERT, DELETE ON public.hints TO authenticated;
+GRANT UPDATE (hint_order, hint_text, is_ai_generated) ON public.hints TO authenticated;
+
+CREATE POLICY "Hints are visible with their cache"
+  ON public.hints FOR SELECT TO anon, authenticated
+  USING (EXISTS (SELECT 1 FROM public.caches c WHERE c.id = hints.cache_id));
+
+CREATE POLICY "Creators can add hints to their caches"
+  ON public.hints FOR INSERT TO authenticated
+  WITH CHECK (EXISTS (SELECT 1 FROM public.caches c
+    WHERE c.id = hints.cache_id AND c.created_by = (select auth.uid())));
+
+CREATE POLICY "Creators can edit hints on their caches"
+  ON public.hints FOR UPDATE TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.caches c
+    WHERE c.id = hints.cache_id AND c.created_by = (select auth.uid())))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.caches c
+    WHERE c.id = hints.cache_id AND c.created_by = (select auth.uid())));
+
+CREATE POLICY "Creators can remove hints from their caches"
+  ON public.hints FOR DELETE TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.caches c
+    WHERE c.id = hints.cache_id AND c.created_by = (select auth.uid())));
+
+-- finds: your own only; insert via log_find; edit rating/note/photo only.
+REVOKE ALL ON public.finds FROM anon, authenticated;
+GRANT SELECT ON public.finds TO authenticated;
+GRANT UPDATE (rating, journal_note, photo) ON public.finds TO authenticated;
+
+CREATE POLICY "Users can see their own finds"
+  ON public.finds FOR SELECT TO authenticated
+  USING (finder_id = (select auth.uid()));
+
+CREATE POLICY "Users can update their own finds"
+  ON public.finds FOR UPDATE TO authenticated
+  USING (finder_id = (select auth.uid()))
+  WITH CHECK (finder_id = (select auth.uid()));

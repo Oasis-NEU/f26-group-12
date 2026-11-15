@@ -40,9 +40,10 @@ The repo layout and setup steps are in `README.md`.
 
 - **Never commit env files.** Credentials live in `frontend/.env.local` (copied from the committed `frontend/.env.example`). Never paste keys into code, commits, issues, or chat.
 - `VITE_`-prefixed variables are shipped to the browser and are public. Secret keys (`SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`) are only ever set with `supabase secrets set` and used in Edge Functions, never in frontend code.
-- **RLS is ON for every table**, but only `profiles` has policies so far. A table with RLS on and no policies returns `[]` to the frontend, which is expected, not a bug. Don't let anyone treat the app as launch-ready until every table has policies. Check `supabase/schema.sql` for the current ones.
+- **RLS is ON for every table**, and every table except `messages` has policies (see `supabase/schema.sql` or the Security section of `PROJECT_CONTEXT.md`). A table with RLS on and no matching policy returns `[]` to the frontend, which is expected, not a bug.
+- **New caches go through `supabase.rpc('create_cache', ...)` and new finds through `supabase.rpc('log_find', ...)`.** Direct inserts into `caches`, `finds`, or `cache_secrets` are blocked on purpose.
 - **Profiles are created by a database trigger on signup**, using the `username` passed in `supabase.auth.signUp({ email, password, options: { data: { username } } })`. Frontend code never inserts into `profiles`.
-- **`secret_code` is sensitive.** Don't build UI that displays it to finders. Long-term, code checking moves to a server-side Supabase function so the frontend never sees codes. Prefer designs that move toward that.
+- **Secret codes live in `cache_secrets`, readable only by the cache's creator.** Only show a code to its creator (the "Cache hidden!" success screen, My Caches). Finders never see codes: `log_find` checks them inside the database.
 - **Don't store users' locations.** Any location check runs in the browser only and saves nothing.
 - **Test data only** (fake accounts, test caches) until security is in place.
 
