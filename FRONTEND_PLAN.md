@@ -35,11 +35,11 @@ File: "Husky Design". Use the Figma MCP to read these.
 
 ## Design tokens
 
-Figma variables with code syntax. Add them to the Tailwind theme using the code syntax names.
+Done: the Figma variables and text styles are in the `@theme` block of `frontend/src/index.css`, using Figma's code syntax names. If Figma changes, update that file (Figma wins).
 
-- **Colors:** `bg/page` #F3F4F1, `bg/surface` #FFFFFF, `bg/subtle` #E8EAE5, `bg/inverse` #171B18, `text/primary` #171B18, `text/secondary` #565E54, `text/on-accent` #FFFFFF, `border/subtle` #D6DAD3, `border/input` #767E73, `border/strong` #171B18, `accent` #C8102E, `accent/pressed` #A50D26, `accent/soft` #FCEBEE, `error` #A50D26, `found` #2D6A4F, `found/soft` #E3F0E8, `highlight` #F2B33D, `highlight/soft` #FDF3DC, `focus` #1D5FAF.
-- **Fonts (Google Fonts):** Bricolage Grotesque (Display, Title, Heading), Atkinson Hyperlegible Next (Body, Body Strong, Label, Small, Tag), JetBrains Mono (Code, for secret codes).
-- **Spacing:** Tailwind's scale (`space/4` = 16px = `p-4`). **Corners:** 8px buttons and inputs (`rounded-lg`), 16px cards (`rounded-2xl`), full for pills and pins.
+- **Colors:** black, white, `#F5F5F5` neutrals, `#444444` secondary text, and Husky red (`accent` #C8102E, `accent/pressed` and `error` #A50D26, `accent/soft` #FCEBEE). Classes look like `bg-bg-page`, `text-text-secondary`, `border-border-subtle`, `bg-accent`.
+- **Fonts:** Inter (Google Fonts, loaded in `index.html`). Text style classes set size, line height, weight and spacing together: `text-display`, `text-title`, `text-heading`, `text-body`, `text-body-strong`, `text-body-large`, `text-label`, `text-small`, `text-action` (buttons), `text-code` (secret codes); desktop landing adds `text-hero` and `text-section`.
+- **Spacing:** Tailwind's scale (`space/4` = 16px = `p-4`). **Corners:** square (`rounded-lg` and `rounded-2xl` are 0 on purpose); `rounded-full` only for pins and avatars. Use 1px outlines.
 
 ## Components (build in `src/components`, one file each)
 

@@ -1,3 +1,119 @@
 /* Loads Tailwind. Style components with Tailwind classes in the JSX
    (className="..."), not by adding CSS here. */
 @import "tailwindcss";
+
+/* Design tokens from the Figma "Husky Design" Foundations page.
+   Each variable below becomes Tailwind classes. The names match the code
+   syntax in Figma, so the class names match what Figma shows in Dev Mode:
+     --color-bg-page      -> bg-bg-page, text-..., border-...
+     --color-text-primary -> text-text-primary
+     --text-title         -> text-title (size, line height, weight, spacing)
+   Use these instead of raw hex colors or pixel sizes. If a value changes
+   in Figma, change it here and every page updates. */
+@theme {
+  /* Fonts: Inter everywhere (loaded in index.html). */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Colors: backgrounds */
+  --color-bg-page: #ffffff; /* page background */
+  --color-bg-surface: #ffffff; /* cards, inputs, panels */
+  --color-bg-subtle: #f5f5f5; /* locked hints, chips, hover */
+  --color-bg-inverse: #000000; /* selected chip */
+
+  /* Colors: text */
+  --color-text-primary: #000000; /* main text */
+  --color-text-secondary: #444444; /* supporting text */
+  --color-text-on-accent: #ffffff; /* text on red or black */
+
+  /* Colors: borders */
+  --color-border-subtle: #000000; /* dividers, card outlines */
+  --color-border-input: #000000; /* input borders */
+  --color-border-strong: #000000; /* secondary buttons */
+
+  /* Colors: meaning */
+  --color-accent: #c8102e; /* the one main button, unfound pin */
+  --color-accent-pressed: #a50d26; /* red accent hover/pressed */
+  --color-accent-soft: #fcebee; /* light red backgrounds */
+  --color-error: #a50d26; /* error text and borders */
+  --color-found: #000000; /* found status + checkmark */
+  --color-found-soft: #f5f5f5; /* found-state supporting surface */
+  --color-highlight: #c8102e; /* rating and selected-state emphasis */
+  --color-highlight-soft: #f5f5f5; /* points earned background */
+  --color-focus: #c8102e; /* keyboard focus ring */
+
+  /* Corners: square controls and cards; round only for pins and avatars.
+     This makes rounded-lg and rounded-2xl square on purpose, to match Figma.
+     rounded-full is unchanged. */
+  --radius-lg: 0px; /* buttons, inputs */
+  --radius-2xl: 0px; /* cards */
+
+  /* Text styles. One class sets size, line height, weight and letter spacing,
+     e.g. <h1 className="text-display lg:text-section">.
+     Phone and compact views: */
+  --text-display: 2.25rem; /* 36px */
+  --text-display--line-height: 2.5rem; /* 40px */
+  --text-display--font-weight: 800;
+  --text-display--letter-spacing: -0.5px;
+
+  --text-title: 1.5rem; /* 24px */
+  --text-title--line-height: 2rem; /* 32px */
+  --text-title--font-weight: 800;
+  --text-title--letter-spacing: -0.25px;
+
+  --text-heading: 1.25rem; /* 20px */
+  --text-heading--line-height: 1.75rem; /* 28px */
+  --text-heading--font-weight: 800;
+
+  --text-body: 1rem; /* 16px */
+  --text-body--line-height: 1.5rem; /* 24px */
+  --text-body--font-weight: 500;
+
+  --text-body-strong: 1rem; /* 16px */
+  --text-body-strong--line-height: 1.5rem; /* 24px */
+  --text-body-strong--font-weight: 700;
+
+  --text-body-large: 1.25rem; /* 20px */
+  --text-body-large--line-height: 1.875rem; /* 30px */
+  --text-body-large--font-weight: 500;
+
+  --text-label: 0.875rem; /* 14px */
+  --text-label--line-height: 1.25rem; /* 20px */
+  --text-label--font-weight: 700;
+
+  --text-small: 0.875rem; /* 14px */
+  --text-small--line-height: 1.25rem; /* 20px */
+  --text-small--font-weight: 500;
+
+  --text-action: 1.125rem; /* 18px, button text */
+  --text-action--line-height: 1.375rem; /* 22px */
+  --text-action--font-weight: 700;
+
+  --text-code: 1.25rem; /* 20px, secret codes */
+  --text-code--line-height: 1.75rem; /* 28px */
+  --text-code--font-weight: 700;
+  --text-code--letter-spacing: 3px;
+
+  /* Desktop landing page: */
+  --text-hero: 4rem; /* 64px */
+  --text-hero--line-height: 4.25rem; /* 68px */
+  --text-hero--font-weight: 800;
+
+  --text-section: 3rem; /* 48px */
+  --text-section--line-height: 3.625rem; /* 58px */
+  --text-section--font-weight: 800;
+
+  /* Spacing uses Tailwind's default scale (p-4 = 16px), which matches Figma. */
+}
+
+/* Defaults for the whole app, so pages don't repeat them. */
+@layer base {
+  body {
+    @apply bg-bg-page font-sans text-body text-text-primary;
+  }
+
+  /* A visible keyboard focus ring on every link, button and input.
+     It only shows for keyboard users (not on mouse clicks). */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-focus;
+  }
+}
