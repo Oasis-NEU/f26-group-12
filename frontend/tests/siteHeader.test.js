@@ -13,6 +13,12 @@ test('site header renders its brand, navigation, active link, and mobile menu co
   const server = await createServer({
     appType: 'custom',
     configFile: false,
+    // SiteHeader now checks who is logged in, so it needs (fake) Supabase keys.
+    define: {
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify('http://127.0.0.1:54321'),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify('test-anon-key'),
+    },
+    envDir: false,
     plugins: [react()],
     root: frontendRoot,
     server: { middlewareMode: true },
@@ -28,7 +34,9 @@ test('site header renders its brand, navigation, active link, and mobile menu co
     ),
   )
 
-  for (const label of ['HuskyCache', 'Map', 'Hide a cache', 'Journal', 'Leaderboard', 'Log in']) {
+  // "Log in" / the avatar only appear after the login check, which runs in
+  // the browser, so they aren't part of this first render.
+  for (const label of ['HuskyCache', 'Map', 'Hide a cache', 'Journal', 'Leaderboard']) {
     assert.ok(markup.includes(label), `header should include ${label}`)
   }
   assert.match(markup, /aria-current="page"/)

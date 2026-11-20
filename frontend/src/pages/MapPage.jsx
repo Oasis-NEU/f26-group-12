@@ -152,12 +152,12 @@ function MapPage() {
     zoom: 15,
   })
 
-  const visibleFilters = userId
-    ? FILTERS
-    : FILTERS.filter(({ id }) => id !== 'my-finds')
+  // Filters are only for logged-in users (per the design), so logged-out
+  // visitors always see every cache.
+  const activeFilter = userId ? filter : 'all'
   const visibleCaches = useMemo(
-    () => filterCaches(caches, search, filter, foundIds),
-    [caches, search, filter, foundIds],
+    () => filterCaches(caches, search, activeFilter, foundIds),
+    [caches, search, activeFilter, foundIds],
   )
   const selectedCache =
     visibleCaches.find((cache) => cache.id === selectedCacheId) ?? visibleCaches[0] ?? null
@@ -287,18 +287,18 @@ function MapPage() {
     setFilter(filterId)
   }
 
-  const renderFilters = (mobile = false) => (
+  const renderFilters = (mobile = false) => userId && (
     <div className={`flex gap-2 ${mobile ? 'overflow-x-auto' : ''}`} role="group" aria-label="Filter caches">
-      {visibleFilters.map(({ id, label }) => (
+      {FILTERS.map(({ id, label }) => (
         <button
           key={id}
           type="button"
-          aria-pressed={filter === id}
+          aria-pressed={activeFilter === id}
           onClick={() => selectFilter(id)}
           className={[
             'h-8 shrink-0 border px-[14px] text-[13px] font-bold leading-[18px] transition-colors',
             'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]',
-            filter === id ? 'border-black bg-black text-white' : 'border-black bg-white text-black hover:bg-[#f5f5f5]',
+            activeFilter === id ? 'border-black bg-black text-white' : 'border-black bg-white text-black hover:bg-[#f5f5f5]',
           ].join(' ')}
         >
           {label}
