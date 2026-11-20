@@ -12,10 +12,13 @@ function Layout() {
   const isLandingPage = pathname === '/welcome'
   const isMapPage = pathname === '/'
   const isCacheDetailPage = isCacheDetailPath(pathname)
+  // These pages draw their own SiteHeader, so Layout skips its old header.
+  const hasOwnHeader =
+    isLandingPage || isMapPage || isCacheDetailPage || pathname === '/my-caches'
 
   return (
     <>
-      {!isLandingPage && !isMapPage && !isCacheDetailPage && (
+      {!hasOwnHeader && (
         <header className="border-b border-[#d9d1c3] bg-[#f9f4eb]/95 backdrop-blur-sm">
           <nav className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
             <Link to="/" className="flex items-center gap-3 text-[#183126]">
@@ -56,11 +59,7 @@ function Layout() {
         </header>
       )}
 
-      <main
-        className={
-          isLandingPage || isMapPage || isCacheDetailPage ? 'bg-white' : 'bg-[#f7f0e5]'
-        }
-      >
+      <main className={hasOwnHeader ? 'bg-white' : 'bg-[#f7f0e5]'}>
         <Outlet />
       </main>
     </>
