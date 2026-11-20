@@ -47,3 +47,11 @@ test('cache detail shell matches only cache detail routes', async () => {
   assert.equal(isCacheDetailPath('/caches/cache-123/edit'), false)
   assert.equal(isCacheDetailPath('/journal'), false)
 })
+
+test('cache edit shell matches only cache edit routes', async () => {
+  const { isCacheEditPath } = await import('../src/components/layoutRoutes.js')
+  assert.equal(isCacheEditPath('/caches/cache-123/edit'), true)
+  assert.equal(isCacheEditPath('/caches/cache-123'), false)
+  assert.equal(isCacheEditPath('/caches/cache-123/log'), false)
+  assert.equal(isCacheEditPath('/caches/new'), false)
+})
