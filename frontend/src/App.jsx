@@ -13,7 +13,7 @@ import MyCachesPage from './pages/MyCachesPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 // Every page in the app and the URL it lives at.
-// All routes sit inside <Layout>, so every page gets the nav bar.
+// Most routes sit inside <Layout>, which supplies the nav bar.
 // ":cacheId" is a URL parameter: in /caches/abc123, cacheId is "abc123".
 // "Cache hidden!" and "Find logged!" are states inside AddCachePage and
 // LogFindPage, not routes of their own.
@@ -31,9 +31,10 @@ function App() {
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/my-caches" element={<MyCachesPage />} />
         <Route path="/welcome" element={<LandingPage />} />
-        {/* "*" matches any URL not listed above. */}
-        <Route path="*" element={<NotFoundPage />} />
       </Route>
+      {/* "*" matches any URL not listed above. It sits outside <Layout>
+          because the page draws its own SiteHeader. */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }
