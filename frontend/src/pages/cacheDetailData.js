@@ -14,14 +14,17 @@ export async function loadCacheDetails(supabase, cacheId) {
   return data
 }
 
-export async function loadUserFindStatus(supabase, cacheId, userId) {
+// The signed-in user's find of this cache, as { created_at }, or null if they
+// haven't found it (or aren't signed in). created_at is shown as
+// "Found by you on Oct 30".
+export async function loadUserFind(supabase, cacheId, userId) {
   if (!userId) {
-    return false
+    return null
   }
 
   const { data, error } = await supabase
     .from('finds')
-    .select('cache_id')
+    .select('created_at')
     .eq('finder_id', userId)
     .eq('cache_id', cacheId)
     .maybeSingle()
@@ -30,7 +33,27 @@ export async function loadUserFindStatus(supabase, cacheId, userId) {
     throw error
   }
 
-  return Boolean(data)
+  return data
+}
+
+// "2026-10-30T15:00:00Z" -> "Oct 30" (in the viewer's time zone).
+export function formatFoundDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+// How many hints the cache has, without downloading any hint text, so locked
+// hints stay hidden until someone asks for them.
+export async function loadHintCount(supabase, cacheId) {
+  const { count, error } = await supabase
+    .from('hints')
+    .select('hint_order', { count: 'exact', head: true })
+    .eq('cache_id', cacheId)
+
+  if (error) {
+    throw error
+  }
+
+  return count ?? 0
 }
 
 export async function loadHint(supabase, cacheId, hintOrder) {

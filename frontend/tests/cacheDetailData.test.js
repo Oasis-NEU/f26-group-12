@@ -10,8 +10,8 @@ async function getCacheDetailData() {
 function createSupabaseStub(result) {
   const calls = []
   const query = {
-    select(columns) {
-      calls.push(['select', columns])
+    select(columns, options) {
+      calls.push(options ? ['select', columns, options] : ['select', columns])
       return this
     },
     eq(column, value) {
@@ -21,6 +21,10 @@ function createSupabaseStub(result) {
     maybeSingle() {
       calls.push(['maybeSingle'])
       return Promise.resolve(result)
+    },
+    // Lets a query be awaited without maybeSingle (used by the count query).
+    then(resolve, reject) {
+      return Promise.resolve(result).then(resolve, reject)
     },
   }
 
@@ -57,29 +61,39 @@ test('cache detail query selects only safe fields', async () => {
   ])
 })
 
-test('find status is scoped to the current user and cache', async () => {
-  const { loadUserFindStatus } = await getCacheDetailData()
-  const { client, calls } = createSupabaseStub({
-    data: { cache_id: 'cache-1' },
-    error: null,
-  })
+test('find lookup is scoped to the current user and cache', async () => {
+  const { loadUserFind } = await getCacheDetailData()
+  const find = { created_at: '2026-10-30T15:00:00Z' }
+  const { client, calls } = createSupabaseStub({ data: find, error: null })
 
-  assert.equal(await loadUserFindStatus(client, 'cache-1', 'user-1'), true)
+  assert.deepEqual(await loadUserFind(client, 'cache-1', 'user-1'), find)
   assert.deepEqual(calls, [
     ['from', 'finds'],
-    ['select', 'cache_id'],
+    ['select', 'created_at'],
     ['eq', 'finder_id', 'user-1'],
     ['eq', 'cache_id', 'cache-1'],
     ['maybeSingle'],
   ])
 })
 
-test('anonymous find status skips Supabase', async () => {
-  const { loadUserFindStatus } = await getCacheDetailData()
+test('anonymous find lookup skips Supabase', async () => {
+  const { loadUserFind } = await getCacheDetailData()
   const { client, calls } = createSupabaseStub({ data: null, error: null })
 
-  assert.equal(await loadUserFindStatus(client, 'cache-1', null), false)
+  assert.equal(await loadUserFind(client, 'cache-1', null), null)
   assert.deepEqual(calls, [])
+})
+
+test('hint count asks for a count only, never hint text', async () => {
+  const { loadHintCount } = await getCacheDetailData()
+  const { client, calls } = createSupabaseStub({ count: 3, error: null })
+
+  assert.equal(await loadHintCount(client, 'cache-1'), 3)
+  assert.deepEqual(calls, [
+    ['from', 'hints'],
+    ['select', 'hint_order', { count: 'exact', head: true }],
+    ['eq', 'cache_id', 'cache-1'],
+  ])
 })
 
 test('hint query fetches only the requested order', async () => {
@@ -98,13 +112,21 @@ test('hint query fetches only the requested order', async () => {
 })
 
 test('cache, find, and hint query errors are surfaced', async () => {
-  const { loadCacheDetails, loadHint, loadUserFindStatus } = await getCacheDetailData()
+  const { loadCacheDetails, loadHint, loadHintCount, loadUserFind } = await getCacheDetailData()
   const error = new Error('read access denied')
   const cacheClient = createSupabaseStub({ data: null, error })
   const findClient = createSupabaseStub({ data: null, error })
   const hintClient = createSupabaseStub({ data: null, error })
+  const countClient = createSupabaseStub({ count: null, error })
 
   await assert.rejects(loadCacheDetails(cacheClient.client, 'cache-1'), error)
-  await assert.rejects(loadUserFindStatus(findClient.client, 'cache-1', 'user-1'), error)
+  await assert.rejects(loadUserFind(findClient.client, 'cache-1', 'user-1'), error)
   await assert.rejects(loadHint(hintClient.client, 'cache-1', 1), error)
+  await assert.rejects(loadHintCount(countClient.client, 'cache-1'), error)
+})
+
+test('found date reads like "Oct 30"', async () => {
+  const { formatFoundDate } = await getCacheDetailData()
+  // Midday UTC so the date is the same in every US time zone.
+  assert.equal(formatFoundDate('2026-10-30T16:00:00Z'), 'Oct 30')
 })
