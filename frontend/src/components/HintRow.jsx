@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { FOCUS_RING } from './focusRing.js'
 
 // One hint on a cache, from the Figma "HintRow" component.
@@ -12,8 +13,36 @@ import { FOCUS_RING } from './focusRing.js'
 // the hint is loading and it says "Revealing…".
 //
 //   <HintRow number={2} text={hint} revealed={isOpen} onReveal={() => open(2)} />
+//
+// Focus: pressing the button replaces it with the hint, so focus moves to
+// the revealed hint (and screen readers read it out). If revealing fails,
+// focus goes back to the button so the person can try again.
 
 function HintRow({ number, text, revealed = false, canReveal = true, revealing = false, onReveal, className = '' }) {
+  const revealedRef = useRef(null)
+  const buttonRef = useRef(null)
+  // True from the moment someone presses this row's button until we've moved
+  // focus. Hints shown on page load (e.g. when you've already found the
+  // cache) don't steal focus.
+  const askedRef = useRef(false)
+
+  useEffect(() => {
+    if (!askedRef.current) return
+    if (revealed) {
+      askedRef.current = false
+      revealedRef.current?.focus()
+    } else if (!revealing) {
+      // The reveal finished without a hint (it failed): back to the button.
+      askedRef.current = false
+      buttonRef.current?.focus()
+    }
+  }, [revealed, revealing])
+
+  function handleReveal() {
+    askedRef.current = true
+    onReveal?.()
+  }
+
   let action
   if (!canReveal) {
     action = `Reveal hint ${number - 1} first`
@@ -29,18 +58,24 @@ function HintRow({ number, text, revealed = false, canReveal = true, revealing =
   }
 
   return (
-    // aria-live tells screen readers to read the hint out when it appears.
-    <div aria-live="polite" className={`w-full ${className}`}>
+    <div className={`w-full ${className}`}>
       {revealed ? (
-        // contrast-more: is the Increase Contrast setting; faint edges darken.
-        <div className="flex flex-col gap-1 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 contrast-more:border-border-input">
+        // tabIndex={-1} lets us move focus here after a reveal without adding
+        // a stop to the Tab order. contrast-more: is the Increase Contrast
+        // setting; faint edges darken.
+        <div
+          ref={revealedRef}
+          tabIndex={-1}
+          className={`flex flex-col gap-1 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 contrast-more:border-border-input ${FOCUS_RING}`}
+        >
           <p className="text-small text-text-secondary">Hint {number}</p>
           <p className="text-body text-text-primary">{text}</p>
         </div>
       ) : (
         <button
+          ref={buttonRef}
           type="button"
-          onClick={onReveal}
+          onClick={handleReveal}
           disabled={!canReveal || revealing}
           // Hover darkens it one step (enabled: so a row that can't be
           // revealed yet doesn't react). With Increase Contrast on
