@@ -18,7 +18,7 @@ import { Link } from 'react-router'
 // Links can't be disabled, so `disabled` only works on real buttons.
 
 const BASE =
-  'inline-flex h-12 items-center justify-center whitespace-nowrap px-5 text-label ' +
+  'inline-flex h-12 items-center justify-center whitespace-nowrap rounded-lg px-5 text-label ' +
   // Figma's Focus state is a 2px red border. An inset outline draws the same
   // thing without changing the button's size.
   'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus'

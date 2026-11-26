@@ -28,7 +28,7 @@ function CacheCard({
 }) {
   const isInteractive = Boolean(to || onClick)
   const classes = [
-    'flex w-full flex-col gap-2 border border-border-subtle bg-bg-surface p-4 text-left',
+    'flex w-full flex-col gap-2 rounded-2xl border border-border-subtle bg-bg-surface p-4 text-left',
     // Selected is a 2px border in Figma. The inset ring adds the second pixel
     // inside the 1px border, so the card doesn't grow.
     selected ? 'ring-1 ring-inset ring-border-strong' : '',

@@ -32,7 +32,7 @@ function TextField({ label, help, error, id, className = '', ...inputProps }) {
         aria-invalid={error ? true : undefined}
         aria-describedby={message ? messageId : undefined}
         className={[
-          'h-12 w-full border border-border-input bg-bg-surface px-4 text-body text-text-primary',
+          'h-12 w-full rounded-lg border border-border-input bg-bg-surface px-4 text-body text-text-primary',
           'placeholder:text-text-secondary',
           // Figma draws Focus and Error as a 2px border. An inset outline looks
           // the same and keeps the text from shifting by a pixel.

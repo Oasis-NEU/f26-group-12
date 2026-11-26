@@ -89,7 +89,7 @@ function NavBar({ size = 'responsive', className = '' }) {
         aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={menuOpen}
         aria-controls={menuId}
-        className={`flex size-10 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 border border-border-subtle hover:bg-bg-subtle ${layout.phoneOnly}`}
+        className={`flex size-10 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-border-subtle hover:bg-bg-subtle ${layout.phoneOnly}`}
       >
         {/* Three 18 x 2 lines, as drawn in Figma. */}
         <span aria-hidden="true" className="h-0.5 w-[18px] bg-text-primary" />
