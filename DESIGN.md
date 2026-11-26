@@ -215,7 +215,7 @@ The look is confident but never official. HuskyCache is an unofficial student pr
 - Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.
 - Four meaning colors, each with one job: red (to find, the main action), green (found), gold (ratings and selection), blue (keyboard focus).
 - Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars and pill tags.
-- Flat surfaces; map pins are the only things that cast a shadow.
+- Flat surfaces; only things that float above the page cast a shadow: map pins and overlays (popups, the map card, menus).
 - Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.
 - Mobile-first, built for one-handed, outdoor use; desktop is the same system with more room.
 
@@ -306,7 +306,7 @@ Spacing follows Tailwind's 4px scale, and Figma's spacing variables are the same
 
 ## Elevation & Depth
 
-The system is flat. Depth comes from tonal layering: white surfaces on the off-white page, separated by thin gray-green borders. The one shadow token belongs to map pins, so they stand out from the map underneath.
+The system is flat. Depth comes from tonal layering: white surfaces on the off-white page, separated by thin gray-green borders. Shadows are kept for the few things that float above the page: map pins, so they stand out from the map underneath, and overlays such as popups, the map card and menus.
 
 ### Shadow Vocabulary
 - **Pin** (Figma style "Shadow / Pin"; code `shadow-pin`; `box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2)`): map pins only.
@@ -391,7 +391,7 @@ On a cache's page, its name is set like a map label: Display on phones, Section 
 - **Don't** make it look like a corporate dashboard: no dense data panels, gradient cards or enterprise styling.
 - **Don't** make it look like a kids' game: no cartoon mascots, confetti bursts or candy colors.
 - **Don't** put more than one Husky Red button on a page.
-- **Don't** add shadows to cards, buttons or fields; only map pins have one.
+- **Don't** add shadows to cards, buttons or fields; shadows are only for map pins and floating overlays (popups, the map card, menus).
 - **Don't** use Star Gold for text.
 - **Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.
 - **Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast.
