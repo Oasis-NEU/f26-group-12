@@ -47,7 +47,10 @@ export function useCacheDetail(cacheId) {
   const find = findResult.key === findKey ? findResult.find : null
   const revealed = hints.cacheId === cacheId ? hints.revealed : {}
 
-  // Load the cache and how many hints it has.
+  // Load the cache, how many hints it has, and hint 1, all at the same time.
+  // (Hint 1 used to wait for the count, which cost an extra round trip; on a
+  // phone outdoors that's a noticeable wait. Asking for a hint that doesn't
+  // exist just returns nothing.)
   useEffect(() => {
     let active = true
     const key = `${cacheId}:${retryCount}`
@@ -59,9 +62,23 @@ export function useCacheDetail(cacheId) {
         (count) => ({ count, failed: false }),
         () => ({ count: 0, failed: true }),
       ),
+      // Same for hint 1.
+      loadHint(supabase, cacheId, 1).then(
+        (hint) => ({ hint, failed: false }),
+        () => ({ hint: null, failed: true }),
+      ),
     ])
-      .then(([loadedCache, { count, failed }]) => {
-        if (active) setDetails({ key, cache: loadedCache, hintCount: count, hintCountError: failed, error: false })
+      .then(([loadedCache, { count, failed }, firstHint]) => {
+        if (!active) return
+        setDetails({ key, cache: loadedCache, hintCount: count, hintCountError: failed, error: false })
+        setHints((current) => {
+          const base = current.cacheId === cacheId ? current.revealed : {}
+          if (firstHint.failed && count > 0) {
+            return { cacheId, revealed: base, pendingOrder: null, error: 'Hints couldn’t load right now.' }
+          }
+          const revealed = firstHint.hint ? { ...base, [firstHint.hint.hint_order]: firstHint.hint.hint_text } : base
+          return { cacheId, revealed, pendingOrder: null, error: '' }
+        })
       })
       .catch(() => {
         if (active) setDetails({ key, cache: null, hintCount: 0, hintCountError: false, error: true })
@@ -89,13 +106,14 @@ export function useCacheDetail(cacheId) {
     }
   }, [cacheId, userId])
 
-  // Reveal hint 1 to start. If they've already found it, reveal every hint.
+  // If they've already found it, reveal every hint. (Hint 1 loads with the
+  // cache, above.)
   const hintCount = loading ? 0 : details.hintCount
   const revealAll = Boolean(find)
   useEffect(() => {
-    if (hintCount === 0) return
+    if (hintCount === 0 || !revealAll) return
     let active = true
-    const orders = revealAll ? Array.from({ length: hintCount }, (_, index) => index + 1) : [1]
+    const orders = Array.from({ length: hintCount }, (_, index) => index + 1)
 
     Promise.all(orders.map((order) => loadHint(supabase, cacheId, order)))
       .then((loaded) => {
