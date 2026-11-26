@@ -248,6 +248,17 @@ A quiet sage-gray field with four saturated marks, each reserved for one meaning
 - **Error** (`error`): error text, the error icon and error borders. It shares Husky Red Pressed's value, but it's a separate token so errors can change without changing the brand.
 - **Focus Blue** (`focus`): the keyboard focus ring, and nothing else.
 
+### Increase Contrast
+When someone turns on Increase Contrast (iPhone: Settings → Accessibility → Display & Text Size; code: `contrast-more:`; Figma: the Color collection's **Increase contrast** mode), faint edges darken so the page still reads in bright sun:
+- **Border Subtle** takes Border Input's value: card outlines, dividers, legend rules, revealed hint borders and empty difficulty bars.
+- **Locked hint rows** gain a Border Input outline, since their Subtle fill barely shows against the page.
+- **The hint trail's** dashes and locked rings darken to Text Secondary.
+- **Purely decorative lines,** such as the contour rings, disappear.
+
+Text, the meaning colors and the focus ring don't change; they already pass in sunlight.
+
+**The Bright Sun Rule.** Anything that carries meaning must stay readable with Increase Contrast on. Anything that's only mood is allowed to vanish.
+
 ### Named Rules
 **The One Meaning Rule.** Red, green, gold and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something "pop".
 
@@ -291,12 +302,15 @@ Each screen is designed twice in Figma: a phone frame (393px) and a desktop fram
 
 Spacing follows Tailwind's 4px scale, and Figma's spacing variables are the same steps (4, 8, 12, 16, 20, 24, 32, 48, 64). Phone layouts use a 16px side margin; the desktop nav bar uses 10% side margins (144px at 1440px). Content columns stay narrow enough to read: list pages max out around 800px and long body text around 640px. Content is left-aligned.
 
+**Detail pages** use two columns on desktop: a flexible main column, and a 400px card on the right that stays in view while the page scrolls, 48px apart. On phones the card's contents flow under the main column, and its main action moves to a bar pinned to the bottom of the screen.
+
 ## Elevation & Depth
 
 The system is flat. Depth comes from tonal layering: white surfaces on the off-white page, separated by thin gray-green borders. The one shadow token belongs to map pins, so they stand out from the map underneath.
 
 ### Shadow Vocabulary
-- **Pin** (`box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2)`): map pins only.
+- **Pin** (Figma style "Shadow / Pin"; code `shadow-pin`; `box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2)`): map pins only.
+- **Overlay** (Figma style "Shadow / Overlay"; `0 6px 20px` at 14% ink): popups, the map card and menus. *In Figma only; there's no code token yet.*
 
 ### Named Rules
 **The Flat Field Rule.** Cards, buttons and fields never cast shadows. If something needs to stand out, give it a border or a fill.
@@ -343,14 +357,23 @@ Five 7 × 14px bars, 3px apart: filled bars in Text, empty ones in Border Subtle
 Five 28px gold stars with 8px gaps, using Figma's exported star images (filled stars are Star Gold with a dark outline; empty ones are gray outlines). When picking a rating, each star is a button, and hovering with a mouse previews that rating.
 
 ### Hint Row
-- **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small. Hover darkens it to Border Subtle. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed.
-- **Revealed:** a white box with a 1px Border Subtle outline: "Hint N" in Small, then the hint in Body.
+- **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" on desktop). Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed.
+- **Revealed:** a white box with a 1px Border Subtle outline: "Hint N" in Small, then the hint in Body. Screen readers announce the hint when it appears.
 
 ### Map Pin
 - **Unfound:** a 28px Husky Red circle with a 2px white border and the pin shadow.
 - **Found:** a 28px Found Green circle with a white check (Figma's exported image).
 - **Selected:** grows to 40px with a 4px Star Gold ring.
 - **Hover:** grows to 110%, animated only when reduced motion is off.
+
+### Hint Trail
+The cache's hints drawn as a path. Each hint has a 24px marker: filled ink once revealed, an ink ring for the next one to open, and a Border Input ring for later ones. Between markers, the line is solid ink where you've been and dashed Border Input ahead. Past the last hint, the trail ends at the cache's map pin, beside "I found it" on desktop. The pin turns Found Green once you've found it, and the whole trail turns solid. On phones the pin sits alone at the end; the button stays in the bottom bar.
+
+### Contour Backdrop
+Faint topographic rings (1px Border Subtle) centred on the photo's map pin, so the cache sits at the top of a "hill" like a marked spot on a trail map. They sit behind all content and fade out with distance, so the hints and text sit on plain page. They're decoration only: no information lives in them, and they disappear with Increase Contrast.
+
+### Place Label
+On a cache's page, its name is set like a map label: Display on phones, Section on desktop. Location and difficulty sit beneath it in a legend strip between two thin Border Subtle rules.
 
 ## Do's and Don'ts
 
@@ -360,7 +383,7 @@ Five 28px gold stars with 8px gaps, using Figma's exported star images (filled s
 - **Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.
 - **Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.
 - **Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.
-- **Do** respect Increase Contrast (`contrast-more:`): hide purely decorative lines such as contours, and darken faint edges (Border Subtle) to Border Input so they still show in bright sun.
+- **Do** follow The Bright Sun Rule (see Colors → Increase Contrast).
 - **Do** use the theme tokens and text style classes instead of raw values.
 
 ### Don't:
@@ -371,3 +394,4 @@ Five 28px gold stars with 8px gaps, using Figma's exported star images (filled s
 - **Don't** add shadows to cards, buttons or fields; only map pins have one.
 - **Don't** use Star Gold for text.
 - **Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.
+- **Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast.

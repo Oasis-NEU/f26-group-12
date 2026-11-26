@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-26T05:26:23+00:00",
+  "generatedAt": "2026-11-26T05:42:44+00:00",
   "title": "Design System: HuskyCache",
   "extensions": {
     "colorMeta": {
@@ -348,7 +348,12 @@
       {
         "name": "pin",
         "value": "0 1px 3px 0 rgb(0 0 0 / 0.2)",
-        "purpose": "Map pins only, so they stand out from the map."
+        "purpose": "Map pins only, so they stand out from the map. Figma style: Shadow / Pin."
+      },
+      {
+        "name": "overlay",
+        "value": "0 6px 20px 0 rgb(23 27 24 / 0.14)",
+        "purpose": "Popups, the map card and menus. Figma style: Shadow / Overlay. In Figma only; no code token yet."
       }
     ],
     "motion": [
@@ -452,6 +457,11 @@
     ],
     "rules": [
       {
+        "name": "The Bright Sun Rule",
+        "body": "Anything that carries meaning must stay readable with Increase Contrast on. Anything that's only mood is allowed to vanish.",
+        "section": "colors"
+      },
+      {
         "name": "The One Meaning Rule",
         "body": "Red, green, gold and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something \"pop\".",
         "section": "colors"
@@ -493,7 +503,7 @@
       "**Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.",
       "**Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.",
       "**Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.",
-      "**Do** respect Increase Contrast (`contrast-more:`): hide purely decorative lines such as contours, and darken faint edges (Border Subtle) to Border Input so they still show in bright sun.",
+      "**Do** follow The Bright Sun Rule (see Colors → Increase Contrast).",
       "**Do** use the theme tokens and text style classes instead of raw values."
     ],
     "donts": [
@@ -503,7 +513,8 @@
       "**Don't** put more than one Husky Red button on a page.",
       "**Don't** add shadows to cards, buttons or fields; only map pins have one.",
       "**Don't** use Star Gold for text.",
-      "**Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes."
+      "**Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.",
+      "**Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast."
     ]
   }
 }
