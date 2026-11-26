@@ -20,13 +20,20 @@ test('difficulty meter fills one bar per level and clamps bad values', async (co
   context.after(() => server.close())
 
   const { default: DifficultyMeter } = await server.ssrLoadModule('/src/components/DifficultyMeter.jsx')
-  const render = (difficulty) => renderToStaticMarkup(createElement(DifficultyMeter, { difficulty }))
+  const render = (props) => renderToStaticMarkup(createElement(DifficultyMeter, props))
 
-  const four = render(4)
-  assert.equal(four.match(/bg-black/g).length, 4)
-  assert.equal(four.match(/bg-\[#f5f5f5\]/g).length, 1)
+  // Filled bars use text-primary, empty ones border-subtle (theme tokens).
+  const four = render({ level: 4 })
+  assert.equal(four.match(/bg-text-primary/g).length, 4)
+  assert.equal(four.match(/bg-border-subtle/g).length, 1)
   assert.match(four, /Difficulty 4/)
 
-  assert.match(render(9), /Difficulty 5/)
-  assert.match(render(null), /Difficulty 1/)
+  assert.match(render({ level: 9 }), /Difficulty 5/)
+  assert.match(render({ level: null }), /Difficulty 1/)
+
+  // The older `difficulty` prop, used by the map and cache detail pages.
+  assert.match(render({ difficulty: 3 }), /Difficulty 3/)
+
+  // Hiding the label keeps it for screen readers.
+  assert.match(render({ level: 2, showLabel: false }), /class="sr-only">Difficulty 2</)
 })

@@ -19,38 +19,40 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace; /* secret codes */
 
   /* Colors: backgrounds */
-  --color-bg-page: #ffffff; /* page background */
+  --color-bg-page: #f3f4f1; /* page background */
   --color-bg-surface: #ffffff; /* cards, inputs, panels */
-  --color-bg-subtle: #f5f5f5; /* locked hints, chips, hover */
-  --color-bg-inverse: #000000; /* selected chip */
+  --color-bg-subtle: #e8eae5; /* locked hints, chips, hover */
+  --color-bg-inverse: #171b18; /* selected chip */
 
   /* Colors: text */
-  --color-text-primary: #000000; /* main text */
-  --color-text-secondary: #444444; /* supporting text */
-  --color-text-on-accent: #ffffff; /* text on red or black */
+  --color-text-primary: #171b18; /* main text */
+  --color-text-secondary: #565e54; /* supporting text */
+  --color-text-on-accent: #ffffff; /* text on red or dark backgrounds */
 
   /* Colors: borders */
-  --color-border-subtle: #000000; /* dividers, card outlines */
-  --color-border-input: #000000; /* input borders */
-  --color-border-strong: #000000; /* secondary buttons */
+  --color-border-subtle: #d6dad3; /* dividers, card outlines */
+  --color-border-input: #767e73; /* input borders (3:1 contrast) */
+  --color-border-strong: #171b18; /* secondary buttons, selected card */
 
   /* Colors: meaning */
-  --color-accent: #c8102e; /* the one main button, unfound pin */
+  --color-accent: #c8102e; /* Husky red: the one main button, unfound pin */
   --color-accent-pressed: #a50d26; /* red accent hover/pressed */
   --color-accent-soft: #fcebee; /* light red backgrounds */
   --color-error: #a50d26; /* error text and borders */
-  --color-found: #000000; /* found status + checkmark */
-  --color-found-soft: #f5f5f5; /* found-state supporting surface */
-  --color-highlight: #c8102e; /* rating and selected-state emphasis */
-  --color-highlight-soft: #f5f5f5; /* points earned background */
-  --color-focus: #c8102e; /* keyboard focus ring */
+  --color-found: #2d6a4f; /* green: found status + checkmark */
+  --color-found-soft: #e3f0e8; /* found-state supporting surface */
+  --color-highlight: #f2b33d; /* gold: ratings and the selected pin ring */
+  --color-highlight-soft: #fdf3dc; /* points earned background */
+  --color-focus: #1d5faf; /* blue: keyboard focus ring */
 
-  /* Corners: square controls and cards; round only for pins and avatars.
-     This makes rounded-lg and rounded-2xl square on purpose, to match Figma.
-     rounded-full is unchanged. */
-  --radius-lg: 0px; /* buttons, inputs */
-  --radius-2xl: 0px; /* cards */
-  --radius-full: 9999px; /* pins and avatars only */
+  /* Corners: gently rounded controls and cards; fully round only for pins,
+     avatars and pill tags. */
+  --radius-lg: 8px; /* buttons, inputs, hint rows */
+  --radius-2xl: 16px; /* cards */
+  --radius-full: 9999px; /* pins, avatars, pill tags */
+
+  /* Shadows: only map pins have one, so they stand out from the map. */
+  --shadow-pin: 0 1px 3px 0 rgb(0 0 0 / 0.2);
 
   /* Spacing: Figma's spacing variables are Tailwind's own scale
      (calc(var(--spacing) * 4) = 16px = p-4), built on this 4px step.
@@ -104,6 +106,20 @@
   --text-code--font-weight: 700;
   --text-code--letter-spacing: 3px;
 
+  --text-tag: 0.75rem; /* 12px, small pills like "Found by you" */
+  --text-tag--line-height: 1rem; /* 16px */
+  --text-tag--font-weight: 700;
+
+  /* Brand: the HuskyCache wordmark (desktop; phones use text-heading) and
+     the "N" in the red square. */
+  --text-wordmark: 1.375rem; /* 22px */
+  --text-wordmark--line-height: 1.75rem; /* 28px */
+  --text-wordmark--font-weight: 800;
+
+  --text-brand-mark: 1.125rem; /* 18px */
+  --text-brand-mark--line-height: 1;
+  --text-brand-mark--font-weight: 800;
+
   /* Desktop landing page: */
   --text-hero: 4rem; /* 64px */
   --text-hero--line-height: 4.25rem; /* 68px */
@@ -129,6 +145,9 @@
 @utility text-small { font-family: var(--font-sans); }
 @utility text-action { font-family: var(--font-sans); }
 @utility text-code { font-family: var(--font-mono); }
+@utility text-tag { font-family: var(--font-sans); }
+@utility text-wordmark { font-family: var(--font-display); }
+@utility text-brand-mark { font-family: var(--font-display); }
 
 /* Defaults for the whole app, so pages don't repeat them. */
 @layer base {

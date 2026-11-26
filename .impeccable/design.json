@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-26T04:46:48+00:00",
+  "title": "Design System: HuskyCache",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Husky Red",
+        "canonical": "oklch(53.0% 0.207 22)",
+        "tonalRamp": [
+          "oklch(15% 0.100 22)",
+          "oklch(26% 0.130 22)",
+          "oklch(38% 0.161 22)",
+          "oklch(49% 0.192 22)",
+          "oklch(61% 0.192 22)",
+          "oklch(72% 0.161 22)",
+          "oklch(84% 0.130 22)",
+          "oklch(95% 0.100 22)"
+        ]
+      },
+      "accent-pressed": {
+        "role": "primary",
+        "displayName": "Husky Red Pressed",
+        "canonical": "oklch(46.1% 0.179 22)",
+        "tonalRamp": [
+          "oklch(15% 0.086 22)",
+          "oklch(26% 0.112 22)",
+          "oklch(38% 0.139 22)",
+          "oklch(49% 0.166 22)",
+          "oklch(61% 0.166 22)",
+          "oklch(72% 0.139 22)",
+          "oklch(84% 0.112 22)",
+          "oklch(95% 0.086 22)"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Husky Red Soft",
+        "canonical": "oklch(95.4% 0.019 5)",
+        "tonalRamp": [
+          "oklch(15% 0.009 5)",
+          "oklch(26% 0.012 5)",
+          "oklch(38% 0.015 5)",
+          "oklch(49% 0.017 5)",
+          "oklch(61% 0.017 5)",
+          "oklch(72% 0.015 5)",
+          "oklch(84% 0.012 5)",
+          "oklch(95% 0.009 5)"
+        ]
+      },
+      "found": {
+        "role": "secondary",
+        "displayName": "Found Green",
+        "canonical": "oklch(47.6% 0.078 162)",
+        "tonalRamp": [
+          "oklch(15% 0.037 162)",
+          "oklch(26% 0.049 162)",
+          "oklch(38% 0.060 162)",
+          "oklch(49% 0.072 162)",
+          "oklch(61% 0.072 162)",
+          "oklch(72% 0.060 162)",
+          "oklch(84% 0.049 162)",
+          "oklch(95% 0.037 162)"
+        ]
+      },
+      "found-soft": {
+        "role": "secondary",
+        "displayName": "Found Green Soft",
+        "canonical": "oklch(94.3% 0.017 159)",
+        "tonalRamp": [
+          "oklch(15% 0.008 159)",
+          "oklch(26% 0.011 159)",
+          "oklch(38% 0.014 159)",
+          "oklch(49% 0.016 159)",
+          "oklch(61% 0.016 159)",
+          "oklch(72% 0.014 159)",
+          "oklch(84% 0.011 159)",
+          "oklch(95% 0.008 159)"
+        ]
+      },
+      "highlight": {
+        "role": "tertiary",
+        "displayName": "Star Gold",
+        "canonical": "oklch(80.6% 0.147 79)",
+        "tonalRamp": [
+          "oklch(15% 0.071 79)",
+          "oklch(26% 0.092 79)",
+          "oklch(38% 0.114 79)",
+          "oklch(49% 0.136 79)",
+          "oklch(61% 0.136 79)",
+          "oklch(72% 0.114 79)",
+          "oklch(84% 0.092 79)",
+          "oklch(95% 0.071 79)"
+        ]
+      },
+      "highlight-soft": {
+        "role": "tertiary",
+        "displayName": "Star Gold Soft",
+        "canonical": "oklch(96.6% 0.032 87)",
+        "tonalRamp": [
+          "oklch(15% 0.015 87)",
+          "oklch(26% 0.020 87)",
+          "oklch(38% 0.025 87)",
+          "oklch(49% 0.030 87)",
+          "oklch(61% 0.030 87)",
+          "oklch(72% 0.025 87)",
+          "oklch(84% 0.020 87)",
+          "oklch(95% 0.015 87)"
+        ]
+      },
+      "bg-page": {
+        "role": "neutral",
+        "displayName": "Page",
+        "canonical": "oklch(96.6% 0.004 122)",
+        "tonalRamp": [
+          "oklch(15% 0.002 122)",
+          "oklch(26% 0.003 122)",
+          "oklch(38% 0.003 122)",
+          "oklch(49% 0.004 122)",
+          "oklch(61% 0.004 122)",
+          "oklch(72% 0.003 122)",
+          "oklch(84% 0.003 122)",
+          "oklch(95% 0.002 122)"
+        ]
+      },
+      "bg-surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "oklch(15% 0.000 90)",
+          "oklch(26% 0.000 90)",
+          "oklch(38% 0.000 90)",
+          "oklch(49% 0.000 90)",
+          "oklch(61% 0.000 90)",
+          "oklch(72% 0.000 90)",
+          "oklch(84% 0.000 90)",
+          "oklch(95% 0.000 90)"
+        ]
+      },
+      "bg-subtle": {
+        "role": "neutral",
+        "displayName": "Subtle",
+        "canonical": "oklch(93.4% 0.007 124)",
+        "tonalRamp": [
+          "oklch(15% 0.003 124)",
+          "oklch(26% 0.004 124)",
+          "oklch(38% 0.005 124)",
+          "oklch(49% 0.006 124)",
+          "oklch(61% 0.006 124)",
+          "oklch(72% 0.005 124)",
+          "oklch(84% 0.004 124)",
+          "oklch(95% 0.003 124)"
+        ]
+      },
+      "bg-inverse": {
+        "role": "neutral",
+        "displayName": "Inverse",
+        "canonical": "oklch(21.7% 0.008 153)",
+        "tonalRamp": [
+          "oklch(15% 0.004 153)",
+          "oklch(26% 0.005 153)",
+          "oklch(38% 0.007 153)",
+          "oklch(49% 0.008 153)",
+          "oklch(61% 0.008 153)",
+          "oklch(72% 0.007 153)",
+          "oklch(84% 0.005 153)",
+          "oklch(95% 0.004 153)"
+        ]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Text",
+        "canonical": "oklch(21.7% 0.008 153)",
+        "tonalRamp": [
+          "oklch(15% 0.004 153)",
+          "oklch(26% 0.005 153)",
+          "oklch(38% 0.007 153)",
+          "oklch(49% 0.008 153)",
+          "oklch(61% 0.008 153)",
+          "oklch(72% 0.007 153)",
+          "oklch(84% 0.005 153)",
+          "oklch(95% 0.004 153)"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Text Secondary",
+        "canonical": "oklch(47.2% 0.019 139)",
+        "tonalRamp": [
+          "oklch(15% 0.009 139)",
+          "oklch(26% 0.012 139)",
+          "oklch(38% 0.015 139)",
+          "oklch(49% 0.017 139)",
+          "oklch(61% 0.017 139)",
+          "oklch(72% 0.015 139)",
+          "oklch(84% 0.012 139)",
+          "oklch(95% 0.009 139)"
+        ]
+      },
+      "text-on-accent": {
+        "role": "neutral",
+        "displayName": "Text on Accent",
+        "canonical": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "oklch(15% 0.000 90)",
+          "oklch(26% 0.000 90)",
+          "oklch(38% 0.000 90)",
+          "oklch(49% 0.000 90)",
+          "oklch(61% 0.000 90)",
+          "oklch(72% 0.000 90)",
+          "oklch(84% 0.000 90)",
+          "oklch(95% 0.000 90)"
+        ]
+      },
+      "border-subtle": {
+        "role": "neutral",
+        "displayName": "Border Subtle",
+        "canonical": "oklch(88.3% 0.010 131)",
+        "tonalRamp": [
+          "oklch(15% 0.005 131)",
+          "oklch(26% 0.007 131)",
+          "oklch(38% 0.008 131)",
+          "oklch(49% 0.010 131)",
+          "oklch(61% 0.010 131)",
+          "oklch(72% 0.008 131)",
+          "oklch(84% 0.007 131)",
+          "oklch(95% 0.005 131)"
+        ]
+      },
+      "border-input": {
+        "role": "neutral",
+        "displayName": "Border Input",
+        "canonical": "oklch(58.3% 0.019 137)",
+        "tonalRamp": [
+          "oklch(15% 0.009 137)",
+          "oklch(26% 0.012 137)",
+          "oklch(38% 0.015 137)",
+          "oklch(49% 0.018 137)",
+          "oklch(61% 0.018 137)",
+          "oklch(72% 0.015 137)",
+          "oklch(84% 0.012 137)",
+          "oklch(95% 0.009 137)"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Border Strong",
+        "canonical": "oklch(21.7% 0.008 153)",
+        "tonalRamp": [
+          "oklch(15% 0.004 153)",
+          "oklch(26% 0.005 153)",
+          "oklch(38% 0.007 153)",
+          "oklch(49% 0.008 153)",
+          "oklch(61% 0.008 153)",
+          "oklch(72% 0.007 153)",
+          "oklch(84% 0.005 153)",
+          "oklch(95% 0.004 153)"
+        ]
+      },
+      "error": {
+        "role": "utility",
+        "displayName": "Error",
+        "canonical": "oklch(46.1% 0.179 22)",
+        "tonalRamp": [
+          "oklch(15% 0.086 22)",
+          "oklch(26% 0.112 22)",
+          "oklch(38% 0.139 22)",
+          "oklch(49% 0.166 22)",
+          "oklch(61% 0.166 22)",
+          "oklch(72% 0.139 22)",
+          "oklch(84% 0.112 22)",
+          "oklch(95% 0.086 22)"
+        ]
+      },
+      "focus": {
+        "role": "utility",
+        "displayName": "Focus Blue",
+        "canonical": "oklch(48.9% 0.143 256)",
+        "tonalRamp": [
+          "oklch(15% 0.069 256)",
+          "oklch(26% 0.090 256)",
+          "oklch(38% 0.111 256)",
+          "oklch(49% 0.133 256)",
+          "oklch(61% 0.133 256)",
+          "oklch(72% 0.111 256)",
+          "oklch(84% 0.090 256)",
+          "oklch(95% 0.069 256)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "hero": {
+        "displayName": "Hero",
+        "purpose": "the desktop landing page headline only."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "desktop landing page section headings."
+      },
+      "display": {
+        "displayName": "Display",
+        "purpose": "page titles on phones and compact views, such as \"Nearby caches\"."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "the name of the thing a page is about, such as a cache or place (\"Krentzman Quad\"). Card titles in lists use Body Strong instead."
+      },
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "section headings in a page, such as \"Hints\"; also the phone wordmark and phone menu links."
+      },
+      "body-large": {
+        "displayName": "Body Large",
+        "purpose": "larger reading text. No component uses it yet."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "default reading text and input text."
+      },
+      "body-strong": {
+        "displayName": "Body Strong",
+        "purpose": "emphasis in body text, card titles and the locked hint name."
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "larger button text. The Button component uses Label; no component uses Action yet."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "button text, field labels and \"Difficulty N\"."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "help text, locations, metadata and \"Tap to reveal\"."
+      },
+      "tag": {
+        "displayName": "Tag",
+        "purpose": "small pills like \"Found by you\"."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "secret codes."
+      }
+    },
+    "shadows": [
+      {
+        "name": "pin",
+        "value": "0 1px 3px 0 rgb(0 0 0 / 0.2)",
+        "purpose": "Map pins only, so they stand out from the map."
+      }
+    ],
+    "motion": [
+      {
+        "name": "pin-hover",
+        "value": "scale 150ms ease-out",
+        "purpose": "Map pin grows to 110% on hover; skipped when reduced motion is on."
+      }
+    ],
+    "focusRing": {
+      "value": "0 0 0 2px #ffffff, 0 0 0 4px var(--color-focus)",
+      "purpose": "Shared keyboard focus ring: 2px Focus Blue with a 2px white gap, keyboard only."
+    },
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action on a page, in Husky Red.",
+      "html": "<button class=\"ds-btn-primary\">I found it</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 20px; border-radius: var(--radius-lg, 8px); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; font-weight: 700; cursor: pointer; white-space: nowrap; border: none; background: var(--color-accent, #c8102e); color: var(--color-text-on-accent, #ffffff); } .ds-btn-primary:hover { background: var(--color-accent-pressed, #a50d26); } .ds-btn-primary:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-btn-primary:disabled { background: var(--color-bg-subtle, #e8eae5); color: var(--color-text-secondary, #565e54); cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Every other action: white with a dark outline.",
+      "html": "<button class=\"ds-btn-secondary\">Log in</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 20px; border-radius: var(--radius-lg, 8px); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; font-weight: 700; cursor: pointer; white-space: nowrap; background: var(--color-bg-surface, #ffffff); color: var(--color-text-primary, #171b18); border: 1px solid var(--color-border-strong, #171b18); } .ds-btn-secondary:hover { background: var(--color-bg-subtle, #e8eae5); } .ds-btn-secondary:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-btn-secondary:disabled { border-color: var(--color-border-subtle, #d6dad3); color: var(--color-text-secondary, #565e54); cursor: not-allowed; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Label above, 48px box, help or error text below.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-code\">Secret code</label><input class=\"ds-field-input\" id=\"ds-code\" placeholder=\"e.g. QDRMX4\"><p class=\"ds-field-help\">It's printed on the slip inside the cache.</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8px; width: 320px; } .ds-field-label { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; font-weight: 700; color: var(--color-text-primary, #171b18); } .ds-field-input { height: 48px; padding: 0 16px; border: 1px solid var(--color-border-input, #767e73); border-radius: var(--radius-lg, 8px); background: var(--color-bg-surface, #ffffff); color: var(--color-text-primary, #171b18); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; } .ds-field-input::placeholder { color: var(--color-text-secondary, #565e54); } .ds-field-input:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-field-help { margin: 0; font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; color: var(--color-text-secondary, #565e54); }"
+    },
+    {
+      "name": "Found Tag",
+      "kind": "chip",
+      "refersTo": "found-tag",
+      "description": "Green pill on a cache you've already found.",
+      "html": "<span class=\"ds-found-tag\"><svg width=\"11.75\" height=\"8.75001\" viewBox=\"0 0 11.75 8.75001\" fill=\"none\" aria-hidden=\"true\"><path d=\"M0.875012 4.72501L4.47501 7.87501L10.875 0.875005\" stroke=\"#2D6A4F\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>Found by you</span>",
+      "css": ".ds-found-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px 3px 8px; border-radius: 9999px; background: var(--color-found-soft, #e3f0e8); color: var(--color-found, #2d6a4f); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.75rem; line-height: 1rem; font-weight: 700; white-space: nowrap; }"
+    },
+    {
+      "name": "Cache Card",
+      "kind": "card",
+      "refersTo": "cache-card",
+      "description": "A cache in a list: title, found tag, location and difficulty.",
+      "html": "<a class=\"ds-card\" href=\"#\"><span class=\"ds-card-top\"><span class=\"ds-card-title\">Quad riddle</span><span class=\"ds-found-tag\"><svg width=\"11.75\" height=\"8.75001\" viewBox=\"0 0 11.75 8.75001\" fill=\"none\" aria-hidden=\"true\"><path d=\"M0.875012 4.72501L4.47501 7.87501L10.875 0.875005\" stroke=\"#2D6A4F\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>Found by you</span></span><span class=\"ds-card-meta\"><span class=\"ds-card-place\">Krentzman Quad</span><span class=\"ds-meter\"><span class=\"ds-meter-bars\" aria-hidden=\"true\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i></span><span class=\"ds-meter-label\">Difficulty 4</span></span></span></a>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 8px; width: 352px; padding: 16px; border: 1px solid var(--color-border-subtle, #d6dad3); border-radius: var(--radius-2xl, 16px); background: var(--color-bg-surface, #ffffff); color: inherit; text-decoration: none; } .ds-card:hover { background: var(--color-bg-subtle, #e8eae5); } .ds-card:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-card-top { display: flex; align-items: flex-start; gap: 12px; } .ds-card-title { flex: 1; font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; font-weight: 700; color: var(--color-text-primary, #171b18); } .ds-card-meta { display: flex; align-items: center; gap: 16px; } .ds-card-place { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; color: var(--color-text-secondary, #565e54); } .ds-found-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px 3px 8px; border-radius: 9999px; background: var(--color-found-soft, #e3f0e8); color: var(--color-found, #2d6a4f); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.75rem; line-height: 1rem; font-weight: 700; white-space: nowrap; } .ds-meter { display: inline-flex; align-items: center; gap: 8px; } .ds-meter-bars { display: flex; gap: 3px; } .ds-meter-bars i { display: block; width: 7px; height: 14px; background: var(--color-border-subtle, #d6dad3); } .ds-meter-bars i.on { background: var(--color-text-primary, #171b18); } .ds-meter-label { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; font-weight: 700; color: var(--color-text-primary, #171b18); }"
+    },
+    {
+      "name": "Hint Row (locked)",
+      "kind": "custom",
+      "refersTo": "hint-row-locked",
+      "description": "A hint waiting to be revealed; hints unlock in order.",
+      "html": "<button class=\"ds-hint\"><span class=\"ds-hint-name\">Hint 2</span><span class=\"ds-hint-action\">Tap to reveal</span></button>",
+      "css": ".ds-hint { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 360px; height: 48px; padding: 0 16px; border: none; border-radius: var(--radius-lg, 8px); background: var(--color-bg-subtle, #e8eae5); cursor: pointer; text-align: left; } .ds-hint:hover { background: var(--color-border-subtle, #d6dad3); } .ds-hint:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-hint-name { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; font-weight: 700; color: var(--color-text-primary, #171b18); } .ds-hint-action { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; color: var(--color-text-secondary, #565e54); }"
+    },
+    {
+      "name": "Map Pin (unfound)",
+      "kind": "custom",
+      "refersTo": "map-pin",
+      "description": "A cache you haven't found yet; grows a little on hover.",
+      "html": "<button class=\"ds-pin\" aria-label=\"Quad riddle, not found yet\"></button>",
+      "css": ".ds-pin { display: block; width: 28px; height: 28px; padding: 0; border: 2px solid var(--color-bg-surface, #ffffff); border-radius: 9999px; background: var(--color-accent, #c8102e); box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2); cursor: pointer; } .ds-pin:hover { scale: 1.1; } .ds-pin:focus-visible { outline: 2px solid transparent; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } @media (prefers-reduced-motion: no-preference) { .ds-pin { transition: scale 150ms ease-out; } }"
+    },
+    {
+      "name": "Nav Bar",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "Logged-out desktop nav bar with the brand, links and Log in.",
+      "html": "<header class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\"><span class=\"ds-nav-mark\" aria-hidden=\"true\">N</span><span class=\"ds-nav-word\">HuskyCache</span></a><nav class=\"ds-nav-links\"><a href=\"#\" aria-current=\"page\">Map</a><a href=\"#\">Hide a cache</a><a href=\"#\">Journal</a><a href=\"#\">Leaderboard</a><a class=\"ds-nav-login\" href=\"#\">Log in</a></nav></header>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 32px; background: var(--color-bg-surface, #ffffff); border-bottom: 1px solid var(--color-border-subtle, #d6dad3); } .ds-nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; } .ds-nav-mark { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--color-accent, #c8102e); color: var(--color-text-on-accent, #ffffff); font-family: var(--font-display, \"Bricolage Grotesque\", sans-serif); font-size: 1.125rem; line-height: 1; font-weight: 800; } .ds-nav-word { font-family: var(--font-display, \"Bricolage Grotesque\", sans-serif); font-size: 1.375rem; line-height: 1.75rem; font-weight: 800; color: var(--color-text-primary, #171b18); } .ds-nav-links { display: flex; align-items: center; gap: 32px; } .ds-nav-links a { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; color: var(--color-text-secondary, #565e54); text-decoration: none; border-radius: 8px; } .ds-nav-links a:hover, .ds-nav-links a[aria-current=page] { color: var(--color-text-primary, #171b18); } .ds-nav-links a[aria-current=page] { text-decoration: underline; text-underline-offset: 4px; } .ds-nav-links a:focus-visible, .ds-nav-brand:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-nav-links a.ds-nav-login { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 20px; border-radius: var(--radius-lg, 8px); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; font-weight: 700; cursor: pointer; white-space: nowrap; border: 1px solid var(--color-border-strong, #171b18); background: var(--color-bg-surface, #ffffff); color: var(--color-text-primary, #171b18); text-decoration: none; } .ds-nav-links a.ds-nav-login:hover { background: var(--color-bg-subtle, #e8eae5); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Campus Field Guide",
+    "overview": "HuskyCache looks like a pocket field guide a student takes outside: calm, paper-toned pages, bold headings that name the place, and a few strong marks that say what to do next. Husky Red marks what's still out there to find, Found Green ticks off what you've found, and Star Gold records how good it was. Everything else stays in the background so those marks read at a glance, on a phone, outdoors, in daylight.\n\nComponents are friendly and sturdy. Corners are softly rounded, borders are thin, and fills are plain. Targets are big enough to hit while walking (48px buttons, fields and hint rows; 28px stars). Type does the expressive work: Bricolage Grotesque gives headings a little character, and Atkinson Hyperlegible Next keeps everything people read and tap as legible as possible.\n\nThe look is confident but never official. HuskyCache is an unofficial student project, so it nods to campus life without borrowing a university's crests, seals or institutional layouts. It also stays away from two other directions: the dense, gradient-card look of a corporate dashboard, and the mascots, confetti and candy colors of a kids' game.",
+    "keyCharacteristics": [
+      "Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.",
+      "Four meaning colors, each with one job: red (to find, the main action), green (found), gold (ratings and selection), blue (keyboard focus).",
+      "Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars and pill tags.",
+      "Flat surfaces; map pins are the only things that cast a shadow.",
+      "Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.",
+      "Mobile-first, built for one-handed, outdoor use; desktop is the same system with more room."
+    ],
+    "rules": [
+      {
+        "name": "The One Meaning Rule",
+        "body": "Red, green, gold and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something \"pop\".",
+        "section": "colors"
+      },
+      {
+        "name": "The One Red Button Rule",
+        "body": "A page has at most one Husky Red button. Every other action is Secondary.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tokens Only Rule",
+        "body": "Use the token classes (`bg-accent`, `text-text-secondary`), never raw hex values.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Voices Rule",
+        "body": "Bricolage for headings and the brand, Atkinson for everything people read and tap, JetBrains Mono only for secret codes. Never a fourth face.",
+        "section": "typography"
+      },
+      {
+        "name": "The 16px Floor Rule",
+        "body": "Text people type is at least 16px, so phones don't zoom in.",
+        "section": "typography"
+      },
+      {
+        "name": "The Text Style Rule",
+        "body": "Each text style class sets the font, size, line height, weight and tracking together. Use the class (`text-title`), not raw pixel sizes.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Field Rule",
+        "body": "Cards, buttons and fields never cast shadows. If something needs to stand out, give it a border or a fill.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep each meaning color to its one job: Husky Red for to-find and the main action, Found Green for found, Star Gold for ratings and the selected pin, Focus Blue for keyboard focus.",
+      "**Do** show difficulty as bars plus \"Difficulty N\", and ratings as gold stars, so the two are never confused.",
+      "**Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.",
+      "**Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.",
+      "**Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.",
+      "**Do** use the theme tokens and text style classes instead of raw values."
+    ],
+    "donts": [
+      "**Don't** make it look like an official Northeastern site: no crests, seals, official-looking university layouts, or anything implying university approval.",
+      "**Don't** make it look like a corporate dashboard: no dense data panels, gradient cards or enterprise styling.",
+      "**Don't** make it look like a kids' game: no cartoon mascots, confetti bursts or candy colors.",
+      "**Don't** put more than one Husky Red button on a page.",
+      "**Don't** add shadows to cards, buttons or fields; only map pins have one.",
+      "**Don't** use Star Gold for text.",
+      "**Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes."
+    ]
+  }
+}
