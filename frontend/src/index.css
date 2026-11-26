@@ -11,8 +11,12 @@
    Use these instead of raw hex colors or pixel sizes. If a value changes
    in Figma, change it here and every page updates. */
 @theme {
-  /* Fonts: Inter everywhere (loaded in index.html). */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Fonts (loaded in index.html). Each one becomes a class:
+     font-sans, font-display, font-mono. The text styles below already pick
+     the right one, so you rarely need these classes yourself. */
+  --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif; /* body, the default */
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; /* headings */
+  --font-mono: "JetBrains Mono", ui-monospace, monospace; /* secret codes */
 
   /* Colors: backgrounds */
   --color-bg-page: #ffffff; /* page background */
@@ -46,9 +50,16 @@
      rounded-full is unchanged. */
   --radius-lg: 0px; /* buttons, inputs */
   --radius-2xl: 0px; /* cards */
+  --radius-full: 9999px; /* pins and avatars only */
 
-  /* Text styles. One class sets size, line height, weight and letter spacing,
-     e.g. <h1 className="text-display lg:text-section">.
+  /* Spacing: Figma's spacing variables are Tailwind's own scale
+     (calc(var(--spacing) * 4) = 16px = p-4), built on this 4px step.
+     It's Tailwind's default; it's written here so the link to Figma is clear. */
+  --spacing: 0.25rem; /* 4px */
+
+  /* Text styles. One class sets font, size, line height, weight and letter
+     spacing, e.g. <h1 className="text-display lg:text-section">.
+     (The font for each style is set in the @utility blocks below the theme.)
      Phone and compact views: */
   --text-display: 2.25rem; /* 36px */
   --text-display--line-height: 2.5rem; /* 40px */
@@ -57,16 +68,16 @@
 
   --text-title: 1.5rem; /* 24px */
   --text-title--line-height: 2rem; /* 32px */
-  --text-title--font-weight: 800;
+  --text-title--font-weight: 700;
   --text-title--letter-spacing: -0.25px;
 
   --text-heading: 1.25rem; /* 20px */
   --text-heading--line-height: 1.75rem; /* 28px */
-  --text-heading--font-weight: 800;
+  --text-heading--font-weight: 700;
 
   --text-body: 1rem; /* 16px */
   --text-body--line-height: 1.5rem; /* 24px */
-  --text-body--font-weight: 500;
+  --text-body--font-weight: 400;
 
   --text-body-strong: 1rem; /* 16px */
   --text-body-strong--line-height: 1.5rem; /* 24px */
@@ -74,7 +85,7 @@
 
   --text-body-large: 1.25rem; /* 20px */
   --text-body-large--line-height: 1.875rem; /* 30px */
-  --text-body-large--font-weight: 500;
+  --text-body-large--font-weight: 400;
 
   --text-label: 0.875rem; /* 14px */
   --text-label--line-height: 1.25rem; /* 20px */
@@ -82,7 +93,7 @@
 
   --text-small: 0.875rem; /* 14px */
   --text-small--line-height: 1.25rem; /* 20px */
-  --text-small--font-weight: 500;
+  --text-small--font-weight: 400;
 
   --text-action: 1.125rem; /* 18px, button text */
   --text-action--line-height: 1.375rem; /* 22px */
@@ -101,9 +112,23 @@
   --text-section: 3rem; /* 48px */
   --text-section--line-height: 3.625rem; /* 58px */
   --text-section--font-weight: 800;
-
-  /* Spacing uses Tailwind's default scale (p-4 = 16px), which matches Figma. */
 }
+
+/* The font for each text style. Tailwind's --text-* settings can't hold a
+   font, so these add it to the same class: text-title gets Bricolage
+   Grotesque on top of the size and weight above. */
+@utility text-hero { font-family: var(--font-display); }
+@utility text-section { font-family: var(--font-display); }
+@utility text-display { font-family: var(--font-display); }
+@utility text-title { font-family: var(--font-display); }
+@utility text-heading { font-family: var(--font-display); }
+@utility text-body { font-family: var(--font-sans); }
+@utility text-body-strong { font-family: var(--font-sans); }
+@utility text-body-large { font-family: var(--font-sans); }
+@utility text-label { font-family: var(--font-sans); }
+@utility text-small { font-family: var(--font-sans); }
+@utility text-action { font-family: var(--font-sans); }
+@utility text-code { font-family: var(--font-mono); }
 
 /* Defaults for the whole app, so pages don't repeat them. */
 @layer base {

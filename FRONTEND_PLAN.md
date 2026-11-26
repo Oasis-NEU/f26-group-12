@@ -38,7 +38,7 @@ File: "Husky Design". Use the Figma MCP to read these.
 Done: the Figma variables and text styles are in the `@theme` block of `frontend/src/index.css`, using Figma's code syntax names. If Figma changes, update that file (Figma wins).
 
 - **Colors:** black, white, `#F5F5F5` neutrals, `#444444` secondary text, and Husky red (`accent` #C8102E, `accent/pressed` and `error` #A50D26, `accent/soft` #FCEBEE). Classes look like `bg-bg-page`, `text-text-secondary`, `border-border-subtle`, `bg-accent`.
-- **Fonts:** Inter (Google Fonts, loaded in `index.html`). Text style classes set size, line height, weight and spacing together: `text-display`, `text-title`, `text-heading`, `text-body`, `text-body-strong`, `text-body-large`, `text-label`, `text-small`, `text-action` (buttons), `text-code` (secret codes); desktop landing adds `text-hero` and `text-section`.
+- **Fonts:** Bricolage Grotesque (headings), Atkinson Hyperlegible Next (body text and the default) and JetBrains Mono (secret codes), from Google Fonts, loaded in `index.html`. Text style classes set font, size, line height, weight and spacing together: `text-display`, `text-title`, `text-heading`, `text-body`, `text-body-strong`, `text-body-large`, `text-label`, `text-small`, `text-action` (buttons), `text-code` (secret codes); desktop landing adds `text-hero` and `text-section`.
 - **Spacing:** Tailwind's scale (`space/4` = 16px = `p-4`). **Corners:** square (`rounded-lg` and `rounded-2xl` are 0 on purpose); `rounded-full` only for pins and avatars. Use 1px outlines.
 
 ## Components (build in `src/components`, one file each)

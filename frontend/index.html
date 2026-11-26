@@ -4,13 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Inter font from Google Fonts (weights 500, 700, 800 are the ones the
-         design uses). preconnect starts the connection early so text loads faster. -->
+    <!-- Fonts from Google Fonts, matching the Figma text styles:
+           Bricolage Grotesque       -> headings (Hero, Section, Display, Title, Heading)
+           Atkinson Hyperlegible Next -> body text, labels, buttons (and the default)
+           JetBrains Mono            -> secret codes (Code)
+         Each is a variable font: one file covers every weight in the range
+         (e.g. 200..800), so font-medium, font-bold, etc. all look right.
+         Bricolage also gets its optical size axis (opsz), so big headings
+         automatically use its display-sized letter shapes.
+         preconnect starts the connection early so text loads faster. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@200..800&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=JetBrains+Mono:wght@100..800&display=swap"
     />
     <title>f26-group-12</title>
   </head>
