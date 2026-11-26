@@ -41,6 +41,9 @@ build/
 !**/.impeccable/live/config.json
 **/.impeccable-live.json
 **/.impeccable-live/
+# Saved /impeccable critique reports: kept on each machine for
+# /impeccable polish to read, not shared.
+**/.impeccable/critique/
 
 # Supabase CLI local state.
 supabase/.branches/
