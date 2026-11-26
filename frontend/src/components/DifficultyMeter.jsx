@@ -22,7 +22,7 @@ function DifficultyMeter({ level, difficulty, showLabel = true, className = '' }
         {[1, 2, 3, 4, 5].map((bar) => (
           <span
             key={bar}
-            className={`h-[14px] w-[7px] ${bar <= value ? 'bg-text-primary' : 'bg-bg-subtle'}`}
+            className={`h-[14px] w-[7px] ${bar <= value ? 'bg-text-primary' : 'bg-border-subtle'}`}
           />
         ))}
       </span>

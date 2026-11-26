@@ -22,10 +22,10 @@ test('difficulty meter fills one bar per level and clamps bad values', async (co
   const { default: DifficultyMeter } = await server.ssrLoadModule('/src/components/DifficultyMeter.jsx')
   const render = (props) => renderToStaticMarkup(createElement(DifficultyMeter, props))
 
-  // Filled bars use text-primary, empty ones bg-subtle (theme tokens).
+  // Filled bars use text-primary, empty ones border-subtle (theme tokens).
   const four = render({ level: 4 })
   assert.equal(four.match(/bg-text-primary/g).length, 4)
-  assert.equal(four.match(/bg-bg-subtle/g).length, 1)
+  assert.equal(four.match(/bg-border-subtle/g).length, 1)
   assert.match(four, /Difficulty 4/)
 
   assert.match(render({ level: 9 }), /Difficulty 5/)
