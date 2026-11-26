@@ -47,13 +47,24 @@ function HintTrail({ rows, onReveal, found, action }) {
           // phones (pin row is the pin's height), 1.125rem on desktop (3rem
           // row, 1.75rem pin centred). Everything is in rem, like the markers,
           // so the line stays centred when someone makes their text bigger.
-          const segment = next
-            ? `-bottom-5 ${next.revealed ? WALKED : AHEAD}`
-            : `-bottom-2 lg:-bottom-[1.125rem] ${found ? WALKED : AHEAD}`
+          const reach = next ? '-bottom-5' : '-bottom-2 lg:-bottom-[1.125rem]'
+          const walked = next ? next.revealed : found
+          // The 2px line sits on the centre of the 1.5rem marker.
+          const line = `absolute left-[calc(0.75rem-1px)] top-9 border-l-2 ${reach}`
           return (
             <li key={row.order} className="relative flex items-start gap-3">
-              {/* The 2px line sits on the centre of the 1.5rem marker. */}
-              <span aria-hidden="true" className={`absolute left-[calc(0.75rem-1px)] top-9 border-l-2 ${segment}`} />
+              {/* Two layers: the dashed path ahead, and on top of it the solid
+                  "walked" path, hidden by a clip until you reach the next stop.
+                  When you do, the clip opens downward (250ms, starting just after
+                  the hint appears), so the trail draws itself. Already-walked
+                  segments just show solid; with reduced motion it switches instantly. */}
+              <span aria-hidden="true" className={`${line} ${AHEAD}`} />
+              <span
+                aria-hidden="true"
+                className={`${line} ${WALKED} ${
+                  walked ? '[clip-path:inset(0)]' : '[clip-path:inset(0_0_100%_0)]'
+                } motion-safe:transition-[clip-path] motion-safe:delay-100 motion-safe:duration-250 motion-safe:ease-out`}
+              />
               {/* mt-3 centres the marker on a 48px locked row, and on the first line of a revealed one. */}
               <span aria-hidden="true" className="relative mt-3 block shrink-0">
                 <TrailMarker row={row} />

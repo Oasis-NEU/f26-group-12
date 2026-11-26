@@ -330,6 +330,7 @@ Big, friendly and plain.
 - **Secondary:** white with a 1px Border Strong outline and dark text. Hover fills with Subtle.
 - **Disabled:** Primary turns Subtle with Text Secondary; Secondary keeps white with a Border Subtle outline and Text Secondary.
 - **Focus:** the shared focus ring (2px Focus Blue, 2px white gap). Hidden for mouse clicks.
+- **Press:** an enabled button shrinks to 97% while pressed (160ms, the shared ease-out), so a tap feels heard. The shrink stays with reduced motion on; only its animation is dropped.
 - **Element:** a real `<button>`, a router link (`to`) or an `<a>` (`href`).
 
 ### Chips
@@ -357,17 +358,17 @@ Five 7 × 14px bars, 3px apart: filled bars in Text, empty ones in Border Subtle
 Five 28px gold stars with 8px gaps, using Figma's exported star images (filled stars are Star Gold with a dark outline; empty ones are gray outlines). When picking a rating, each star is a button, and hovering with a mouse previews that rating.
 
 ### Hint Row
-- **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" on desktop). Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed.
-- **Revealed:** a white box with a 1px Border Subtle outline: "Hint N" in Small, then the hint in Body. Screen readers announce the hint when it appears.
+- **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" on desktop). Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed. Pressing shrinks it to 98%.
+- **Revealed:** a white box with a 1px Border Subtle outline: "Hint N" in Small, then the hint in Body. When revealed by a tap it fades in and rises 4px (200ms, the shared ease-out), and focus moves to it, so screen readers read it. With reduced motion on it only fades. Hints already open when the page loads just appear.
 
 ### Map Pin
 - **Unfound:** a 28px Husky Red circle with a 2px white border and the pin shadow.
 - **Found:** a 28px Found Green circle with a white check (Figma's exported image).
 - **Selected:** grows to 40px with a 4px Star Gold ring.
-- **Hover:** grows to 110%, animated only when reduced motion is off.
+- **Hover:** clickable pins (a pin button, or a pin inside a map marker) grow to 110%, animated only when reduced motion is off. Decorative pins, like the one on a cache's photo or at the end of the hint trail, stay still: growing on hover promises a click.
 
 ### Hint Trail
-The cache's hints drawn as a path. Each hint has a 24px marker: filled ink once revealed, an ink ring for the next one to open, and a Border Input ring for later ones. Between markers, the line is solid ink where you've been and dashed Border Input ahead. Past the last hint, the trail ends at the cache's map pin, beside "I found it" on desktop. The pin turns Found Green once you've found it, and the whole trail turns solid. On phones the pin sits alone at the end; the button stays in the bottom bar.
+The cache's hints drawn as a path. Each hint has a 24px marker: filled ink once revealed, an ink ring for the next one to open, and a Border Input ring for later ones. Between markers, the line is solid ink where you've been and dashed Border Input ahead. Past the last hint, the trail ends at the cache's map pin, beside "I found it" on desktop. The pin turns Found Green once you've found it, and the whole trail turns solid. On phones the pin sits alone at the end; the button stays in the bottom bar. When you reveal the next hint, the solid line draws itself down to it (250ms, starting 100ms after the hint appears); with reduced motion on it switches instantly.
 
 ### Contour Backdrop
 Faint topographic rings (1px Border Subtle) centred on the photo's map pin, so the cache sits at the top of a "hill" like a marked spot on a trail map. They sit behind all content and fade out with distance, so the hints and text sit on plain page. They're decoration only: no information lives in them, and they disappear with Increase Contrast.
@@ -379,6 +380,12 @@ Faint topographic rings (1px Border Subtle) centred on the photo's map pin, so t
 ### Place Label
 On a cache's page, its name is set like a map label: Display on phones, Section on desktop. Location and difficulty sit beneath it in a legend strip between two thin Border Subtle rules.
 
+### Find Action
+The one main action on a cache's page: beside the trail's end pin on desktop, in the bottom bar on phones. It's always 48px tall.
+- **Not found yet:** the Primary "I found it" button.
+- **Found:** a Found Green Soft line with a green check, "Found by you on Oct 30".
+- **Your own cache:** a Subtle line, "You hid this cache", with an "Edit cache" link. Hiders know the code, so the page doesn't offer to log their own cache.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -389,6 +396,7 @@ On a cache's page, its name is set like a map label: Display on phones, Section 
 - **Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.
 - **Do** follow The Bright Sun Rule (see Colors → Increase Contrast).
 - **Do** use the theme tokens and text style classes instead of raw values.
+- **Do** keep motion for changes someone caused (a reveal, a press), under 300ms, on the shared ease-out (`cubic-bezier(0.23, 1, 0.32, 1)`, the theme's `ease-out`), and respect reduced motion.
 
 ### Don't:
 - **Don't** make it look like an official Northeastern site: no crests, seals, official-looking university layouts, or anything implying university approval.
@@ -399,3 +407,4 @@ On a cache's page, its name is set like a map label: Display on phones, Section 
 - **Don't** use Star Gold for text.
 - **Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.
 - **Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast.
+- **Don't** animate decoration (such as the contour rings), stagger page entrances, or give a hover effect to something that can't be clicked.
