@@ -119,7 +119,7 @@ function DevComponentsPage() {
           </State>
         </Section>
 
-        <Section title="StarRating" note="The last one is clickable: pick a rating.">
+        <Section title="StarRating" note="The last one is clickable: hover a star to preview, click to pick.">
           {[0, 1, 2, 3, 4, 5].map((value) => (
             <State key={value} name={`Value ${value}`}>
               <StarRating value={value} />
@@ -131,7 +131,7 @@ function DevComponentsPage() {
         </Section>
 
         <Section title="HintRow" note="The last group unlocks in order: reveal hint 1, then 2, then 3.">
-          <State name="Locked" wide>
+          <State name="Locked (hover me)" wide>
             <HintRow number={2} text={hints[1]} onReveal={() => {}} />
           </State>
           <State name="Locked, earlier hint still locked" wide>
@@ -190,7 +190,7 @@ function DevComponentsPage() {
           ))}
         </Section>
 
-        <Section title="MapPin" note="The last pin is a button: click it to toggle Selected.">
+        <Section title="MapPin" note="Hover any pin. The last pin is a button: click it to toggle Selected.">
           <State name="Not found">
             <MapPin />
           </State>

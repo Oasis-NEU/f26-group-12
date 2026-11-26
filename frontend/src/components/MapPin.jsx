@@ -16,6 +16,11 @@ import { FOCUS_RING } from './focusRing.js'
 // Anywhere else, pass onClick and a label and it becomes a real <button>:
 //   <MapPin onClick={select} label="Quad riddle" />
 
+// Hover grows the pin a little so you can tell which one you're pointing at
+// (the gold ring already means "selected"). It animates only when the
+// person hasn't asked their device for reduced motion.
+const HOVER = 'hover:scale-110 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out'
+
 function MapPin({ found = false, selected = false, onClick, label, className = '' }) {
   let pin
   if (found) {
@@ -52,7 +57,7 @@ function MapPin({ found = false, selected = false, onClick, label, className = '
         onClick={onClick}
         aria-label={`${label}, ${state}`}
         aria-pressed={selected}
-        className={`block cursor-pointer rounded-full ${FOCUS_RING} ${className}`}
+        className={`block cursor-pointer rounded-full ${HOVER} ${FOCUS_RING} ${className}`}
       >
         {pin}
       </button>
@@ -60,7 +65,9 @@ function MapPin({ found = false, selected = false, onClick, label, className = '
   }
 
   return (
-    <span aria-hidden="true" className={`block ${className}`}>
+    // Inside a map marker the marker is what gets clicked, but the pin still
+    // reacts to hover so it feels clickable.
+    <span aria-hidden="true" className={`block ${HOVER} ${className}`}>
       {pin}
     </span>
   )
