@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router'
 import Layout from './components/Layout.jsx'
 import AddCachePage from './pages/AddCachePage.jsx'
 import CacheDetailPage from './pages/CacheDetailPage.jsx'
+import DevComponentsPage from './pages/DevComponentsPage.jsx'
 import EditCachePage from './pages/EditCachePage.jsx'
 import JournalPage from './pages/JournalPage.jsx'
 import LandingPage from './pages/LandingPage.jsx'
@@ -32,6 +33,9 @@ function App() {
         <Route path="/my-caches" element={<MyCachesPage />} />
         <Route path="/welcome" element={<LandingPage />} />
       </Route>
+      {/* TEMPORARY: component check page. import.meta.env.DEV is true only
+          under `npm run dev`, so this route never ships to the real site. */}
+      {import.meta.env.DEV && <Route path="/dev/components" element={<DevComponentsPage />} />}
       {/* "*" matches any URL not listed above. It sits outside <Layout>
           because the page draws its own SiteHeader. */}
       <Route path="*" element={<NotFoundPage />} />
