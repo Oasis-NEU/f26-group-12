@@ -360,6 +360,7 @@ Five 28px gold stars with 8px gaps, using Figma's exported star images (filled s
 - **Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.
 - **Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.
 - **Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.
+- **Do** respect Increase Contrast (`contrast-more:`): hide purely decorative lines such as contours, and darken faint edges (Border Subtle) to Border Input so they still show in bright sun.
 - **Do** use the theme tokens and text style classes instead of raw values.
 
 ### Don't:

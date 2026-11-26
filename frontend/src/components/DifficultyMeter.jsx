@@ -22,7 +22,9 @@ function DifficultyMeter({ level, difficulty, showLabel = true, className = '' }
         {[1, 2, 3, 4, 5].map((bar) => (
           <span
             key={bar}
-            className={`h-[14px] w-[7px] ${bar <= value ? 'bg-text-primary' : 'bg-border-subtle'}`}
+            // Empty bars darken with Increase Contrast on (contrast-more:), so
+            // the level still reads in bright light.
+            className={`h-[14px] w-[7px] ${bar <= value ? 'bg-text-primary' : 'bg-border-subtle contrast-more:bg-border-input'}`}
           />
         ))}
       </span>
