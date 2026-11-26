@@ -3,11 +3,8 @@
 
 export const MAX_HINTS = 3
 
-// secret_code is included on purpose: only the person who hid the cache
-// reaches this page, and they need the code to check their slip. It is shown
-// read-only and never sent back in an update.
 const EDIT_CACHE_COLUMNS =
-  'id,title,description,location_name,difficulty,image,latitude,longitude,is_active,secret_code,created_by'
+  'id,title,description,location_name,difficulty,image,latitude,longitude,is_active,created_by'
 
 export async function loadCacheForEdit(supabase, cacheId) {
   const { data: cache, error } = await supabase
@@ -33,7 +30,23 @@ export async function loadCacheForEdit(supabase, cacheId) {
     throw hintsError
   }
 
-  return { cache, hints: (hints ?? []).map(({ hint_text: text }) => text) }
+  // The secret code lives in its own table. RLS only returns the row to the
+  // person who hid the cache, so anyone else just gets null here. It is shown
+  // read-only on the page and never sent back in an update.
+  const { data: secret, error: secretError } = await supabase
+    .from('cache_secrets')
+    .select('secret_code')
+    .eq('cache_id', cacheId)
+    .maybeSingle()
+
+  if (secretError) {
+    throw secretError
+  }
+
+  return {
+    cache: { ...cache, secret_code: secret?.secret_code ?? null },
+    hints: (hints ?? []).map(({ hint_text: text }) => text),
+  }
 }
 
 // Turns what's in the form into the row we save. Returns { errors } when

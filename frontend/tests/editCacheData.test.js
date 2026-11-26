@@ -46,17 +46,35 @@ const validForm = {
   hints: ['Follow the path along the water.', '  ', 'Look low.'],
 }
 
-test('loadCacheForEdit returns the cache and its hint texts in order', async () => {
+test('loadCacheForEdit returns the cache, its secret code, and its hint texts in order', async () => {
   const { calls, client } = createSupabaseStub([
     { data: { id: 'c1', title: 'fens fox' }, error: null },
     { data: [{ hint_order: 1, hint_text: 'A' }, { hint_order: 2, hint_text: 'B' }], error: null },
+    { data: { secret_code: 'ABC234' }, error: null },
   ])
 
   const result = await loadCacheForEdit(client, 'c1')
 
-  assert.deepEqual(result, { cache: { id: 'c1', title: 'fens fox' }, hints: ['A', 'B'] })
+  assert.deepEqual(result, {
+    cache: { id: 'c1', title: 'fens fox', secret_code: 'ABC234' },
+    hints: ['A', 'B'],
+  })
   assert.deepEqual(calls[0], ['from', 'caches'])
+  assert.ok(!calls[1][1].includes('secret_code'), 'caches no longer has a secret_code column')
+  assert.ok(calls.some((call) => call[0] === 'from' && call[1] === 'cache_secrets'))
   assert.ok(calls.some((call) => call[0] === 'order' && call[1] === 'hint_order'))
+})
+
+test('loadCacheForEdit gives a null secret code when RLS hides it', async () => {
+  const { client } = createSupabaseStub([
+    { data: { id: 'c1', title: 'fens fox' }, error: null },
+    { data: [], error: null },
+    { data: null, error: null },
+  ])
+
+  const result = await loadCacheForEdit(client, 'c1')
+
+  assert.equal(result.cache.secret_code, null)
 })
 
 test('loadCacheForEdit returns null for a cache that does not exist', async () => {
