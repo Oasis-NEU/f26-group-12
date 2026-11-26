@@ -52,6 +52,9 @@
   --radius-2xl: 0px; /* cards */
   --radius-full: 9999px; /* pins and avatars only */
 
+  /* Shadows: only map pins have one, so they stand out from the map. */
+  --shadow-pin: 0 1px 3px 0 rgb(0 0 0 / 0.2);
+
   /* Spacing: Figma's spacing variables are Tailwind's own scale
      (calc(var(--spacing) * 4) = 16px = p-4), built on this 4px step.
      It's Tailwind's default; it's written here so the link to Figma is clear. */
