@@ -1,55 +1,69 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
+import { isCacheDetailPath, isCacheEditPath } from './layoutRoutes.js'
 
-// Nav links are underlined, and the link for the page you're on is bold.
-// NavLink passes { isActive } to className so we can style the open page.
 function navLinkClass({ isActive }) {
-  return isActive ? 'font-bold underline' : 'underline'
+  return isActive
+    ? 'rounded-full bg-[#1f3b32] px-3 py-1.5 text-sm font-medium text-[#f9f4eb]'
+    : 'rounded-full border border-[#d9d1c3] px-3 py-1.5 text-sm font-medium text-[#224034] transition hover:border-[#224034] hover:bg-[#efe8dc]'
 }
 
-// The frame shared by every page: the nav bar on top, then the current page.
-// <Outlet /> is the spot where React Router draws whichever page matches the URL.
 function Layout() {
+  const pathname = useLocation().pathname
+  const isLandingPage = pathname === '/welcome'
+  const isMapPage = pathname === '/'
+  const isCacheDetailPage = isCacheDetailPath(pathname)
+  // These pages draw their own SiteHeader, so Layout skips its old header.
+  const hasOwnHeader =
+    isLandingPage ||
+    isMapPage ||
+    isCacheDetailPage ||
+    isCacheEditPath(pathname) ||
+    pathname === '/my-caches'
+
   return (
     <>
-      <header className="border-b p-4">
-        <nav className="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <Link to="/" className="font-bold">
-            HuskyCache
-          </Link>
-          {/* NavLink is a Link that knows when its page is open (it adds
-              aria-current="page"). "end" stops Map from looking open on every
-              page, since every URL starts with "/". */}
-          <ul className="flex flex-wrap gap-x-4 gap-y-2">
-            <li>
-              <NavLink to="/" end className={navLinkClass}>
-                Map
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/caches/new" className={navLinkClass}>
-                Hide a cache
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/journal" className={navLinkClass}>
-                Journal
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/leaderboard" className={navLinkClass}>
-                Leaderboard
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/login" className={navLinkClass}>
-                Log in
-              </NavLink>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      {!hasOwnHeader && (
+        <header className="border-b border-[#d9d1c3] bg-[#f9f4eb]/95 backdrop-blur-sm">
+          <nav className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+            <Link to="/" className="flex items-center gap-3 text-[#183126]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#254b40] text-sm font-bold text-[#f9f4eb]">
+                H
+              </div>
+              <span className="text-lg font-semibold tracking-tight">HuskyCache</span>
+            </Link>
 
-      <main className="p-4">
+            <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <li>
+                <NavLink to="/" end className={navLinkClass}>
+                  Map
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/caches/new" className={navLinkClass}>
+                  Hide a cache
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/journal" className={navLinkClass}>
+                  Journal
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/leaderboard" className={navLinkClass}>
+                  Leaderboard
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/login" className={navLinkClass}>
+                  Log in
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+        </header>
+      )}
+
+      <main className={hasOwnHeader ? 'bg-white' : 'bg-[#f7f0e5]'}>
         <Outlet />
       </main>
     </>
