@@ -7,7 +7,8 @@ import { Link } from 'react-router'
 //   State: Disabled            -> disabled
 //   State: Hover / Focus       -> hover: and focus-visible: classes (automatic)
 //
-// Use Primary for the one main action on a page; everything else is Secondary.
+// Use Primary (Husky red) for the one main action on a page; everything else
+// is Secondary.
 // Width hugs the label; pass fullWidth for full-width phone buttons.
 //
 // It renders the right element for the job:
@@ -24,7 +25,7 @@ const BASE =
 
 const VARIANTS = {
   primary: {
-    enabled: 'bg-bg-inverse text-text-on-accent hover:bg-text-secondary',
+    enabled: 'bg-accent text-text-on-accent hover:bg-accent-pressed',
     disabled: 'cursor-not-allowed bg-bg-subtle text-text-secondary',
   },
   secondary: {
