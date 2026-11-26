@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-26T05:54:48+00:00",
+  "generatedAt": "2026-11-26T05:55:59+00:00",
   "title": "Design System: HuskyCache",
   "extensions": {
     "colorMeta": {
@@ -353,7 +353,7 @@
       {
         "name": "overlay",
         "value": "0 6px 20px 0 rgb(23 27 24 / 0.14)",
-        "purpose": "Popups, the map card and menus. Figma style: Shadow / Overlay. In Figma only; no code token yet."
+        "purpose": "Popups, the map card and menus. Figma style: Shadow / Overlay; code token shadow-overlay."
       }
     ],
     "motion": [

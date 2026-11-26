@@ -310,7 +310,7 @@ The system is flat. Depth comes from tonal layering: white surfaces on the off-w
 
 ### Shadow Vocabulary
 - **Pin** (Figma style "Shadow / Pin"; code `shadow-pin`; `box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2)`): map pins only.
-- **Overlay** (Figma style "Shadow / Overlay"; `0 6px 20px` at 14% ink): popups, the map card and menus. *In Figma only; there's no code token yet.*
+- **Overlay** (Figma style "Shadow / Overlay"; code `shadow-overlay`; `box-shadow: 0 6px 20px 0 rgb(23 27 24 / 0.14)`): popups, the map card and menus, such as the account menu.
 
 ### Named Rules
 **The Flat Field Rule.** Cards, buttons and fields never cast shadows. If something needs to stand out, give it a border or a fill.

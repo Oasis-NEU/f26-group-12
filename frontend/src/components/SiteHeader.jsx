@@ -3,6 +3,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router'
 import { supabase } from '../lib/supabaseClient.js'
 import { formatPoints, getInitials, loadAccountSummary } from './accountData.js'
+import Button from './Button.jsx'
+import { FOCUS_RING } from './focusRing.js'
+
+// The bar at the top of most pages, with the logged-in account menu.
+// It follows DESIGN.md's Navigation section (the Figma NavBar) using the
+// theme tokens; NavBar.jsx is the logged-out-only version. Once NavBar gets
+// the account menu (menus branch), pages can switch to it.
 
 const NAV_LINKS = [
   { label: 'Map', to: '/' },
@@ -10,9 +17,6 @@ const NAV_LINKS = [
   { label: 'Journal', to: '/journal' },
   { label: 'Leaderboard', to: '/leaderboard' },
 ]
-
-const FOCUS_RING =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]'
 
 // Who is logged in, plus their username and points for the menus.
 // Returns undefined while checking, null when logged out, otherwise
@@ -66,13 +70,22 @@ function Avatar({ username, size }) {
   return (
     <span
       aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-full bg-[#f5f5f5] font-bold text-black ${
-        size === 'large' ? 'size-10 text-[14px] leading-5' : 'size-9 text-[13px] leading-[18px]'
+      className={`flex shrink-0 items-center justify-center rounded-full bg-bg-subtle text-label text-text-primary ${
+        size === 'large' ? 'size-10' : 'size-9'
       }`}
     >
       {username ? getInitials(username) : ''}
     </span>
   )
+}
+
+// Same look as NavBar: Body text in Text Secondary; the current page is
+// darker and underlined.
+function navLinkClass({ isActive }) {
+  return [
+    `whitespace-nowrap rounded-lg py-2 text-body hover:text-text-primary ${FOCUS_RING}`,
+    isActive ? 'text-text-primary underline underline-offset-4' : 'text-text-secondary',
+  ].join(' ')
 }
 
 function DesktopNavLinks() {
@@ -81,17 +94,7 @@ function DesktopNavLinks() {
       <ul className="flex items-center gap-8">
         {NAV_LINKS.map(({ label, to }) => (
           <li key={to}>
-            <NavLink
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                [
-                  'py-2 text-[15px] transition-colors',
-                  FOCUS_RING,
-                  isActive ? 'font-bold text-black' : 'font-medium text-[#444] hover:text-black',
-                ].join(' ')
-              }
-            >
+            <NavLink to={to} end={to === '/'} className={navLinkClass}>
               {label}
             </NavLink>
           </li>
@@ -123,7 +126,7 @@ function AccountMenu({ account, onLogOut }) {
     }
   }, [open])
 
-  const itemClass = `flex h-10 w-full items-center px-3 text-left text-[14px] font-medium leading-5 text-black hover:bg-[#f5f5f5] ${FOCUS_RING}`
+  const itemClass = `flex h-10 w-full cursor-pointer items-center rounded-lg px-3 text-left text-body text-text-primary hover:bg-bg-subtle ${FOCUS_RING}`
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -133,22 +136,20 @@ function AccountMenu({ account, onLogOut }) {
         aria-label="Account menu"
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex rounded-full ${FOCUS_RING}`}
+        className={`flex cursor-pointer rounded-full ${FOCUS_RING}`}
       >
         <Avatar username={account.username} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-[14px] flex w-[260px] flex-col border border-black bg-white p-2 shadow-[0_6px_20px_rgba(0,0,0,0.12)]">
+        // A floating menu, so it gets the overlay shadow (DESIGN.md: only
+        // things that float above the page cast one).
+        <div className="absolute right-0 top-full z-40 mt-[14px] flex w-[260px] flex-col rounded-2xl border border-border-subtle bg-bg-surface p-2 shadow-overlay contrast-more:border-border-input">
           <div className="flex flex-col gap-0.5 px-3 py-2.5">
-            <p className="truncate text-[14px] font-bold leading-5">{account.username}</p>
-            {account.points !== null && (
-              <p className="text-[12px] font-medium leading-[17px] text-[#444]">
-                {formatPoints(account.points)}
-              </p>
-            )}
+            <p className="truncate text-label text-text-primary">{account.username}</p>
+            {account.points !== null && <p className="text-small text-text-secondary">{formatPoints(account.points)}</p>}
           </div>
-          <div className="h-px w-full bg-[#f5f5f5]" />
+          <div className="h-px w-full bg-border-subtle contrast-more:bg-border-input" />
           <Link to="/my-caches" onClick={() => setOpen(false)} className={itemClass}>
             My caches
           </Link>
@@ -163,10 +164,10 @@ function AccountMenu({ account, onLogOut }) {
 
 // Phones: full-screen menu under the header with the same links.
 function MobileMenu({ account, onNavigate, onLogOut }) {
-  const smallItem = `flex h-[52px] w-full items-center px-1 text-left text-[16px] font-medium leading-[22px] text-black ${FOCUS_RING}`
+  const smallItem = `flex h-[52px] w-full cursor-pointer items-center rounded-lg px-1 text-left text-body text-text-primary ${FOCUS_RING}`
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-14 z-40 overflow-y-auto bg-white p-4 md:hidden">
+    <div className="fixed inset-x-0 bottom-0 top-14 z-40 overflow-y-auto bg-bg-surface p-4 md:hidden">
       <nav aria-label="Main navigation" className="flex flex-col gap-1">
         {NAV_LINKS.map(({ label, to }) => (
           <NavLink
@@ -174,24 +175,26 @@ function MobileMenu({ account, onNavigate, onLogOut }) {
             to={to}
             end={to === '/'}
             onClick={onNavigate}
-            className={`flex h-[52px] items-center px-1 text-[20px] font-extrabold leading-7 text-black ${FOCUS_RING}`}
+            className={({ isActive }) =>
+              `flex h-[52px] items-center rounded-lg px-1 text-heading text-text-primary ${FOCUS_RING} ${
+                isActive ? 'underline underline-offset-4' : ''
+              }`
+            }
           >
             {label}
           </NavLink>
         ))}
 
-        <div className="h-px w-full bg-[#f5f5f5]" />
+        <div className="h-px w-full bg-border-subtle contrast-more:bg-border-input" />
 
         {account ? (
           <>
             <div className="flex items-center gap-3 px-1 pb-2 pt-4">
               <Avatar username={account.username} size="large" />
               <div className="flex min-w-0 flex-1 flex-col">
-                <p className="truncate text-[15px] font-bold leading-[21px]">{account.username}</p>
+                <p className="truncate text-body-strong text-text-primary">{account.username}</p>
                 {account.points !== null && (
-                  <p className="text-[13px] font-medium leading-[18px] text-[#444]">
-                    {formatPoints(account.points)}
-                  </p>
+                  <p className="text-small text-text-secondary">{formatPoints(account.points)}</p>
                 )}
               </div>
             </div>
@@ -224,12 +227,15 @@ function SiteHeader() {
   }
 
   return (
-    <header className="relative z-30 flex h-14 shrink-0 items-center justify-between border-b border-black bg-white px-4 md:h-16 md:px-[10%]">
-      <Link to="/" className="flex items-center gap-3" aria-label="HuskyCache home">
-        <span className="flex size-8 items-center justify-center bg-[#c8102e] text-[18px] font-extrabold leading-none text-white">
+    <header className="relative z-30 flex h-14 shrink-0 items-center justify-between border-b border-border-subtle bg-bg-surface px-4 contrast-more:border-border-input md:h-16 md:px-[10%]">
+      <Link to="/" className={`flex items-center gap-3 rounded-lg ${FOCUS_RING}`} aria-label="HuskyCache home">
+        <span
+          aria-hidden="true"
+          className="flex size-8 items-center justify-center bg-accent text-brand-mark text-text-on-accent"
+        >
           N
         </span>
-        <span className="text-[18px] font-extrabold leading-[25px] md:text-[20px] md:leading-7">
+        <span aria-hidden="true" className="whitespace-nowrap text-heading text-text-primary md:text-wordmark">
           HuskyCache
         </span>
       </Link>
@@ -242,12 +248,9 @@ function SiteHeader() {
         ) : account ? (
           <AccountMenu account={account} onLogOut={handleLogOut} />
         ) : (
-          <Link
-            to="/login"
-            className={`flex h-10 items-center justify-center border border-black px-5 text-[15px] font-bold hover:bg-[#f5f5f5] ${FOCUS_RING}`}
-          >
+          <Button variant="secondary" to="/login">
             Log in
-          </Link>
+          </Button>
         )}
       </div>
 
@@ -256,7 +259,7 @@ function SiteHeader() {
         onClick={() => setMenuOpen((open) => !open)}
         aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={menuOpen}
-        className="flex size-10 flex-col items-center justify-center gap-1 border border-black md:hidden"
+        className={`flex size-10 cursor-pointer items-center justify-center rounded-lg border border-border-subtle text-text-primary hover:bg-bg-subtle contrast-more:border-border-input md:hidden ${FOCUS_RING}`}
       >
         {menuOpen ? <X aria-hidden="true" size={20} /> : <Menu aria-hidden="true" size={20} />}
       </button>
