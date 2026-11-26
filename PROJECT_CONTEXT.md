@@ -220,7 +220,8 @@ Club sessions for reference: HS 4 AI Implementation (10/18), HS 5 API Developmen
 - Colors, fonts, text styles and corners come from the Figma Foundations page and
   live as Tailwind tokens in `frontend/src/index.css` (`@theme`). Use the token
   classes (`bg-accent`, `text-text-secondary`, `text-title`), never raw hex or
-  pixel font sizes. Black, white and Husky red; Bricolage Grotesque for
-  headings, Atkinson Hyperlegible Next for body text, JetBrains Mono for secret
-  codes; square corners
-  (`rounded-full` only for pins and avatars).
+  pixel font sizes. Husky red accent on soft greens and grays, green for found,
+  gold for ratings and the selected pin, blue for keyboard focus; Bricolage
+  Grotesque for headings, Atkinson Hyperlegible Next for body text, JetBrains
+  Mono for secret codes; 8px corners on controls, 16px on cards
+  (`rounded-full` only for pins, avatars and pill tags).

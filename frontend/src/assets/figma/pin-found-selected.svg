@@ -1,7 +1,7 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="54" height="54" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="MapPin" filter="url(#filter0_d_0_6)">
-<path d="M7 26C7 14.9543 15.9543 6 27 6V6C38.0457 6 47 14.9543 47 26V26C47 37.0457 38.0457 46 27 46V46C15.9543 46 7 37.0457 7 26V26Z" fill="black"/>
-<path d="M27 4C39.1503 4 49 13.8497 49 26C49 38.1503 39.1503 48 27 48C14.8497 48 5 38.1503 5 26C5 13.8497 14.8497 4 27 4Z" stroke="#C8102E" stroke-width="4"/>
+<path d="M7 26C7 14.9543 15.9543 6 27 6V6C38.0457 6 47 14.9543 47 26V26C47 37.0457 38.0457 46 27 46V46C15.9543 46 7 37.0457 7 26V26Z" fill="#2D6A4F"/>
+<path d="M27 4C39.1503 4 49 13.8497 49 26C49 38.1503 39.1503 48 27 48C14.8497 48 5 38.1503 5 26C5 13.8497 14.8497 4 27 4Z" stroke="#F2B33D" stroke-width="4"/>
 <path id="Check" d="M18.6 26.6L24.648 32L35.4 20" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
 </g>
 <defs>
