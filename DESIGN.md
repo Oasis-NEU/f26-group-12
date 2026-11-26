@@ -407,4 +407,4 @@ The one main action on a cache's page: beside the trail's end pin on desktop, in
 - **Don't** use Star Gold for text.
 - **Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.
 - **Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast.
-- **Don't** animate decoration (such as the contour rings), stagger page entrances, or give a hover effect to something that can't be clicked.
+- **Don't** animate decoration (such as the contour rings), stagger page entrances, smooth-scroll when focus moves, or give a hover effect to something that can't be clicked. Save celebrations for the moment they happen (the "Find logged!" screen), not for states seen later, like "Found by you".
