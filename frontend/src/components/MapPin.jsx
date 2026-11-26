@@ -25,18 +25,25 @@ function MapPin({ found = false, selected = false, onClick, label, className = '
   let pin
   if (found) {
     // The SVGs include the shadow, so they're bigger than the pin and hang
-    // over its edges by the same amounts as in Figma.
+    // over its edges by the same amounts as in Figma. The outer box is in
+    // rem, and the inner span stretches past it by percentages, so the
+    // artwork grows with the pin when someone makes their text bigger
+    // (as in Figma's own export: a positioned box, image filling it).
     pin = (
       <span className={`relative block ${selected ? 'size-10' : 'size-7'}`}>
-        <img
-          src={selected ? pinFoundSelected : pinFound}
-          width={selected ? 54 : 38}
-          height={selected ? 54 : 38}
-          alt=""
-          className={`absolute block max-w-none ${
+        <span
+          className={`absolute block ${
             selected ? 'inset-[-15%_-17.5%_-20%_-17.5%]' : 'inset-[-14.29%_-17.86%_-21.43%_-17.86%]'
           }`}
-        />
+        >
+          <img
+            src={selected ? pinFoundSelected : pinFound}
+            width={selected ? 54 : 38}
+            height={selected ? 54 : 38}
+            alt=""
+            className="block size-full max-w-none"
+          />
+        </span>
       </span>
     )
   } else {

@@ -56,7 +56,8 @@ export function CachePhoto({
 }
 
 export function CacheTitle({ cache, className = 'text-title lg:text-display' }) {
-  return <h1 className={`text-text-primary ${className}`}>{cache.title}</h1>
+  // wrap-break-word lets a very long word (no spaces) break instead of running off a phone screen.
+  return <h1 className={`wrap-break-word text-text-primary ${className}`}>{cache.title}</h1>
 }
 
 // Location and difficulty. Phones spread them across the row; desktop
@@ -64,7 +65,9 @@ export function CacheTitle({ cache, className = 'text-title lg:text-display' }) 
 export function MetaRow({ cache, className = '' }) {
   return (
     <div className={`flex items-center justify-between gap-4 lg:justify-start lg:gap-6 ${className}`}>
-      {cache.location_name && <p className="text-small text-text-secondary lg:text-body">{cache.location_name}</p>}
+      {cache.location_name && (
+        <p className="min-w-0 wrap-anywhere text-small text-text-secondary lg:text-body">{cache.location_name}</p>
+      )}
       <DifficultyMeter level={cache.difficulty} />
     </div>
   )
@@ -72,7 +75,7 @@ export function MetaRow({ cache, className = '' }) {
 
 export function Description({ cache }) {
   if (!cache.description) return null
-  return <p className="whitespace-pre-line text-body text-text-primary lg:max-w-[640px]">{cache.description}</p>
+  return <p className="whitespace-pre-line wrap-break-word text-body text-text-primary lg:max-w-[640px]">{cache.description}</p>
 }
 
 export function HintsHeader({ detail }) {

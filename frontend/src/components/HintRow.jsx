@@ -69,7 +69,7 @@ function HintRow({ number, text, revealed = false, canReveal = true, revealing =
           className={`flex flex-col gap-1 rounded-lg border border-border-subtle bg-bg-surface px-4 py-3 contrast-more:border-border-input ${FOCUS_RING}`}
         >
           <p className="text-small text-text-secondary">Hint {number}</p>
-          <p className="text-body text-text-primary">{text}</p>
+          <p className="wrap-break-word text-body text-text-primary">{text}</p>
         </div>
       ) : (
         <button
