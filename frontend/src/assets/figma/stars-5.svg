@@ -1,0 +1,46 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="172" height="28" viewBox="0 0 172 28" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="StarRating">
+<g id="Star 1">
+<use xlink:href="#stroke0_0_10" fill="#C8102E"/>
+<mask id="stroke1_0_10" fill="white">
+<use xlink:href="#stroke0_0_10"/>
+</mask>
+<path d="M14 0L17.703 8.90319L27.3148 9.67376L19.9917 15.9468L22.229 25.3262L14 20.3L5.77101 25.3262L8.00834 15.9468L0.685208 9.67376L10.297 8.90319L14 0Z" stroke-width="2.5" stroke-linejoin="round" stroke="black" mask="url(#stroke1_0_10)"/>
+</g>
+<g id="Star 2">
+<use xlink:href="#stroke2_0_10" fill="#C8102E"/>
+<mask id="stroke3_0_10" fill="white">
+<use xlink:href="#stroke2_0_10"/>
+</mask>
+<path d="M50 0L53.703 8.90319L63.3148 9.67376L55.9917 15.9468L58.229 25.3262L50 20.3L41.771 25.3262L44.0083 15.9468L36.6852 9.67376L46.297 8.90319L50 0Z" stroke-width="2.5" stroke-linejoin="round" stroke="black" mask="url(#stroke3_0_10)"/>
+</g>
+<g id="Star 3">
+<use xlink:href="#stroke4_0_10" fill="#C8102E"/>
+<mask id="stroke5_0_10" fill="white">
+<use xlink:href="#stroke4_0_10"/>
+</mask>
+<path d="M86 0L89.703 8.90319L99.3148 9.67376L91.9917 15.9468L94.229 25.3262L86 20.3L77.771 25.3262L80.0083 15.9468L72.6852 9.67376L82.297 8.90319L86 0Z" stroke-width="2.5" stroke-linejoin="round" stroke="black" mask="url(#stroke5_0_10)"/>
+</g>
+<g id="Star 4">
+<use xlink:href="#stroke6_0_10" fill="#C8102E"/>
+<mask id="stroke7_0_10" fill="white">
+<use xlink:href="#stroke6_0_10"/>
+</mask>
+<path d="M122 0L125.703 8.90319L135.315 9.67376L127.992 15.9468L130.229 25.3262L122 20.3L113.771 25.3262L116.008 15.9468L108.685 9.67376L118.297 8.90319L122 0Z" stroke-width="2.5" stroke-linejoin="round" stroke="black" mask="url(#stroke7_0_10)"/>
+</g>
+<g id="Star 5">
+<use xlink:href="#stroke8_0_10" fill="#C8102E"/>
+<mask id="stroke9_0_10" fill="white">
+<use xlink:href="#stroke8_0_10"/>
+</mask>
+<path d="M158 0L161.703 8.90319L171.315 9.67376L163.992 15.9468L166.229 25.3262L158 20.3L149.771 25.3262L152.008 15.9468L144.685 9.67376L154.297 8.90319L158 0Z" stroke-width="2.5" stroke-linejoin="round" stroke="black" mask="url(#stroke9_0_10)"/>
+</g>
+</g>
+<defs>
+<path id="stroke0_0_10" d="M14 0L17.703 8.90319L27.3148 9.67376L19.9917 15.9468L22.229 25.3262L14 20.3L5.77101 25.3262L8.00834 15.9468L0.685208 9.67376L10.297 8.90319L14 0Z"/>
+<path id="stroke2_0_10" d="M50 0L53.703 8.90319L63.3148 9.67376L55.9917 15.9468L58.229 25.3262L50 20.3L41.771 25.3262L44.0083 15.9468L36.6852 9.67376L46.297 8.90319L50 0Z"/>
+<path id="stroke4_0_10" d="M86 0L89.703 8.90319L99.3148 9.67376L91.9917 15.9468L94.229 25.3262L86 20.3L77.771 25.3262L80.0083 15.9468L72.6852 9.67376L82.297 8.90319L86 0Z"/>
+<path id="stroke6_0_10" d="M122 0L125.703 8.90319L135.315 9.67376L127.992 15.9468L130.229 25.3262L122 20.3L113.771 25.3262L116.008 15.9468L108.685 9.67376L118.297 8.90319L122 0Z"/>
+<path id="stroke8_0_10" d="M158 0L161.703 8.90319L171.315 9.67376L163.992 15.9468L166.229 25.3262L158 20.3L149.771 25.3262L152.008 15.9468L144.685 9.67376L154.297 8.90319L158 0Z"/>
+</defs>
+</svg>
