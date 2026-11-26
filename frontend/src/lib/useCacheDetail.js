@@ -157,6 +157,9 @@ export function useCacheDetail(cacheId) {
     loading,
     error: details.error,
     cache: details.cache,
+    // True when the signed-in person hid this cache. They know its code, so
+    // the page doesn't offer them "I found it".
+    isHider: Boolean(userId && details.cache?.created_by && details.cache.created_by === userId),
     hintCount: details.hintCount,
     hintCountError: details.hintCountError,
     revealed,

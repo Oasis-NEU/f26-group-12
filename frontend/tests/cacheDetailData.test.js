@@ -49,13 +49,14 @@ test('cache detail query selects only safe fields', async () => {
     difficulty: 4,
     image: 'https://example.test/cache.jpg',
     is_active: true,
+    created_by: 'user-9',
   }
   const { client, calls } = createSupabaseStub({ data: cache, error: null })
 
   assert.deepEqual(await loadCacheDetails(client, 'cache-1'), cache)
   assert.deepEqual(calls, [
     ['from', 'caches'],
-    ['select', 'id,title,description,location_name,difficulty,image,is_active'],
+    ['select', 'id,title,description,location_name,difficulty,image,is_active,created_by'],
     ['eq', 'id', 'cache-1'],
     ['maybeSingle'],
   ])

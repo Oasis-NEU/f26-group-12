@@ -137,8 +137,24 @@ function defaultRows(rows, onReveal) {
 }
 
 // "I found it", or, once you've found it, "Found by you on Oct 30" with a
-// checkmark (the design's "already found" state).
-export function FindAction({ cacheId, find }) {
+// checkmark (the design's "already found" state). For the person who hid the
+// cache it says "You hid this cache" with an Edit link instead: they know the
+// code, so logging their own cache wouldn't prove anything.
+export function FindAction({ cacheId, find, isHider = false }) {
+  if (isHider) {
+    return (
+      <div className="flex h-12 items-center justify-between gap-3 rounded-lg bg-bg-subtle px-4">
+        <p className="text-body-strong text-text-primary">You hid this cache</p>
+        {/* Padding makes the tap area 44px tall; negative margins keep the row's height. */}
+        <Link
+          to={`/caches/${cacheId}/edit`}
+          className={`-mx-2 -my-3 rounded-lg px-2 py-3 text-label text-text-primary underline underline-offset-4 ${FOCUS_RING}`}
+        >
+          Edit cache
+        </Link>
+      </div>
+    )
+  }
   if (find) {
     return (
       <p className="flex h-12 items-center justify-center gap-2 rounded-lg bg-found-soft text-body-strong text-found">
@@ -167,10 +183,10 @@ export function TakenDownNotice({ className = '' }) {
 
 // Phones: the action is pinned to the bottom of the screen.
 // className lets a version change the bar's top edge.
-export function PhoneActionBar({ cacheId, find, className = 'border-t border-border-subtle' }) {
+export function PhoneActionBar({ cacheId, find, isHider, className = 'border-t border-border-subtle' }) {
   return (
     <div className={`sticky bottom-0 z-20 bg-bg-surface p-4 lg:hidden ${className}`}>
-      <FindAction cacheId={cacheId} find={find} />
+      <FindAction cacheId={cacheId} find={find} isHider={isHider} />
     </div>
   )
 }

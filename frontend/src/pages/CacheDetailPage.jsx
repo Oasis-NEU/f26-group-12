@@ -57,7 +57,7 @@ const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 function CacheDetails({ cacheId, detail }) {
   const { cache, find } = detail
   const found = Boolean(find)
-  const action = <FindAction cacheId={cacheId} find={find} />
+  const action = <FindAction cacheId={cacheId} find={find} isHider={detail.isHider} />
   // With no hints (or if they failed to load) there's no trail to end at the
   // cache, so the card shows a plain divider and button instead.
   const hasTrail = !detail.hintCountError && detail.hintCount > 0
@@ -111,7 +111,7 @@ function CacheDetails({ cacheId, detail }) {
         </div>
       </div>
       {cache.is_active && (
-        <PhoneActionBar cacheId={cacheId} find={find} className={`border-t ${CARD_BORDER}`} />
+        <PhoneActionBar cacheId={cacheId} find={find} isHider={detail.isHider} className={`border-t ${CARD_BORDER}`} />
       )}
     </>
   )
