@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import checkIcon from '../assets/figma/check.svg'
 import DifficultyMeter from './DifficultyMeter.jsx'
+import { FOCUS_RING } from './focusRing.js'
 
 // A cache in a list, from the Figma "CacheCard" component.
 // Used in the desktop map list, the phone map card, and anywhere caches are listed.
@@ -29,11 +30,11 @@ function CacheCard({
   const isInteractive = Boolean(to || onClick)
   const classes = [
     'flex w-full flex-col gap-2 rounded-2xl border border-border-subtle bg-bg-surface p-4 text-left',
-    // Selected is a 2px border in Figma. The inset ring adds the second pixel
-    // inside the 1px border, so the card doesn't grow.
-    selected ? 'ring-1 ring-inset ring-border-strong' : '',
+    // Selected is a 2px dark border in Figma. The 1px border plus a 1px inset
+    // ring looks the same, so the card doesn't grow.
+    selected ? 'border-border-strong inset-ring-1 inset-ring-border-strong' : '',
     isInteractive && !selected ? 'hover:bg-bg-subtle' : '',
-    isInteractive ? 'cursor-pointer' : '',
+    isInteractive ? `cursor-pointer ${FOCUS_RING}` : '',
     className,
   ].join(' ')
 

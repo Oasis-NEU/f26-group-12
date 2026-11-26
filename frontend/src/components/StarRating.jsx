@@ -4,6 +4,7 @@ import stars2 from '../assets/figma/stars-2.svg'
 import stars3 from '../assets/figma/stars-3.svg'
 import stars4 from '../assets/figma/stars-4.svg'
 import stars5 from '../assets/figma/stars-5.svg'
+import { FOCUS_RING } from './focusRing.js'
 
 // Five stars, from the Figma "StarRating" component.
 //
@@ -50,7 +51,7 @@ function StarRating({ value = 0, onChange, label = 'Rating', className = '' }) {
             onClick={() => onChange(star)}
             aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`}
             aria-pressed={star === stars}
-            className="size-7 shrink-0 cursor-pointer"
+            className={`size-7 shrink-0 cursor-pointer rounded-lg ${FOCUS_RING}`}
           />
         ))}
       </div>

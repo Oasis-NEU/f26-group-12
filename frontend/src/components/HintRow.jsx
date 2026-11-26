@@ -1,3 +1,5 @@
+import { FOCUS_RING } from './focusRing.js'
+
 // One hint on a cache, from the Figma "HintRow" component.
 //
 // Figma variants -> props:
@@ -23,7 +25,7 @@ function HintRow({ number, text, revealed = false, canReveal = true, onReveal, c
           type="button"
           onClick={onReveal}
           disabled={!canReveal}
-          className="flex h-12 w-full items-center justify-between gap-4 rounded-lg bg-bg-subtle px-4 text-left enabled:cursor-pointer disabled:cursor-not-allowed"
+          className={`flex h-12 w-full items-center justify-between gap-4 rounded-lg bg-bg-subtle px-4 text-left enabled:cursor-pointer disabled:cursor-not-allowed ${FOCUS_RING}`}
         >
           <span className="whitespace-nowrap text-body-strong text-text-primary">Hint {number}</span>
           <span className="text-small text-text-secondary">

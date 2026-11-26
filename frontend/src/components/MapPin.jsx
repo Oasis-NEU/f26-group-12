@@ -1,5 +1,6 @@
 import pinFound from '../assets/figma/pin-found.svg'
 import pinFoundSelected from '../assets/figma/pin-found-selected.svg'
+import { FOCUS_RING } from './focusRing.js'
 
 // A cache on the map, from the Figma "MapPin" component.
 //
@@ -51,7 +52,7 @@ function MapPin({ found = false, selected = false, onClick, label, className = '
         onClick={onClick}
         aria-label={`${label}, ${state}`}
         aria-pressed={selected}
-        className={`block cursor-pointer rounded-full ${className}`}
+        className={`block cursor-pointer rounded-full ${FOCUS_RING} ${className}`}
       >
         {pin}
       </button>

@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 import { Link, NavLink } from 'react-router'
 import Button from './Button.jsx'
+import { FOCUS_RING } from './focusRing.js'
 
 // The bar at the top of every page, from the Figma "NavBar" component
 // (the logged-out version).
@@ -34,7 +35,7 @@ const LAYOUTS = {
 
 function navLinkClass({ isActive }) {
   return [
-    'whitespace-nowrap text-body hover:text-text-primary',
+    `whitespace-nowrap rounded-lg text-body hover:text-text-primary ${FOCUS_RING}`,
     isActive ? 'text-text-primary underline underline-offset-4' : 'text-text-secondary',
   ].join(' ')
 }
@@ -60,7 +61,7 @@ function NavBar({ size = 'responsive', className = '' }) {
     <header
       className={`relative flex shrink-0 items-center justify-between border-b border-border-subtle bg-bg-surface ${layout.bar} ${className}`}
     >
-      <Link to="/" aria-label="HuskyCache home" className="flex items-center gap-3">
+      <Link to="/" aria-label="HuskyCache home" className={`flex items-center gap-3 ${FOCUS_RING}`}>
         <span
           aria-hidden="true"
           className="flex size-8 shrink-0 items-center justify-center bg-accent text-brand-mark text-text-on-accent"
@@ -89,7 +90,7 @@ function NavBar({ size = 'responsive', className = '' }) {
         aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={menuOpen}
         aria-controls={menuId}
-        className={`flex size-10 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-border-subtle hover:bg-bg-subtle ${layout.phoneOnly}`}
+        className={`flex size-10 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-border-subtle hover:bg-bg-subtle ${FOCUS_RING} ${layout.phoneOnly}`}
       >
         {/* Three 18 x 2 lines, as drawn in Figma. */}
         <span aria-hidden="true" className="h-0.5 w-[18px] bg-text-primary" />
@@ -112,7 +113,7 @@ function NavBar({ size = 'responsive', className = '' }) {
               end={to === '/'}
               onClick={closeMenu}
               className={({ isActive }) =>
-                `flex h-[52px] items-center text-heading ${isActive ? 'underline underline-offset-4' : ''}`
+                `flex h-[52px] items-center rounded-lg text-heading ${FOCUS_RING} ${isActive ? 'underline underline-offset-4' : ''}`
               }
             >
               {label}

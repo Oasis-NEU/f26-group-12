@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { FOCUS_RING } from './focusRing.js'
 
 // A labelled text input, from the Figma "TextField" component.
 //
@@ -34,10 +35,10 @@ function TextField({ label, help, error, id, className = '', ...inputProps }) {
         className={[
           'h-12 w-full rounded-lg border border-border-input bg-bg-surface px-4 text-body text-text-primary',
           'placeholder:text-text-secondary',
-          // Figma draws Focus and Error as a 2px border. An inset outline looks
-          // the same and keeps the text from shifting by a pixel.
-          'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
-          error ? 'outline-2 -outline-offset-2 outline-error' : '',
+          FOCUS_RING,
+          // Figma draws Error as a 2px red border. The 1px border plus a 1px
+          // inset ring looks the same and keeps the text from shifting.
+          error ? 'border-error inset-ring-1 inset-ring-error' : '',
         ].join(' ')}
         {...inputProps}
       />
