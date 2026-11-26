@@ -372,6 +372,10 @@ The cache's hints drawn as a path. Each hint has a 24px marker: filled ink once 
 ### Contour Backdrop
 Faint topographic rings (1px Border Subtle) centred on the photo's map pin, so the cache sits at the top of a "hill" like a marked spot on a trail map. They sit behind all content and fade out with distance, so the hints and text sit on plain page. They're decoration only: no information lives in them, and they disappear with Increase Contrast.
 
+### Cache Photo
+- **With a photo:** the photo fills the column, 180px tall on phones and 400px on desktop, with 16px corners. The cache's map pin sits in its bottom-left corner.
+- **No photo yet:** a shorter see-through frame (120px on phones, 240px on desktop) with a 2px dashed Border Input edge and 16px corners. Dashed means "not reached yet", as on the hint trail, and the contour rings show through around the pin, so it reads as an unphotographed spot on the map. It says "No photo of this spot yet" (Body Strong) and "Use the location and hints to find it." (Small, Text Secondary). The location isn't repeated there, since it's shown just below. With Increase Contrast the edge darkens to Text Secondary.
+
 ### Place Label
 On a cache's page, its name is set like a map label: Display on phones, Section on desktop. Location and difficulty sit beneath it in a legend strip between two thin Border Subtle rules.
 
