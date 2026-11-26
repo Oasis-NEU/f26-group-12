@@ -1,0 +1,157 @@
+import { Link } from 'react-router'
+import checkIcon from '../../assets/figma/check.svg'
+import chevronLeft from '../../assets/figma/chevron-left.svg'
+import Button from '../../components/Button.jsx'
+import DifficultyMeter from '../../components/DifficultyMeter.jsx'
+import HintRow from '../../components/HintRow.jsx'
+import { FOCUS_RING } from '../../components/focusRing.js'
+import { formatFoundDate } from '../cacheDetailData.js'
+import { getHintRows, hintsLeftText } from './hintRows.js'
+
+// Pieces every version of the cache detail page shares. The versions only
+// change how these are arranged and dressed, never what they say.
+
+export function BackLink() {
+  return (
+    <Link
+      to="/"
+      className={`flex w-fit items-center gap-2 rounded-lg text-label text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
+    >
+      {/* Figma's chevron is 8 x 14 and overflows its 6 x 12 box a little. */}
+      <span className="relative h-3 w-1.5 shrink-0" aria-hidden="true">
+        <img src={chevronLeft} width={8} height={14} alt="" className="absolute inset-[-8.33%_-16.67%] block max-w-none" />
+      </span>
+      Back to map
+    </Link>
+  )
+}
+
+// The cache's photo, or a plain box when it has none.
+// className sets the size and corners, which differ between versions.
+export function CachePhoto({ cache, className = 'h-[180px] rounded-2xl lg:h-[400px]' }) {
+  if (!cache.image) {
+    return (
+      <div className={`flex w-full items-center justify-center bg-bg-subtle text-small text-text-secondary ${className}`}>
+        No photo for this cache
+      </div>
+    )
+  }
+  return <img src={cache.image} alt={`Photo of the area around ${cache.title}`} className={`w-full object-cover ${className}`} />
+}
+
+export function CacheTitle({ cache, className = 'text-title lg:text-display' }) {
+  return <h1 className={`text-text-primary ${className}`}>{cache.title}</h1>
+}
+
+// Location and difficulty. Phones spread them across the row; desktop
+// keeps them together on the left.
+export function MetaRow({ cache, className = '' }) {
+  return (
+    <div className={`flex items-center justify-between gap-4 lg:justify-start lg:gap-6 ${className}`}>
+      {cache.location_name && <p className="text-small text-text-secondary lg:text-body">{cache.location_name}</p>}
+      <DifficultyMeter level={cache.difficulty} />
+    </div>
+  )
+}
+
+export function Description({ cache }) {
+  if (!cache.description) return null
+  return <p className="whitespace-pre-line text-body text-text-primary lg:max-w-[640px]">{cache.description}</p>
+}
+
+export function HintsHeader({ detail }) {
+  const status = hintsLeftText(detail.hintCount, Object.keys(detail.revealed).length)
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <h2 className="text-heading text-text-primary">Hints</h2>
+      {status && <p className="text-small text-text-secondary">{status}</p>}
+    </div>
+  )
+}
+
+// The hint rows, or a message when there aren't any. A version can pass
+// renderRows to arrange the rows its own way; rows come from getHintRows.
+export function HintsList({ detail, renderRows = defaultRows }) {
+  const rows = getHintRows(detail.hintCount, detail.revealed, detail.pendingOrder)
+  return (
+    <>
+      {detail.hintCountError ? (
+        <p className="text-small text-text-secondary">Hints couldn’t load right now.</p>
+      ) : detail.hintCount === 0 ? (
+        <p className="text-small text-text-secondary">This cache doesn’t have any hints.</p>
+      ) : (
+        renderRows(rows, detail.revealHint)
+      )}
+      {detail.hintError && (
+        <p role="alert" className="text-small text-error">
+          {detail.hintError}
+        </p>
+      )}
+    </>
+  )
+}
+
+export function HintRowFor({ row, onReveal, className }) {
+  return (
+    <HintRow
+      number={row.order}
+      text={row.text}
+      revealed={row.revealed}
+      canReveal={row.canReveal}
+      revealing={row.revealing}
+      onReveal={() => onReveal(row.order)}
+      className={className}
+    />
+  )
+}
+
+function defaultRows(rows, onReveal) {
+  return (
+    <ol className="flex flex-col gap-2">
+      {rows.map((row) => (
+        <li key={row.order}>
+          <HintRowFor row={row} onReveal={onReveal} />
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+// "I found it", or, once you've found it, "Found by you on Oct 30" with a
+// checkmark (the design's "already found" state).
+export function FindAction({ cacheId, find }) {
+  if (find) {
+    return (
+      <p className="flex h-12 items-center justify-center gap-2 rounded-lg bg-found-soft text-body-strong text-found">
+        <img src={checkIcon} width={11.75} height={8.75} alt="" />
+        Found by you on {formatFoundDate(find.created_at)}
+      </p>
+    )
+  }
+  return (
+    <Button to={`/caches/${cacheId}/log`} fullWidth>
+      I found it
+    </Button>
+  )
+}
+
+// The design's "taken down" state: this replaces the hints and the button.
+export function TakenDownNotice({ className = '' }) {
+  return (
+    <p
+      className={`rounded-2xl border border-border-subtle bg-bg-surface p-4 text-body text-text-primary contrast-more:border-border-input ${className}`}
+    >
+      This cache has been taken down, so it can’t be logged anymore.
+    </p>
+  )
+}
+
+// Phones: the action is pinned to the bottom of the screen.
+// className lets a version change the bar's top edge.
+export function PhoneActionBar({ cacheId, find, className = 'border-t border-border-subtle' }) {
+  return (
+    <div className={`sticky bottom-0 z-20 bg-bg-surface p-4 lg:hidden ${className}`}>
+      <FindAction cacheId={cacheId} find={find} />
+    </div>
+  )
+}
