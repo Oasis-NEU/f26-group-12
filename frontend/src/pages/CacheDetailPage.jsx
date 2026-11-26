@@ -35,13 +35,15 @@ const PIN_RINGS = Array.from({ length: 24 }, (_, i) => contourRing(0, 0, 30 + i 
 
 // The rings sit behind everything (-z-10) and fade out with distance from the
 // pin, so the hints and description sit on plain page. The pin's centre is
-// 26px in from the photo's bottom-left corner on phones, 34px on desktop.
+// 1.625rem in from the photo's bottom-left corner on phones (0.75rem inset +
+// half of the 1.75rem pin) and 2.125rem on desktop (1.25rem inset). These are
+// in rem, like the pin, so the rings stay centred at any text size.
 function PinContours() {
   return (
     <svg
       aria-hidden="true"
       viewBox="-1000 -1000 2000 2000"
-      className="pointer-events-none absolute bottom-[26px] left-[26px] -z-10 size-[2000px] -translate-x-1/2 translate-y-1/2 text-border-subtle [mask-image:radial-gradient(closest-side,black_30%,transparent_75%)] contrast-more:hidden lg:bottom-[34px] lg:left-[34px]"
+      className="pointer-events-none absolute bottom-[1.625rem] left-[1.625rem] -z-10 size-[2000px] -translate-x-1/2 translate-y-1/2 text-border-subtle [mask-image:radial-gradient(closest-side,black_30%,transparent_75%)] contrast-more:hidden lg:bottom-[2.125rem] lg:left-[2.125rem]"
     >
       {PIN_RINGS.map((d) => (
         <path key={d} d={d} fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
@@ -151,6 +153,8 @@ function CacheDetailPage() {
     }
     content = (
       <div className="flex w-full flex-1 flex-col gap-4 p-4 lg:gap-6 lg:px-[10%] lg:pb-12 lg:pt-8">
+        {/* Screen readers still get a page heading while there's no cache title. */}
+        <h1 className="sr-only">{detail.loading || detail.error ? 'Cache details' : 'Cache not found'}</h1>
         <BackLink />
         {notice}
       </div>
@@ -161,8 +165,19 @@ function CacheDetailPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg-page text-text-primary">
+      {/* Hidden until someone presses Tab, so keyboard users can jump past the header. */}
+      <a
+        href="#main-content"
+        className={`sr-only rounded-lg bg-bg-surface px-4 py-2 text-label text-text-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 ${FOCUS_RING}`}
+      >
+        Skip to content
+      </a>
       <SiteHeader />
-      {content}
+      {/* The page's own <main> (Layout leaves it out here), with the header outside it.
+          tabIndex={-1} lets the skip link move focus here. */}
+      <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
+        {content}
+      </main>
     </div>
   )
 }

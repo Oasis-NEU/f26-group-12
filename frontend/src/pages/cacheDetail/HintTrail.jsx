@@ -42,15 +42,18 @@ function HintTrail({ rows, onReveal, found, action }) {
         {rows.map((row, index) => {
           const next = rows[index + 1]
           // Each segment runs from under this marker to the top of the next
-          // one, which is 20px below this row. The last one runs to the end
-          // pin instead: 8px below on phones (28px pin row), 18px on desktop
-          // (48px row, pin centred).
+          // one, which is 1.25rem below this row (0.5rem gap + 0.75rem marker
+          // offset). The last one runs to the end pin instead: 0.5rem below on
+          // phones (pin row is the pin's height), 1.125rem on desktop (3rem
+          // row, 1.75rem pin centred). Everything is in rem, like the markers,
+          // so the line stays centred when someone makes their text bigger.
           const segment = next
             ? `-bottom-5 ${next.revealed ? WALKED : AHEAD}`
-            : `-bottom-2 lg:-bottom-[18px] ${found ? WALKED : AHEAD}`
+            : `-bottom-2 lg:-bottom-[1.125rem] ${found ? WALKED : AHEAD}`
           return (
             <li key={row.order} className="relative flex items-start gap-3">
-              <span aria-hidden="true" className={`absolute left-[11px] top-9 border-l-2 ${segment}`} />
+              {/* The 2px line sits on the centre of the 1.5rem marker. */}
+              <span aria-hidden="true" className={`absolute left-[calc(0.75rem-1px)] top-9 border-l-2 ${segment}`} />
               {/* mt-3 centres the marker on a 48px locked row, and on the first line of a revealed one. */}
               <span aria-hidden="true" className="relative mt-3 block shrink-0">
                 <TrailMarker row={row} />

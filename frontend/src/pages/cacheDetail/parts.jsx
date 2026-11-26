@@ -11,11 +11,13 @@ import { getHintRows, hintsLeftText } from './hintRows.js'
 // Pieces every version of the cache detail page shares. The versions only
 // change how these are arranged and dressed, never what they say.
 
+// The padding makes the tap area 44px tall (comfortable while walking); the
+// matching negative margins keep the link where it was in the layout.
 export function BackLink() {
   return (
     <Link
       to="/"
-      className={`flex w-fit items-center gap-2 rounded-lg text-label text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
+      className={`-mx-2 -my-3 flex w-fit items-center gap-2 rounded-lg px-2 py-3 text-label text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
     >
       {/* Figma's chevron is 8 x 14 and overflows its 6 x 12 box a little. */}
       <span className="relative h-3 w-1.5 shrink-0" aria-hidden="true">
@@ -26,13 +28,27 @@ export function BackLink() {
   )
 }
 
-// The cache's photo, or a plain box when it has none.
-// className sets the size and corners, which differ between versions.
-export function CachePhoto({ cache, className = 'h-[180px] rounded-2xl lg:h-[400px]' }) {
+// The cache's photo, or, when it has none, an empty "spot on the map".
+// className sets the photo's size and corners; emptyClassName the empty one's.
+//
+// The empty state is shorter than a photo, so the page doesn't open on a big
+// blank box. It's see-through with a dashed edge (dashed means "not reached
+// yet", as on the hint trail), so the contour rings behind it show around the
+// pin, and it says what to do instead of looking at a photo.
+export function CachePhoto({
+  cache,
+  className = 'h-[180px] rounded-2xl lg:h-[400px]',
+  emptyClassName = 'h-[7.5rem] rounded-2xl lg:h-[15rem]',
+}) {
   if (!cache.image) {
     return (
-      <div className={`flex w-full items-center justify-center bg-bg-subtle text-small text-text-secondary ${className}`}>
-        No photo for this cache
+      <div
+        className={`flex w-full flex-col items-center justify-center gap-1 border-2 border-dashed border-border-input px-12 text-center contrast-more:border-text-secondary ${emptyClassName}`}
+      >
+        <p className="text-body-strong text-text-primary">No photo of this spot yet</p>
+        {/* The location itself is shown just below, in the legend strip, and
+            is often written as "near ...", so it isn't repeated here. */}
+        <p className="text-small text-text-secondary">Use the location and hints to find it.</p>
       </div>
     )
   }

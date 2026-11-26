@@ -19,6 +19,10 @@ function Layout() {
     isCacheDetailPage ||
     isCacheEditPath(pathname) ||
     pathname === '/my-caches'
+  // These pages draw their own <main> too, so their header can sit outside
+  // it (screen readers only treat a header as the page header when it isn't
+  // inside <main>). Add a page here once it has its own <main>.
+  const hasOwnMain = isCacheDetailPage
 
   return (
     <>
@@ -63,9 +67,13 @@ function Layout() {
         </header>
       )}
 
-      <main className={hasOwnHeader ? 'bg-white' : 'bg-[#f7f0e5]'}>
+      {hasOwnMain ? (
         <Outlet />
-      </main>
+      ) : (
+        <main className={hasOwnHeader ? 'bg-white' : 'bg-[#f7f0e5]'}>
+          <Outlet />
+        </main>
+      )}
     </>
   )
 }
