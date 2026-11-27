@@ -54,6 +54,9 @@ export function useCacheDetail(cacheId) {
   // Hint 1, loaded early but kept locked until someone taps it, so the
   // first reveal is instant without giving the hint away.
   const [firstHint, setFirstHint] = useState({ cacheId: null, hint: null })
+  // The hint someone most recently tapped to reveal, so only the trail
+  // segment leading to it draws itself (nothing animates on page load).
+  const [lastTapped, setLastTapped] = useState({ cacheId: null, order: null })
 
   const detailsKey = `${cacheId}:${retryCount}`
   const loading = details.key !== detailsKey
@@ -154,6 +157,7 @@ export function useCacheDetail(cacheId) {
   // Revealing only fetches that one hint, so later hints never reach the
   // browser until someone asks. Nothing is saved; a refresh starts over.
   async function revealHint(order) {
+    setLastTapped({ cacheId, order })
     // Hint 1 is usually already here (loaded with the cache): show it now.
     if (order === 1 && firstHint.cacheId === cacheId && firstHint.hint) {
       const text = firstHint.hint.hint_text
@@ -192,6 +196,7 @@ export function useCacheDetail(cacheId) {
     // the page doesn't offer them "I found it".
     isHider,
     findChecking,
+    lastTappedOrder: lastTapped.cacheId === cacheId ? lastTapped.order : null,
     // undefined while checking, then true or false. Logging a find needs an
     // account, so the page tells signed-out visitors before they try.
     signedIn: userId === undefined ? undefined : Boolean(userId),

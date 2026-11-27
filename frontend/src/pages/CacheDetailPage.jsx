@@ -100,7 +100,13 @@ function CacheDetails({ cacheId, detail }) {
                   <HintsList
                     detail={detail}
                     renderRows={(rows, onReveal) => (
-                      <HintTrail rows={rows} onReveal={onReveal} found={found} action={action} />
+                      <HintTrail
+                        rows={rows}
+                        onReveal={onReveal}
+                        found={found}
+                        action={action}
+                        drawTo={detail.lastTappedOrder}
+                      />
                     )}
                   />
                   {!hasTrail && (
