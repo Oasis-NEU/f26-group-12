@@ -22,7 +22,7 @@ Core:
 - Account menu, and people need a way to log out.
 - Automatic secret codes for every cache before it's saved.
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
-- Print a slip, code only
+- Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
 
 Next:
@@ -175,6 +175,10 @@ All three need a logged-in user.
 - **Map filters (All / To find / My finds) are about the logged-in user's finds.**
   Hidden when logged out. Found caches show a checkmark.
 - **Success screens ("Cache hidden!", "Find logged!") are page states, not routes.**
+- **Links go places; buttons do things.** Underlined links only inside a
+  sentence, to another page. Actions, and anything on its own line, are
+  buttons: Primary (one per page), Secondary, then a quiet button with no
+  outline. See "The Links Go Places Rule" in DESIGN.md.
 
 ## Security
 
