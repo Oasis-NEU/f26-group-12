@@ -10,6 +10,7 @@ import {
   CachePhoto,
   CacheTitle,
   Description,
+  DirectionsLink,
   FindAction,
   FindHelp,
   HintsHeader,
@@ -83,6 +84,7 @@ function CacheDetails({ cacheId, detail }) {
               </div>
               <CacheTitle cache={cache} className="text-display lg:text-section" />
               <MetaRow cache={cache} className={`border-y py-3 ${CARD_BORDER}`} />
+              <DirectionsLink cache={cache} />
               <Description cache={cache} />
             </div>
 

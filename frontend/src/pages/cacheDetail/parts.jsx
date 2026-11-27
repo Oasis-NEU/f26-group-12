@@ -170,6 +170,28 @@ export function FindAction({ cacheId, find, isHider = false }) {
   )
 }
 
+// Walking directions to the cache in Google Maps (on phones this opens the
+// Maps app). It's a plain link with the coordinates, so no API key is needed
+// and nothing is stored. Hidden if the cache has no valid coordinates.
+export function DirectionsLink({ cache }) {
+  const lat = Number(cache.latitude)
+  const lng = Number(cache.longitude)
+  const valid = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
+  if (!valid) return null
+  return (
+    <Button
+      variant="secondary"
+      href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      fullWidth
+      className="lg:w-fit"
+    >
+      Get directions<span className="sr-only"> (opens Google Maps)</span>
+    </Button>
+  )
+}
+
 // Under "I found it": how the proof step works (the find counts because you
 // enter the code from the slip inside), and, for signed-out visitors, that
 // logging needs an account. Only shown while the cache can still be logged by

@@ -1,6 +1,7 @@
 // created_by is the hider's account id, so the page can tell a hider they
-// can't log their own cache. (Never secret_code.)
-const CACHE_DETAIL_COLUMNS = 'id,title,description,location_name,difficulty,image,is_active,created_by'
+// can't log their own cache. latitude/longitude feed the "Get directions"
+// link. (Never secret_code.)
+const CACHE_DETAIL_COLUMNS = 'id,title,description,location_name,difficulty,image,is_active,created_by,latitude,longitude'
 
 export async function loadCacheDetails(supabase, cacheId) {
   const { data, error } = await supabase

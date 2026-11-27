@@ -378,7 +378,7 @@ Faint topographic rings (1px Border Subtle) centred on the photo's map pin, so t
 - **No photo yet:** a shorter see-through frame (120px on phones, 240px on desktop) with a 2px dashed Border Input edge and 16px corners. Dashed means "not reached yet", as on the hint trail, and the contour rings show through around the pin, so it reads as an unphotographed spot on the map. It says "No photo of this spot yet" (Body Strong) and "Use the location and hints to find it." (Small, Text Secondary). The location isn't repeated there, since it's shown just below. With Increase Contrast the edge darkens to Text Secondary.
 
 ### Place Label
-On a cache's page, its name is set like a map label: Display on phones, Section on desktop. Location and difficulty sit beneath it in a legend strip between two thin Border Subtle rules.
+On a cache's page, its name is set like a map label: Display on phones, Section on desktop. Location and difficulty sit beneath it in a legend strip between two thin Border Subtle rules. Right under the strip, a Secondary "Get directions" button opens Google Maps walking directions to the cache's coordinates (full width on phones, hugging its label on desktop). It's a plain link, so it needs no API key and stores nothing, and it's hidden when a cache has no valid coordinates.
 
 ### Find Action
 The one main action on a cache's page: beside the trail's end pin on desktop, in the bottom bar on phones. It's always 48px tall.
