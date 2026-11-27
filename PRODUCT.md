@@ -33,8 +33,8 @@ HuskyCache is campus-first geocaching made by students, for students. Other stud
 
 ## Capabilities and Constraints
 
-- **Built:** adding a cache with difficulty 1–5, a map of caches, finding and logging a cache with a secret code, hints, a journal of finds with difficulty and star rating, rating caches, email log-in and sign-up, an account menu with log-out, success screens, a printable code slip, and a page-not-found screen.
-- **Next:** score and leaderboard (points come from cache difficulty), map filters (All / To find / My finds, only when logged in), Google log-in with "Choose a username", forgot password, a My caches page, editing and taking down caches, and a landing page.
+- **Built:** adding a cache with difficulty 1–5, a map of caches, finding and logging a cache with a secret code, hints, a journal of finds with difficulty and star rating, rating caches, email sign-up and log-in (with a password or a code emailed to you), password reset, an account menu with log-out, success screens, a printable code slip, and a page-not-found screen.
+- **Next:** score and leaderboard (points come from cache difficulty), map filters (All / To find / My finds, only when logged in), Google log-in with "Choose a username", a My caches page, editing and taking down caches, and a landing page.
 - **Nice-to-have:** AI-generated hints from images, routes through several caches, a location check as a second layer when logging, a warning for caches within about 10 m of each other, messaging (on hold), and a QR code on the slip.
 - **Secret codes:** 6 characters, uppercase, never 0, O, 1, I or L. They're generated automatically; the hider can swap the code before saving, and it's locked after. Codes are shown only to the hider, never to finders.
 - **Wrong codes and other errors show inline**, under the field, never on a new screen.

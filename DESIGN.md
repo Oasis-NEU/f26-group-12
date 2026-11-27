@@ -344,6 +344,7 @@ Big, friendly and plain.
 - **Style:** label (Label) above a 48px white box with a 1px Border Input outline, 8px corners, 16px padding and 16px Body text. Placeholder is Text Secondary. Help text (Small) sits below.
 - **Focus:** the shared focus ring.
 - **Error:** the outline turns Error and is drawn 2px thick; the help text becomes the error message in Error, with a small round "!" icon. Errors appear under the field, never on a new screen.
+- **Action (optional):** a 40px button inside the box at its right edge, 4px in, such as the eye that shows a password (Text Secondary icon, Text on hover). The text stops short of it.
 
 ### Navigation
 - **Nav bar:** a white bar with a 1px Border Subtle bottom line, 64px tall on desktop and 56px on phones. On the left are the red square "N" mark and the HuskyCache wordmark.
@@ -400,6 +401,16 @@ The home of hunting: phones get a full-screen map with search and the filters fl
 - **Map controls:** "Show my location", "Back to campus" and, on desktop, zoom: white, Border Strong edge, 8px corners, 48px on phones and 40px on desktop, stacked bottom-right above Google's terms line.
 - **Position dot:** a 16px Text (ink) dot with a 3px white ring and the Pin shadow, never Focus Blue (blue only ever means keyboard focus). It appears only after someone presses "Show my location", follows them as they walk, and stays in the browser: HuskyCache never saves or sends it.
 - **No map** (no key, a failed load, or a key Google rejects): phones show the list instead, and desktop says why the map is missing.
+
+### Log In Page
+`/login` holds every way in on one page, picked by `?mode=`: Log in, Log in with a code, Create your account, Reset your password and Set a new password, plus "Check your email" after sign-up or a reset request.
+- **Layout:** phones show the form on the page, 40px below the header, with the switch line ("Not a member? Join now") at the bottom of the screen. Desktop puts it in a 448px white card (16px corners, Border Subtle edge) 80px below the header, with the switch line inside the card. The form starts a fixed distance from the top rather than being centred, so it doesn't jump between screens or when the phone keyboard opens. Headings are centred: Title on phones, Display on desktop.
+- **Busy button:** while a form is working, its Primary button stays red, says what it's doing ("Logging in…") and ignores more presses (`aria-disabled`). A grey button reads as broken in sunlight.
+- **Or divider:** "or" in Small Text Secondary between two Border Subtle lines, separating the Primary action from a Secondary alternative ("Email me a code instead").
+- **Text links:** bold Text, underlined 4px below the text, with a 28px tap area; the underline thickens on hover.
+- **Errors:** under the field they're about, as everywhere ("That email and password don't match."). A whole-form problem, like no connection, sits under the button.
+- **After logging in:** people go to `?next=` (paths on this site only), otherwise back to the page they came from, otherwise the map.
+- **Motion:** switching screens fades the new one in with a 4px rise (200ms, shared ease-out), like a hint being revealed; with reduced motion on it only fades, and the first screen doesn't animate. Focus moves to the new screen's heading.
 
 ## Do's and Don'ts
 

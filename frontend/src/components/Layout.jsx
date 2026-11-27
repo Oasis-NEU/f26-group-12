@@ -11,18 +11,20 @@ function Layout() {
   const pathname = useLocation().pathname
   const isLandingPage = pathname === '/'
   const isMapPage = pathname === '/map'
+  const isLoginPage = pathname === '/login'
   const isCacheDetailPage = isCacheDetailPath(pathname)
   // These pages draw their own SiteHeader, so Layout skips its old header.
   const hasOwnHeader =
     isLandingPage ||
     isMapPage ||
+    isLoginPage ||
     isCacheDetailPage ||
     isCacheEditPath(pathname) ||
     pathname === '/my-caches'
   // These pages draw their own <main> too, so their header can sit outside
   // it (screen readers only treat a header as the page header when it isn't
   // inside <main>). Add a page here once it has its own <main>.
-  const hasOwnMain = isCacheDetailPage || isMapPage
+  const hasOwnMain = isCacheDetailPage || isMapPage || isLoginPage
 
   return (
     <>
