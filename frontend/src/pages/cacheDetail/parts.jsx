@@ -6,6 +6,7 @@ import DifficultyMeter from '../../components/DifficultyMeter.jsx'
 import HintRow from '../../components/HintRow.jsx'
 import { FOCUS_RING } from '../../components/focusRing.js'
 import { formatFoundDate } from '../cacheDetailData.js'
+import { cacheCoordinates } from './coords.js'
 import { getHintRows, hintsLeftText } from './hintRows.js'
 
 // Pieces every version of the cache detail page shares. The versions only
@@ -196,10 +197,9 @@ export function FindAction({ cacheId, find, isHider = false, checking = false })
 // Maps app). It's a plain link with the coordinates, so no API key is needed
 // and nothing is stored. Hidden if the cache has no valid coordinates.
 export function DirectionsLink({ cache }) {
-  const lat = Number(cache.latitude)
-  const lng = Number(cache.longitude)
-  const valid = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
-  if (!valid) return null
+  const position = cacheCoordinates(cache)
+  if (!position) return null
+  const { lat, lng } = position
   return (
     <Button
       variant="secondary"

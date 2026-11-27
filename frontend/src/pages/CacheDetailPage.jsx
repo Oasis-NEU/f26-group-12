@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useParams } from 'react-router'
 import MapPin from '../components/MapPin.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { useCacheDetail } from '../lib/useCacheDetail.js'
 import { contourRing } from './cacheDetail/contours.js'
+import CacheMiniMap from './cacheDetail/CacheMiniMap.jsx'
+import { cacheCoordinates } from './cacheDetail/coords.js'
 import HintTrail from './cacheDetail/HintTrail.jsx'
 import {
   BackLink,
@@ -40,12 +43,18 @@ const PIN_RINGS = Array.from({ length: 24 }, (_, i) => contourRing(0, 0, 30 + i 
 // 1.625rem in from the photo's bottom-left corner on phones (0.75rem inset +
 // half of the 1.75rem pin) and 2.125rem on desktop (1.25rem inset). These are
 // in rem, like the pin, so the rings stay centred at any text size.
-function PinContours() {
+// centered: the rings sit on the middle of the slot instead (where the mini
+// map's pin is), so they frame the real pin.
+const CORNER = 'bottom-[1.625rem] left-[1.625rem] translate-y-1/2 lg:bottom-[2.125rem] lg:left-[2.125rem]'
+const CENTER = 'left-1/2 top-1/2 -translate-y-1/2'
+function PinContours({ centered = false }) {
   return (
     <svg
       aria-hidden="true"
       viewBox="-1000 -1000 2000 2000"
-      className="pointer-events-none absolute bottom-[1.625rem] left-[1.625rem] -z-10 size-[2000px] -translate-x-1/2 translate-y-1/2 text-border-subtle [mask-image:radial-gradient(closest-side,black_30%,transparent_75%)] contrast-more:hidden lg:bottom-[2.125rem] lg:left-[2.125rem]"
+      className={`pointer-events-none absolute -z-10 size-[2000px] -translate-x-1/2 text-border-subtle [mask-image:radial-gradient(closest-side,black_30%,transparent_75%)] contrast-more:hidden ${
+        centered ? CENTER : CORNER
+      }`}
     >
       {PIN_RINGS.map((d) => (
         <path key={d} d={d} fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
@@ -59,6 +68,12 @@ const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 function CacheDetails({ cacheId, detail }) {
   const { cache, find } = detail
   const found = Boolean(find)
+  // No photo? Show a small real map of the spot instead, when Google Maps is
+  // set up (same key as the map page) and the cache can still be hunted. If
+  // Maps fails to load, fall back to the empty photo frame.
+  const [mapFailed, setMapFailed] = useState(false)
+  const showMap =
+    !cache.image && cache.is_active && !mapFailed && Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY) && Boolean(cacheCoordinates(cache))
   const action = <FindAction cacheId={cacheId} find={find} isHider={detail.isHider} checking={detail.findChecking} />
   // With no hints (or if they failed to load) there's no trail to end at the
   // cache, so the card shows a plain divider and button instead.
@@ -80,10 +95,16 @@ function CacheDetails({ cacheId, detail }) {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-12">
             <div className="flex min-w-0 flex-col gap-4 lg:flex-1 lg:gap-5">
               <div className="relative">
-                <PinContours />
-                <CachePhoto cache={cache} />
-                {/* A taken-down cache isn't something to find, so it gets no red pin. */}
-                {cache.is_active && (
+                <PinContours centered={showMap} />
+                {showMap ? (
+                  <CacheMiniMap cache={cache} found={found} onFail={() => setMapFailed(true)} />
+                ) : (
+                  <CachePhoto cache={cache} />
+                )}
+                {/* The corner pin, on a photo or the empty frame. The mini map has its
+                    own pin at the spot. A taken-down cache isn't something to find,
+                    so it gets no red pin. */}
+                {cache.is_active && !showMap && (
                   <MapPin found={found} className="absolute bottom-3 left-3 lg:bottom-5 lg:left-5" />
                 )}
               </div>
