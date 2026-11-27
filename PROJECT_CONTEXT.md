@@ -22,7 +22,7 @@ Core:
 - Account menu, and people need a way to log out.
 - Automatic secret codes for every cache before it's saved.
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
-- Print a slip, code only
+- Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
 
 Next:
