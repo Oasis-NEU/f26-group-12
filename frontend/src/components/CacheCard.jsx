@@ -10,9 +10,9 @@ import RatingSummary from './RatingSummary.jsx'
 // list, and anywhere caches are listed.
 //
 // Layout: an 80px photo of the spot on the left (an empty dashed box when
-// there's no photo yet, dashed meaning "not there yet"), then the name (and
-// the found tag), the place, and a line with the difficulty and the average
-// rating.
+// there's no photo yet, dashed meaning "not there yet"), then the name, the
+// place (with the found tag after it, so a long name keeps the full width),
+// and a line with the difficulty and the average rating.
 //
 // Props: title, location, difficulty, image (photo URL, optional), rating
 // ({ average, count } from loadCacheRatings; leave it out if ratings
@@ -77,10 +77,12 @@ function CardPhoto({ image }) {
       </span>
     )
   }
+  // Quiet on purpose: it's on most cards and says nothing, so a faint
+  // dashed edge (Border Subtle) with no fill. Increase Contrast darkens it.
   return (
     <span
       aria-hidden="true"
-      className={`${box} border-2 border-dashed border-border-input bg-bg-page contrast-more:border-text-secondary`}
+      className={`${box} border-2 border-dashed border-border-subtle contrast-more:border-border-input`}
     />
   )
 }
@@ -103,10 +105,13 @@ function CacheCard({
   // 97%, since it's bigger), so a tap feels heard. The list itself doesn't
   // animate when a search or filter changes it: that happens as you type.
   const classes = [
-    'flex w-full items-start gap-3 rounded-2xl border border-border-subtle bg-bg-surface p-3 text-left motion-safe:transition-[background-color,border-color,box-shadow,scale] motion-safe:duration-150 motion-safe:ease-out',
+    'flex w-full items-start gap-3 rounded-2xl border bg-bg-surface p-3 text-left motion-safe:transition-[background-color,border-color,box-shadow,scale] motion-safe:duration-150 motion-safe:ease-out',
     // Selected is a 2px dark border in Figma. The 1px border plus a 1px inset
-    // ring looks the same, so the card doesn't grow.
-    selected ? 'border-border-strong inset-ring-1 inset-ring-border-strong' : '',
+    // ring looks the same, so the card doesn't grow. Otherwise the outline
+    // is Border Subtle, darkened with Increase Contrast like every card.
+    selected
+      ? 'border-border-strong inset-ring-1 inset-ring-border-strong'
+      : 'border-border-subtle contrast-more:border-border-input',
     isInteractive && !selected ? 'hover:bg-bg-subtle' : '',
     isInteractive ? `cursor-pointer active:scale-98 ${FOCUS_RING}` : '',
     className,
@@ -116,11 +121,13 @@ function CacheCard({
     <>
       <CardPhoto key={image} image={image} />
       <span className="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
-        <span className="flex w-full items-start gap-3">
-          <span className="min-w-0 flex-1 wrap-break-word text-body-strong text-text-primary">{title}</span>
-          {found && <FoundTag />}
-        </span>
-        {location && <span className="text-small text-text-secondary">{location}</span>}
+        <span className="wrap-break-word text-body-strong text-text-primary">{title}</span>
+        {(location || found) && (
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {location && <span className="min-w-0 text-small text-text-secondary">{location}</span>}
+            {found && <FoundTag />}
+          </span>
+        )}
         {/* Fits on one line in the 400px desktop list, even with "No ratings yet". */}
         <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
           <DifficultyMeter level={difficulty} />

@@ -9,16 +9,16 @@ test('ratings come back keyed by cache, unrated ones with a null average', async
       calls.push([name, args])
       return {
         data: [
-          { cache_id: 'a', average_rating: '4.6', rating_count: 12, find_count: 15 },
-          { cache_id: 'b', average_rating: null, rating_count: 0, find_count: 2 },
+          { cache_id: 'a', average_rating: '4.6', rating_count: 12 },
+          { cache_id: 'b', average_rating: null, rating_count: 0 },
         ],
         error: null,
       }
     },
   }
   assert.deepEqual(await loadCacheRatings(fake), {
-    a: { average: 4.6, count: 12, finds: 15 },
-    b: { average: null, count: 0, finds: 2 },
+    a: { average: 4.6, count: 12 },
+    b: { average: null, count: 0 },
   })
   await loadCacheRatings(fake, ['a'])
   assert.deepEqual(calls, [

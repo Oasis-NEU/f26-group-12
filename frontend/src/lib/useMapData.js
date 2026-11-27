@@ -18,7 +18,7 @@ const REFRESH_INTERVAL_MS = 30_000
 export function useMapData() {
   const [caches, setCaches] = useState([])
   const [foundIds, setFoundIds] = useState([])
-  // { [cacheId]: { average, count, finds } }, or null when the ratings
+  // { [cacheId]: { average, count } }, or null when the ratings
   // couldn't load (e.g. the cache_ratings function isn't in the database
   // yet). Ratings failing never stops the map: the cards just leave them out.
   const [ratings, setRatings] = useState(null)
@@ -85,7 +85,9 @@ export function useMapData() {
         if (active) {
           setCaches(nextCaches)
           setFoundIds(nextFoundIds)
-          setRatings(nextRatings)
+          // A refresh that fails keeps the last ratings, so a weak signal
+          // doesn't blank them all for 30 seconds.
+          setRatings((current) => nextRatings ?? current)
           setDataError('')
         }
       } catch {

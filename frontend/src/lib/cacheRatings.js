@@ -1,9 +1,10 @@
 // Caches' average ratings, from the cache_ratings database function
-// (supabase/changes/2026-11-27_cache-ratings.sql). It returns totals only,
-// never who rated what, so finds stay private.
+// (supabase/changes/2026-11-27_cache-ratings-tighten.sql). It returns the
+// average and the number of ratings only, never who rated what or how many
+// found it, so finds stay private.
 
-// { [cacheId]: { average, count, finds } }. average is null when nobody has
-// rated it. Pass ids for just those caches, or leave them out for all.
+// { [cacheId]: { average, count } }. average is null when nobody has rated
+// it. Pass ids for just those caches, or leave them out for all.
 export async function loadCacheRatings(supabase, cacheIds) {
   const { data, error } = await supabase.rpc('cache_ratings', cacheIds ? { p_cache_ids: cacheIds } : {})
   if (error) throw error
@@ -13,7 +14,6 @@ export async function loadCacheRatings(supabase, cacheIds) {
     ratings[row.cache_id] = {
       average: Number.isFinite(average) ? average : null,
       count: Number(row.rating_count) || 0,
-      finds: Number(row.find_count) || 0,
     }
   }
   return ratings

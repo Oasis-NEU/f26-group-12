@@ -9,22 +9,23 @@ import { ratingLabel } from '../lib/cacheRatings.js'
 // when ratings couldn't load, and nothing is shown, so a cache never looks
 // unrated just because the numbers are missing.
 // long: "(12 ratings)" instead of "(12)", for the cache page.
-//
-// On the cache page the rating arrives a moment after the rest, so it fades
-// in (150ms) rather than popping in. No movement, so it stays with reduced
-// motion on.
+// fadeIn: fade in (150ms) as it appears, for the cache page, where the
+// rating arrives a moment after the rest. Not on the map's cards: they get
+// theirs with the cards, and the list doesn't animate. A fade isn't
+// movement, so it stays with reduced motion on.
 
 const FADE_IN = 'transition-opacity duration-150 ease-out starting:opacity-0'
 
-function RatingSummary({ rating, long = false, className = '' }) {
+function RatingSummary({ rating, long = false, fadeIn = false, className = '' }) {
   if (rating === undefined) return null
   const label = ratingLabel(rating)
+  const fade = fadeIn ? FADE_IN : ''
   if (!rating?.count || rating.average === null) {
-    return <span className={`whitespace-nowrap text-small text-text-secondary ${FADE_IN} ${className}`}>{label}</span>
+    return <span className={`whitespace-nowrap text-small text-text-secondary ${fade} ${className}`}>{label}</span>
   }
   const count = long ? `${rating.count} ${rating.count === 1 ? 'rating' : 'ratings'}` : rating.count
   return (
-    <span className={`flex items-center gap-1 whitespace-nowrap text-small ${FADE_IN} ${className}`}>
+    <span className={`flex items-center gap-1 whitespace-nowrap text-small ${fade} ${className}`}>
       <span className="sr-only">{label}</span>
       <Star aria-hidden="true" size={14} strokeWidth={1.75} className="shrink-0 fill-highlight text-text-primary" />
       <span aria-hidden="true" className="font-bold text-text-primary">

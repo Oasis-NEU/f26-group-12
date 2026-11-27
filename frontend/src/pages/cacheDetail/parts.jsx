@@ -82,7 +82,7 @@ export function MetaRow({ cache, rating, className = '' }) {
       )}
       <div className="flex items-center gap-4">
         <DifficultyMeter level={cache.difficulty} />
-        <RatingSummary rating={rating} long />
+        <RatingSummary rating={rating} long fadeIn />
       </div>
     </div>
   )

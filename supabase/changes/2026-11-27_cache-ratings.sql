@@ -1,7 +1,8 @@
 -- Average ratings for caches: what the map's cache cards and the cache page
 -- show ("4.6 (12)", or "No ratings yet").
--- ALREADY APPLIED to the live database on 2026-11-27. (Running it again is
--- harmless: it replaces the function with the same code.)
+-- ALREADY APPLIED to the live database on 2026-11-27. Superseded by
+-- 2026-11-27_cache-ratings-tighten.sql (no find count, empty search_path);
+-- don't run this one again, or it would bring find_count back.
 --
 -- What this does, in plain language:
 --   Each person can only read their own finds (RLS on finds), so the app

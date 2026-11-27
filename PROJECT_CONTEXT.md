@@ -155,7 +155,7 @@ The first three need a logged-in user; `cache_ratings` works for everyone.
 | `generate_secret_code()` | a fresh random code, for the "New code" button | `'K7MQ2X'` |
 | `create_cache(p_title, p_latitude, p_longitude, p_difficulty, p_description, p_location_name, p_image, p_hints, p_secret_code)` | saves the cache, up to 3 hints (array of text, blanks skipped), and its code in one step. `p_secret_code` is optional (random if left out). | `{ cache_id, secret_code }` |
 | `log_find(p_cache_id, p_secret_code, p_rating, p_journal_note, p_photo)` | checks the code, then saves the find. Codes are case-insensitive. | the new find's `id` |
-| `cache_ratings(p_cache_ids)` | each active cache's average rating (one decimal, `null` if unrated), number of ratings and number of finds. Totals only, never who rated what. Leave `p_cache_ids` out for every cache. | rows of `{ cache_id, average_rating, rating_count, find_count }` |
+| `cache_ratings(p_cache_ids)` | each active cache's average rating (one decimal, `null` if unrated) and number of ratings. Totals only, never who rated what or how many found it. Leave `p_cache_ids` out for every cache. | rows of `{ cache_id, average_rating, rating_count }` |
 
 `log_find` errors have friendly messages you can show directly with `error.message`: wrong code, already logged ("You've already logged this cache!"), inactive cache, or trying to log a cache you hid yourself.
 
