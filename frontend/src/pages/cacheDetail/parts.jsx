@@ -66,7 +66,9 @@ export function MetaRow({ cache, className = '' }) {
   return (
     <div className={`flex items-center justify-between gap-4 lg:justify-start lg:gap-6 ${className}`}>
       {cache.location_name && (
-        <p className="min-w-0 wrap-anywhere text-small text-text-secondary lg:text-body">{cache.location_name}</p>
+        // The location is what you act on outdoors, so it's the strongest line
+        // in the strip (Body Strong, primary), on every screen size.
+        <p className="min-w-0 wrap-anywhere text-body-strong text-text-primary">{cache.location_name}</p>
       )}
       <DifficultyMeter level={cache.difficulty} />
     </div>
