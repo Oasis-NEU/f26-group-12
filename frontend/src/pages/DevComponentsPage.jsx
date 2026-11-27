@@ -4,7 +4,7 @@ import CacheCard from '../components/CacheCard.jsx'
 import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import HintRow from '../components/HintRow.jsx'
 import MapPin from '../components/MapPin.jsx'
-import NavBar from '../components/NavBar.jsx'
+import SiteHeader from '../components/SiteHeader.jsx'
 import StarRating from '../components/StarRating.jsx'
 import TextField from '../components/TextField.jsx'
 
@@ -83,6 +83,11 @@ function DevComponentsPage() {
           </State>
           <State name="Full width" wide>
             <Button fullWidth>Create cache</Button>
+          </State>
+          <State name="Small (40px, the header's Log in)">
+            <Button variant="secondary" size="small">
+              Log in
+            </Button>
           </State>
         </Section>
 
@@ -216,18 +221,13 @@ function DevComponentsPage() {
           </State>
         </Section>
 
-        <Section title="NavBar" note="Hover the links. The current-page link is underlined; none match here. Click the menu button on Phone.">
-          <State name="Desktop" full>
-            {/* Desktop is 1440px wide in Figma; scroll sideways on small screens. */}
-            <div className="w-full overflow-x-auto border border-dashed border-border-subtle">
-              <div className="min-w-[960px]">
-                <NavBar size="desktop" />
-              </div>
-            </div>
-          </State>
-          <State name="Phone (393px)">
-            <div className="relative h-[360px] w-[393px] max-w-full border border-dashed border-border-subtle">
-              <NavBar size="phone" />
+        <Section
+          title="SiteHeader"
+          note="The real header, as on every page. The current page is a soft pill (none matches here). Type in the search for suggestions. Make the window narrower than 1024px for the phone layout and its menu."
+        >
+          <State name="Responsive" full>
+            <div className="w-full border border-dashed border-border-subtle">
+              <SiteHeader />
             </div>
           </State>
         </Section>

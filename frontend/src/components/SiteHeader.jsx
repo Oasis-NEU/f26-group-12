@@ -215,7 +215,7 @@ function AccountMenu({ account, onLogOut }) {
 // current page has a 4px ink bar at its left as well as the Subtle fill, so
 // it shows in bright sun (the fill alone barely does). Focus moves to the
 // first page when it opens.
-function MobileMenu({ id, account, onNavigate, onLogOut }) {
+function MobileMenu({ id, account, onNavigate, onLogOut, onLoginPage }) {
   const firstLinkRef = useRef(null)
   const smallItem = `flex h-[52px] w-full cursor-pointer items-center rounded-lg px-4 text-left text-body text-text-primary hover:bg-bg-subtle ${FOCUS_RING}`
 
@@ -277,7 +277,8 @@ function MobileMenu({ id, account, onNavigate, onLogOut }) {
             </button>
           </>
         ) : (
-          account === null && (
+          account === null &&
+          !onLoginPage && (
             <Button variant="secondary" to="/login" fullWidth onClick={onNavigate} className="mt-3">
               Log in
             </Button>
@@ -362,9 +363,13 @@ function SiteHeader() {
         ) : account ? (
           <AccountMenu account={account} onLogOut={handleLogOut} />
         ) : (
-          <Button variant="secondary" size="small" to="/login">
-            Log in
-          </Button>
+          // Not on the Log in page itself, where it would sit right above
+          // that page's own "Log in" button and go nowhere new.
+          pathname !== '/login' && (
+            <Button variant="secondary" size="small" to="/login">
+              Log in
+            </Button>
+          )
         )}
       </div>
 
@@ -389,7 +394,13 @@ function SiteHeader() {
       </button>
 
       {menuOpen && (
-        <MobileMenu id={menuId} account={account} onNavigate={() => setMenuOpenOn(null)} onLogOut={handleLogOut} />
+        <MobileMenu
+          id={menuId}
+          account={account}
+          onNavigate={() => setMenuOpenOn(null)}
+          onLogOut={handleLogOut}
+          onLoginPage={pathname === '/login'}
+        />
       )}
     </header>
   )

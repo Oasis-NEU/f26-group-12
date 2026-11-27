@@ -21,7 +21,8 @@ export function LogoMark({ className = 'size-8' }) {
 }
 
 // The mark and the "HuskyCache" wordmark, linking home. Heading size on
-// phones, the Wordmark style on desktop.
+// phones and the Wordmark style on desktop, both at 800 so the brand looks
+// the same weight everywhere.
 function Logo({ className = '' }) {
   return (
     <Link
@@ -30,7 +31,7 @@ function Logo({ className = '' }) {
       className={`flex shrink-0 items-center gap-2.5 rounded-lg ${FOCUS_RING} ${className}`}
     >
       <LogoMark />
-      <span aria-hidden="true" className="whitespace-nowrap text-heading text-text-primary lg:text-wordmark">
+      <span aria-hidden="true" className="whitespace-nowrap text-heading font-extrabold text-text-primary lg:text-wordmark">
         HuskyCache
       </span>
     </Link>
