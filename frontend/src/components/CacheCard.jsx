@@ -51,21 +51,30 @@ export function FoundTag() {
 
 // The photo, or the empty dashed box. A photo that fails to load falls back
 // to the box. Decorative: the card's text already names the cache.
+//
+// While it downloads, the Subtle square holds its place (so nothing moves),
+// and the photo fades in over it when it arrives (200ms) instead of popping
+// in. A fade isn't movement, so it stays with reduced motion on.
 function CardPhoto({ image }) {
-  const [failed, setFailed] = useState(false)
+  const [state, setState] = useState('loading')
   const box = 'size-20 shrink-0 rounded-lg'
-  if (image && !failed) {
+  if (image && state !== 'failed') {
     return (
-      <img
-        src={image}
-        alt=""
-        width={80}
-        height={80}
-        loading="lazy"
-        decoding="async"
-        onError={() => setFailed(true)}
-        className={`${box} bg-bg-subtle object-cover`}
-      />
+      <span className={`${box} overflow-hidden bg-bg-subtle`}>
+        <img
+          src={image}
+          alt=""
+          width={80}
+          height={80}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setState('loaded')}
+          onError={() => setState('failed')}
+          className={`size-full object-cover transition-opacity duration-200 ease-out ${
+            state === 'loaded' ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      </span>
     )
   }
   return (
@@ -89,13 +98,17 @@ function CacheCard({
   className = '',
 }) {
   const isInteractive = Boolean(to || onClick)
+  // Motion: hover fills and the selected outline ease in (150ms), and a
+  // clickable card shrinks to 98% while pressed (a bit less than a button's
+  // 97%, since it's bigger), so a tap feels heard. The list itself doesn't
+  // animate when a search or filter changes it: that happens as you type.
   const classes = [
-    'flex w-full items-start gap-3 rounded-2xl border border-border-subtle bg-bg-surface p-3 text-left',
+    'flex w-full items-start gap-3 rounded-2xl border border-border-subtle bg-bg-surface p-3 text-left motion-safe:transition-[background-color,border-color,box-shadow,scale] motion-safe:duration-150 motion-safe:ease-out',
     // Selected is a 2px dark border in Figma. The 1px border plus a 1px inset
     // ring looks the same, so the card doesn't grow.
     selected ? 'border-border-strong inset-ring-1 inset-ring-border-strong' : '',
     isInteractive && !selected ? 'hover:bg-bg-subtle' : '',
-    isInteractive ? `cursor-pointer ${FOCUS_RING}` : '',
+    isInteractive ? `cursor-pointer active:scale-98 ${FOCUS_RING}` : '',
     className,
   ].join(' ')
 
