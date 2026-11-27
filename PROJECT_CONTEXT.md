@@ -33,6 +33,10 @@ Next:
 - My caches page
 - Edit cache and take down
 - Landing page
+- Street addresses and named places in the header search (with the map
+  work): picking one opens the map there, nearest caches first; picking a
+  cache still opens its page. Needs a geocoding service (Photon is the free
+  option; Nominatim's public API doesn't allow search-as-you-type).
 
 Nice-to-have:
 - AI-generated hints from images
