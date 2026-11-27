@@ -11,6 +11,7 @@ import {
   CacheTitle,
   Description,
   FindAction,
+  FindHelp,
   HintsHeader,
   HintsList,
   MetaRow,
@@ -61,6 +62,8 @@ function CacheDetails({ cacheId, detail }) {
   // With no hints (or if they failed to load) there's no trail to end at the
   // cache, so the card shows a plain divider and button instead.
   const hasTrail = !detail.hintCountError && detail.hintCount > 0
+  // How-to line under "I found it", only while this person can still log it.
+  const help = !found && !detail.isHider ? <FindHelp signedIn={detail.signedIn} /> : null
 
   return (
     <>
@@ -102,6 +105,9 @@ function CacheDetails({ cacheId, detail }) {
                       {action}
                     </div>
                   )}
+                  {/* Desktop: the how-to line under the trail's end (and button).
+                      Phones show it in the bottom bar instead. */}
+                  {help && <div className="hidden lg:block">{help}</div>}
                 </>
               ) : (
                 <TakenDownNotice className="lg:border-0 lg:p-0" />
@@ -111,7 +117,13 @@ function CacheDetails({ cacheId, detail }) {
         </div>
       </div>
       {cache.is_active && (
-        <PhoneActionBar cacheId={cacheId} find={find} isHider={detail.isHider} className={`border-t ${CARD_BORDER}`} />
+        <PhoneActionBar
+          cacheId={cacheId}
+          find={find}
+          isHider={detail.isHider}
+          help={help}
+          className={`border-t ${CARD_BORDER}`}
+        />
       )}
     </>
   )

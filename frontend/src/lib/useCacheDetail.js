@@ -160,6 +160,9 @@ export function useCacheDetail(cacheId) {
     // True when the signed-in person hid this cache. They know its code, so
     // the page doesn't offer them "I found it".
     isHider: Boolean(userId && details.cache?.created_by && details.cache.created_by === userId),
+    // undefined while checking, then true or false. Logging a find needs an
+    // account, so the page tells signed-out visitors before they try.
+    signedIn: userId === undefined ? undefined : Boolean(userId),
     hintCount: details.hintCount,
     hintCountError: details.hintCountError,
     revealed,

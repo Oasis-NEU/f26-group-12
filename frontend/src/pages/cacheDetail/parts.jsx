@@ -170,6 +170,29 @@ export function FindAction({ cacheId, find, isHider = false }) {
   )
 }
 
+// Under "I found it": how the proof step works (the find counts because you
+// enter the code from the slip inside), and, for signed-out visitors, that
+// logging needs an account. Only shown while the cache can still be logged by
+// this person (not found yet, not their own cache).
+export function FindHelp({ signedIn, className = '' }) {
+  return (
+    <div className={`flex flex-col gap-1 text-small text-text-secondary ${className}`}>
+      <p>
+        Found it? Open it, find the 6-letter code on the slip, then <span className="lg:hidden">tap</span>
+        <span className="hidden lg:inline">click</span> “I found it”. Put it back where it was.
+      </p>
+      {signedIn === false && (
+        <p>
+          <Link to="/login" className={`rounded-sm font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`}>
+            Log in
+          </Link>{' '}
+          to log your find.
+        </p>
+      )}
+    </div>
+  )
+}
+
 // The design's "taken down" state: this replaces the hints and the button.
 export function TakenDownNotice({ className = '' }) {
   return (
@@ -183,10 +206,12 @@ export function TakenDownNotice({ className = '' }) {
 
 // Phones: the action is pinned to the bottom of the screen.
 // className lets a version change the bar's top edge.
-export function PhoneActionBar({ cacheId, find, isHider, className = 'border-t border-border-subtle' }) {
+// help is the FindHelp text, shown under the button when it applies.
+export function PhoneActionBar({ cacheId, find, isHider, help, className = 'border-t border-border-subtle' }) {
   return (
-    <div className={`sticky bottom-0 z-20 bg-bg-surface p-4 lg:hidden ${className}`}>
+    <div className={`sticky bottom-0 z-20 flex flex-col gap-2 bg-bg-surface p-4 lg:hidden ${className}`}>
       <FindAction cacheId={cacheId} find={find} isHider={isHider} />
+      {help}
     </div>
   )
 }
