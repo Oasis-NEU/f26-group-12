@@ -5,11 +5,18 @@ import { supabase } from '../lib/supabaseClient.js'
 import { formatPoints, getInitials, loadAccountSummary } from './accountData.js'
 import Button from './Button.jsx'
 import { FOCUS_RING } from './focusRing.js'
+import HeaderSearch from './HeaderSearch.jsx'
+import Logo from './Logo.jsx'
 
-// The bar at the top of most pages, with the logged-in account menu.
-// It follows DESIGN.md's Navigation section (the Figma NavBar) using the
-// theme tokens; NavBar.jsx is the logged-out-only version. Once NavBar gets
-// the account menu (menus branch), pages can switch to it.
+// The bar at the top of every page, with the logged-in account menu.
+// It follows DESIGN.md's Navigation section, using the theme tokens.
+//
+// Desktop (lg:, 1024px): the logo at the far left, the cache search, then
+// the pages and the account menu (or "Log in") at the right. The current
+// page sits in a soft Subtle pill rather than being underlined, so the
+// pages read as places you can be, not as links. Phones (the base styles):
+// the logo and a menu button that opens the same pages full screen. The
+// map has its own search on phones.
 
 const NAV_LINKS = [
   { label: 'Map', to: '/map' },
@@ -79,19 +86,20 @@ function Avatar({ username, size }) {
   )
 }
 
-// Same look as NavBar: Body text in Text Secondary; the current page is
-// darker and underlined.
+// A page in the bar: Label text in a 40px pill. The current page is Text on
+// the Subtle fill; the others are Text Secondary, darkening on hover over a
+// paler fill. (NavLink marks the current one with aria-current="page".)
 function navLinkClass({ isActive }) {
   return [
-    `whitespace-nowrap rounded-lg py-2 text-body hover:text-text-primary ${FOCUS_RING}`,
-    isActive ? 'text-text-primary underline underline-offset-4' : 'text-text-secondary',
+    `flex h-10 items-center whitespace-nowrap rounded-full px-3 text-label xl:px-4 motion-safe:transition-colors motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`,
+    isActive ? 'bg-bg-subtle text-text-primary' : 'text-text-secondary hover:bg-bg-page hover:text-text-primary',
   ].join(' ')
 }
 
 function DesktopNavLinks() {
   return (
     <nav aria-label="Main navigation">
-      <ul className="flex items-center gap-8">
+      <ul className="flex items-center gap-1">
         {NAV_LINKS.map(({ label, to }) => (
           <li key={to}>
             <NavLink to={to} end={to === '/'} className={navLinkClass}>
@@ -162,12 +170,12 @@ function AccountMenu({ account, onLogOut }) {
   )
 }
 
-// Phones: full-screen menu under the header with the same links.
+// Phones and tablets: full-screen menu under the header with the same pages.
 function MobileMenu({ account, onNavigate, onLogOut }) {
-  const smallItem = `flex h-[52px] w-full cursor-pointer items-center rounded-lg px-1 text-left text-body text-text-primary ${FOCUS_RING}`
+  const smallItem = `flex h-[52px] w-full cursor-pointer items-center rounded-lg px-3 text-left text-body text-text-primary ${FOCUS_RING}`
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-14 z-40 overflow-y-auto bg-bg-surface p-4 md:hidden">
+    <div className="fixed inset-x-0 bottom-0 top-14 z-40 overflow-y-auto bg-bg-surface p-4 lg:hidden">
       <nav aria-label="Main navigation" className="flex flex-col gap-1">
         {NAV_LINKS.map(({ label, to }) => (
           <NavLink
@@ -175,9 +183,10 @@ function MobileMenu({ account, onNavigate, onLogOut }) {
             to={to}
             end={to === '/'}
             onClick={onNavigate}
+            // The current page in the same Subtle fill as on desktop.
             className={({ isActive }) =>
-              `flex h-[52px] items-center rounded-lg px-1 text-heading text-text-primary ${FOCUS_RING} ${
-                isActive ? 'underline underline-offset-4' : ''
+              `flex h-[52px] items-center rounded-lg px-3 text-heading text-text-primary ${FOCUS_RING} ${
+                isActive ? 'bg-bg-subtle' : ''
               }`
             }
           >
@@ -189,7 +198,7 @@ function MobileMenu({ account, onNavigate, onLogOut }) {
 
         {account ? (
           <>
-            <div className="flex items-center gap-3 px-1 pb-2 pt-4">
+            <div className="flex items-center gap-3 px-3 pb-2 pt-4">
               <Avatar username={account.username} size="large" />
               <div className="flex min-w-0 flex-1 flex-col">
                 <p className="truncate text-body-strong text-text-primary">{account.username}</p>
@@ -227,20 +236,13 @@ function SiteHeader() {
   }
 
   return (
-    <header className="relative z-30 flex h-14 shrink-0 items-center justify-between border-b border-border-subtle bg-bg-surface px-4 contrast-more:border-border-input md:h-16 md:px-[10%]">
-      <Link to="/" className={`flex items-center gap-3 rounded-lg ${FOCUS_RING}`} aria-label="HuskyCache home">
-        <span
-          aria-hidden="true"
-          className="flex size-8 items-center justify-center bg-accent text-brand-mark text-text-on-accent"
-        >
-          N
-        </span>
-        <span aria-hidden="true" className="whitespace-nowrap text-heading text-text-primary md:text-wordmark">
-          HuskyCache
-        </span>
-      </Link>
+    <header className="relative z-30 flex h-14 shrink-0 items-center gap-6 border-b border-border-subtle bg-bg-surface px-4 contrast-more:border-border-input lg:h-16 lg:px-6">
+      <Logo />
 
-      <div className="hidden items-center gap-8 md:flex">
+      {/* Grows to fill the space between the logo and the pages, up to 608px. */}
+      <HeaderSearch className="hidden max-w-[38rem] flex-1 lg:block" />
+
+      <div className="ml-auto hidden shrink-0 items-center gap-6 lg:flex">
         <DesktopNavLinks />
         {account === undefined ? (
           // Still checking who's logged in: hold the space so nothing jumps.
@@ -259,7 +261,7 @@ function SiteHeader() {
         onClick={() => setMenuOpen((open) => !open)}
         aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={menuOpen}
-        className={`flex size-10 cursor-pointer items-center justify-center rounded-lg border border-border-subtle text-text-primary hover:bg-bg-subtle contrast-more:border-border-input md:hidden ${FOCUS_RING}`}
+        className={`ml-auto flex size-10 cursor-pointer items-center justify-center rounded-lg border border-border-subtle text-text-primary hover:bg-bg-subtle contrast-more:border-border-input lg:hidden ${FOCUS_RING}`}
       >
         {menuOpen ? <X aria-hidden="true" size={20} /> : <Menu aria-hidden="true" size={20} />}
       </button>

@@ -1,12 +1,14 @@
 import { APIProvider, AdvancedMarker, AdvancedMarkerAnchorPoint, Map as GoogleMap, useMap } from '@vis.gl/react-google-maps'
 import { List, LocateFixed, Map as MapIcon, Minus, Plus, School, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import Button from '../components/Button.jsx'
 import CacheCard, { FoundTag } from '../components/CacheCard.jsx'
 import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import MapPin from '../components/MapPin.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
+import { readSearch, withSearch } from '../lib/searchQuery.js'
 import { useMapData } from '../lib/useMapData.js'
 import { useMyLocation } from '../lib/useMyLocation.js'
 import { cacheCoordinates } from './cacheDetail/coords.js'
@@ -17,9 +19,12 @@ import { filterCaches } from './mapData.js'
 // Phones (the base styles): the map fills the screen, with search, the
 // filters and a List button floating on top. Tapping a pin brings up a card
 // for that cache under the map. "List" swaps the map for the list of caches.
-// Desktop (lg:): the list moves into a panel on the left. Clicking a pin
-// highlights its card in the list and opens a small popup beside the pin
-// instead of the card.
+// Desktop (lg:): the list moves into a panel on the left, and the search is
+// the one in the header. Clicking a pin highlights its card in the list and
+// opens a small popup beside the pin instead of the card.
+//
+// The search is kept in the address bar as ?q= (searchQuery.js), shared by
+// this page's search box and the header's.
 //
 // The data (caches, your finds, who's signed in) comes from useMapData, and
 // "Show my location" from useMyLocation (both in src/lib); this file only
@@ -85,12 +90,13 @@ function MapHandle({ onMap }) {
   return null
 }
 
-// The search box. It has no visible label (as in Figma), so screen readers
-// get one instead. Our own clear button replaces the browser's, which looks
-// different in every browser.
+// The search box (phones and tablets; desktop uses the header's). It has no
+// visible label (as in Figma), so screen readers get one instead. Our own
+// clear button replaces the browser's, which looks different in every
+// browser.
 function SearchField({ value, onChange }) {
   return (
-    <div className="relative w-full">
+    <div className="relative w-full lg:hidden">
       <label htmlFor="cache-search" className="sr-only">
         Search caches or places
       </label>
@@ -333,7 +339,10 @@ function MapPage() {
   const { caches, foundIds, userId, cacheLoading, dataError, authError, realtimeStatus, retry } = useMapData()
   const myLocation = useMyLocation()
   const isDesktop = useIsDesktop()
-  const [search, setSearch] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search = readSearch(searchParams)
+  // replace: typing doesn't add a history entry per letter.
+  const setSearch = (text) => setSearchParams((current) => withSearch(current, text), { replace: true })
   const [filter, setFilter] = useState('all')
   // Nothing is selected until someone picks a pin or a card.
   const [selectedId, setSelectedId] = useState(null)

@@ -1,7 +1,8 @@
 import { useEffect, useId, useState } from 'react'
-import { Link, NavLink } from 'react-router'
+import { NavLink } from 'react-router'
 import Button from './Button.jsx'
 import { FOCUS_RING } from './focusRing.js'
+import Logo from './Logo.jsx'
 
 // The bar at the top of every page, from the Figma "NavBar" component
 // (the logged-out version).
@@ -11,8 +12,8 @@ import { FOCUS_RING } from './focusRing.js'
 // Leave size out (or "responsive") and it switches by itself: phone layout
 // on small screens, desktop from the md breakpoint (768px) up.
 //
-// The link for the current page is underlined and darker. On phones the
-// menu button opens the same links in a list under the bar.
+// The current page sits in a soft Subtle pill (as in SiteHeader). On
+// phones the menu button opens the same pages in a list under the bar.
 
 const NAV_LINKS = [
   { label: 'Map', to: '/map' },
@@ -24,19 +25,18 @@ const NAV_LINKS = [
 // Which classes each size uses. "responsive" uses md: to switch at 768px.
 const LAYOUTS = {
   responsive: {
-    bar: 'h-14 px-4 md:h-16 md:px-[10%]',
-    wordmark: 'text-heading md:text-wordmark',
+    bar: 'h-14 px-4 md:h-16 md:px-6',
     desktopOnly: 'hidden md:flex',
     phoneOnly: 'md:hidden',
   },
-  desktop: { bar: 'h-16 px-[10%]', wordmark: 'text-wordmark', desktopOnly: 'flex', phoneOnly: 'hidden' },
-  phone: { bar: 'h-14 px-4', wordmark: 'text-heading', desktopOnly: 'hidden', phoneOnly: '' },
+  desktop: { bar: 'h-16 px-6', desktopOnly: 'flex', phoneOnly: 'hidden' },
+  phone: { bar: 'h-14 px-4', desktopOnly: 'hidden', phoneOnly: '' },
 }
 
 function navLinkClass({ isActive }) {
   return [
-    `whitespace-nowrap rounded-lg text-body hover:text-text-primary ${FOCUS_RING}`,
-    isActive ? 'text-text-primary underline underline-offset-4' : 'text-text-secondary',
+    `flex h-10 items-center whitespace-nowrap rounded-full px-4 text-label ${FOCUS_RING}`,
+    isActive ? 'bg-bg-subtle text-text-primary' : 'text-text-secondary hover:bg-bg-page hover:text-text-primary',
   ].join(' ')
 }
 
@@ -61,25 +61,15 @@ function NavBar({ size = 'responsive', className = '' }) {
     <header
       className={`relative flex shrink-0 items-center justify-between border-b border-border-subtle bg-bg-surface ${layout.bar} ${className}`}
     >
-      <Link to="/" aria-label="HuskyCache home" className={`flex items-center gap-3 ${FOCUS_RING}`}>
-        <span
-          aria-hidden="true"
-          className="flex size-8 shrink-0 items-center justify-center bg-accent text-brand-mark text-text-on-accent"
-        >
-          N
-        </span>
-        <span aria-hidden="true" className={`whitespace-nowrap text-text-primary ${layout.wordmark}`}>
-          HuskyCache
-        </span>
-      </Link>
+      <Logo />
 
-      <nav aria-label="Main navigation" className={`items-center gap-8 ${layout.desktopOnly}`}>
+      <nav aria-label="Main navigation" className={`items-center gap-1 ${layout.desktopOnly}`}>
         {NAV_LINKS.map(({ label, to }) => (
           <NavLink key={to} to={to} end={to === '/'} className={navLinkClass}>
             {label}
           </NavLink>
         ))}
-        <Button variant="secondary" to="/login">
+        <Button variant="secondary" to="/login" className="ml-5">
           Log in
         </Button>
       </nav>
@@ -113,7 +103,7 @@ function NavBar({ size = 'responsive', className = '' }) {
               end={to === '/'}
               onClick={closeMenu}
               className={({ isActive }) =>
-                `flex h-[52px] items-center rounded-lg text-heading ${FOCUS_RING} ${isActive ? 'underline underline-offset-4' : ''}`
+                `flex h-[52px] items-center rounded-lg px-3 text-heading ${FOCUS_RING} ${isActive ? 'bg-bg-subtle' : ''}`
               }
             >
               {label}

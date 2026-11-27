@@ -175,6 +175,10 @@ All three need a logged-in user.
 - **Map filters (All / To find / My finds) are about the logged-in user's finds.**
   Hidden when logged out. Found caches show a checkmark.
 - **Success screens ("Cache hidden!", "Find logged!") are page states, not routes.**
+- **Search lives in the header** (desktop) and in the address bar as
+  `/map?q=…`, so it's shared with the map's own search box (phones), survives
+  a reload, and carries over from other pages. The logo is a red map pin with
+  a cache box (not the old red "N" square).
 - **Links go places; buttons do things.** Underlined links only inside a
   sentence, to another page. Actions, and anything on its own line, are
   buttons: Primary (one per page), Secondary, then a quiet button with no
@@ -229,4 +233,5 @@ Club sessions for reference: HS 4 AI Implementation (10/18), HS 5 API Developmen
   gold for ratings and the selected pin, blue for keyboard focus; Bricolage
   Grotesque for headings, Atkinson Hyperlegible Next for body text, JetBrains
   Mono for secret codes; 8px corners on controls, 16px on cards
-  (`rounded-full` only for pins, avatars and pill tags).
+  (`rounded-full` only for pins, avatars, pill tags and the header's search
+  and page pills).
