@@ -17,7 +17,8 @@ Core:
 - Hints per cache (up to 3, revealed in order)
 - Journal of each user's finds with difficulty and star rating
 - Rate caches after finding them
-- Log in and sign up with email
+- Log in and sign up with email (log in with a password, or with a 6-digit code emailed to you)
+- Forgot password (reset by an emailed link)
 - Account menu, and people need a way to log out.
 - Automatic secret codes for every cache before it's saved.
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
@@ -28,7 +29,6 @@ Next:
 - Score and leaderboard (points based on cache difficulty)
 - "Found" tab in the UI separating caches you've found from ones you haven't
 - Log in with Google, plus the “Choose a username”
-- Forgot password
 - Map filters (All / To find / My finds): this replaces the “Found” tab already listed under Next.
 - My caches page
 - Edit cache and take down
