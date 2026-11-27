@@ -244,12 +244,10 @@ export function TakenDownNotice({ className = '' }) {
 
 // Phones: the action is pinned to the bottom of the screen.
 // className lets a version change the bar's top edge.
-// help is the FindHelp text, shown under the button when it applies.
-export function PhoneActionBar({ cacheId, find, isHider, checking, help, className = 'border-t border-border-subtle' }) {
+export function PhoneActionBar({ cacheId, find, isHider, checking, className = 'border-t border-border-subtle' }) {
   return (
-    <div className={`sticky bottom-0 z-20 flex flex-col gap-2 bg-bg-surface p-4 lg:hidden ${className}`}>
+    <div className={`sticky bottom-0 z-20 bg-bg-surface p-4 lg:hidden ${className}`}>
       <FindAction cacheId={cacheId} find={find} isHider={isHider} checking={checking} />
-      {help}
     </div>
   )
 }

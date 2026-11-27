@@ -115,9 +115,10 @@ function CacheDetails({ cacheId, detail }) {
                       {action}
                     </div>
                   )}
-                  {/* Desktop: the how-to line under the trail's end (and button).
-                      Phones show it in the bottom bar instead. */}
-                  {help && <div className="hidden lg:block">{help}</div>}
+                  {/* The how-to line, under the trail's end on every screen size. On
+                      phones it stays in the page, not the sticky bottom bar, so the
+                      bar stays small and doesn't cover the screen. */}
+                  {help}
                 </>
               ) : (
                 <TakenDownNotice className="lg:border-0 lg:p-0" />
@@ -132,7 +133,6 @@ function CacheDetails({ cacheId, detail }) {
           find={find}
           isHider={detail.isHider}
           checking={detail.findChecking}
-          help={help}
           className={`border-t ${CARD_BORDER}`}
         />
       )}
