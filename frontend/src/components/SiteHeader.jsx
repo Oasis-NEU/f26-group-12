@@ -88,10 +88,12 @@ function Avatar({ username, size }) {
 
 // A page in the bar: Label text in a 40px pill. The current page is Text on
 // the Subtle fill; the others are Text Secondary, darkening on hover over a
-// paler fill. (NavLink marks the current one with aria-current="page".)
+// paler fill (150ms). Pressing one shrinks it to 97%, like a button. Moving
+// between pages doesn't animate: it happens all day, and every page draws
+// its own header. (NavLink marks the current one with aria-current="page".)
 function navLinkClass({ isActive }) {
   return [
-    `flex h-10 items-center whitespace-nowrap rounded-full px-3 text-label xl:px-4 motion-safe:transition-colors motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`,
+    `flex h-10 items-center whitespace-nowrap rounded-full px-3 text-label active:scale-97 xl:px-4 motion-safe:transition-[background-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`,
     isActive ? 'bg-bg-subtle text-text-primary' : 'text-text-secondary hover:bg-bg-page hover:text-text-primary',
   ].join(' ')
 }
@@ -144,15 +146,17 @@ function AccountMenu({ account, onLogOut }) {
         aria-label="Account menu"
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex cursor-pointer rounded-full ${FOCUS_RING}`}
+        className={`flex cursor-pointer rounded-full active:scale-97 motion-safe:transition-[scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
       >
         <Avatar username={account.username} />
       </button>
 
       {open && (
         // A floating menu, so it gets the overlay shadow (DESIGN.md: only
-        // things that float above the page cast one).
-        <div className="absolute right-0 top-full z-40 mt-[14px] flex w-[260px] flex-col rounded-2xl border border-border-subtle bg-bg-surface p-2 shadow-overlay contrast-more:border-border-input">
+        // things that float above the page cast one). It fades in and grows
+        // from 97% out of the avatar's corner (150ms); with reduced motion it
+        // only fades. Closing is instant.
+        <div className="absolute right-0 top-full z-40 mt-[14px] flex w-[260px] origin-top-right flex-col rounded-2xl border border-border-subtle bg-bg-surface p-2 shadow-overlay transition-[opacity,scale] duration-150 ease-out starting:opacity-0 contrast-more:border-border-input motion-safe:starting:scale-97">
           <div className="flex flex-col gap-0.5 px-3 py-2.5">
             <p className="truncate text-label text-text-primary">{account.username}</p>
             {account.points !== null && <p className="text-small text-text-secondary">{formatPoints(account.points)}</p>}
@@ -175,7 +179,9 @@ function MobileMenu({ account, onNavigate, onLogOut }) {
   const smallItem = `flex h-[52px] w-full cursor-pointer items-center rounded-lg px-3 text-left text-body text-text-primary ${FOCUS_RING}`
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-14 z-40 overflow-y-auto bg-bg-surface p-4 lg:hidden">
+    // Fades in and drops 4px from the header (200ms); with reduced motion it
+    // only fades. Closing is instant.
+    <div className="fixed inset-x-0 bottom-0 top-14 z-40 overflow-y-auto bg-bg-surface p-4 transition-[opacity,translate] duration-200 ease-out starting:opacity-0 lg:hidden motion-safe:starting:-translate-y-1">
       <nav aria-label="Main navigation" className="flex flex-col gap-1">
         {NAV_LINKS.map(({ label, to }) => (
           <NavLink
@@ -239,8 +245,9 @@ function SiteHeader() {
     <header className="relative z-30 flex h-14 shrink-0 items-center gap-6 border-b border-border-subtle bg-bg-surface px-4 contrast-more:border-border-input lg:h-16 lg:px-6">
       <Logo />
 
-      {/* Grows to fill the space between the logo and the pages, up to 608px. */}
-      <HeaderSearch className="hidden max-w-[38rem] flex-1 lg:block" />
+      {/* Fills all the space between the logo and the pages, stopping 24px
+          (the bar's gap) before "Map". */}
+      <HeaderSearch className="hidden flex-1 lg:block" />
 
       <div className="ml-auto hidden shrink-0 items-center gap-6 lg:flex">
         <DesktopNavLinks />
@@ -261,9 +268,16 @@ function SiteHeader() {
         onClick={() => setMenuOpen((open) => !open)}
         aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={menuOpen}
-        className={`ml-auto flex size-10 cursor-pointer items-center justify-center rounded-lg border border-border-subtle text-text-primary hover:bg-bg-subtle contrast-more:border-border-input lg:hidden ${FOCUS_RING}`}
+        className={`ml-auto flex size-10 cursor-pointer items-center justify-center rounded-lg border border-border-subtle text-text-primary hover:bg-bg-subtle active:scale-97 contrast-more:border-border-input lg:hidden motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
       >
-        {menuOpen ? <X aria-hidden="true" size={20} /> : <Menu aria-hidden="true" size={20} />}
+        {/* The new icon pops in from 75% (150ms), so the swap reads as one
+            button changing; with reduced motion it just swaps. */}
+        <span
+          key={menuOpen ? 'close' : 'open'}
+          className="block motion-safe:transition-[opacity,scale] motion-safe:duration-150 motion-safe:ease-out motion-safe:starting:scale-75 motion-safe:starting:opacity-0"
+        >
+          {menuOpen ? <X aria-hidden="true" size={20} /> : <Menu aria-hidden="true" size={20} />}
+        </span>
       </button>
 
       {menuOpen && (

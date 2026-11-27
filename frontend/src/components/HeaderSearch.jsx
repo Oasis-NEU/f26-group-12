@@ -51,7 +51,9 @@ function HeaderSearch({ className = '' }) {
         autoFocus={onMap && Boolean(state?.focusSearch)}
         className={`h-11 w-full appearance-none rounded-full border border-border-input bg-bg-surface pl-11 pr-11 text-body text-text-primary placeholder:text-text-secondary [&::-webkit-search-cancel-button]:appearance-none ${FOCUS_RING}`}
       />
-      {/* Our own clear button; the browser's looks different everywhere. */}
+      {/* Our own clear button; the browser's looks different everywhere. It
+          appears as you type, so it doesn't animate in (that would make
+          typing feel slow); pressing it shrinks it like any button. */}
       {value && (
         <button
           type="button"
@@ -60,7 +62,7 @@ function HeaderSearch({ className = '' }) {
             document.getElementById('site-search')?.focus()
           }}
           aria-label="Clear search"
-          className={`absolute right-1 top-1/2 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-text-secondary hover:bg-bg-subtle hover:text-text-primary ${FOCUS_RING}`}
+          className={`absolute right-1 top-1 flex size-9 cursor-pointer items-center justify-center rounded-full text-text-secondary hover:bg-bg-subtle hover:text-text-primary active:scale-97 motion-safe:transition-[background-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
         >
           <X aria-hidden="true" size={18} />
         </button>
