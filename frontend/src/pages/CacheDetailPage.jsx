@@ -25,8 +25,8 @@ import {
 
 // The page for one cache: /caches/:cacheId
 //
-// It looks like a spot on a trail map: contour lines circle the photo's map
-// pin, so the cache sits at the top of the "hill", the cache's name is set
+// It looks like a spot on a trail map: contour lines circle the cache's map
+// pin (or its photo), so the cache sits at the top of the "hill", its name is set
 // big like a place label, and the hints are a trail that ends at the cache.
 // The data comes from useCacheDetail (src/lib), which never loads secret_code.
 //
@@ -44,7 +44,7 @@ const PIN_RINGS = Array.from({ length: 24 }, (_, i) => contourRing(0, 0, 30 + i 
 // half of the 1.75rem pin) and 2.125rem on desktop (1.25rem inset). These are
 // in rem, like the pin, so the rings stay centred at any text size.
 // centered: the rings sit on the middle of the slot instead (where the mini
-// map's pin is), so they frame the real pin.
+// map's pin is, or the middle of a photo, which has no pin).
 const CORNER = 'bottom-[1.625rem] left-[1.625rem] translate-y-1/2 lg:bottom-[2.125rem] lg:left-[2.125rem]'
 const CENTER = 'left-1/2 top-1/2 -translate-y-1/2'
 function PinContours({ centered = false }) {
@@ -95,16 +95,19 @@ function CacheDetails({ cacheId, detail }) {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-12">
             <div className="flex min-w-0 flex-col gap-4 lg:flex-1 lg:gap-5">
               <div className="relative">
-                <PinContours centered={showMap} />
+                {/* A photo has no pin of its own (see below), so the rings circle
+                    the photo's middle, as they circle the mini map's pin. */}
+                <PinContours centered={showMap || Boolean(cache.image)} />
                 {showMap ? (
                   <CacheMiniMap cache={cache} found={found} onFail={() => setMapFailed(true)} />
                 ) : (
                   <CachePhoto cache={cache} />
                 )}
-                {/* The corner pin, on a photo or the empty frame. The mini map has its
-                    own pin at the spot. A taken-down cache isn't something to find,
-                    so it gets no red pin. */}
-                {cache.is_active && !showMap && (
+                {/* The corner pin, only on the empty frame. On a photo it could be
+                    read as "the cache is hidden here in the picture", so photos get
+                    none. The mini map has its own pin at the spot. A taken-down
+                    cache isn't something to find, so it gets no red pin. */}
+                {cache.is_active && !showMap && !cache.image && (
                   <MapPin found={found} className="absolute bottom-3 left-3 lg:bottom-5 lg:left-5" />
                 )}
               </div>

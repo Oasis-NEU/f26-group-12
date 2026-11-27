@@ -224,7 +224,9 @@ export function DirectionsLink({ cache }) {
 // this person (not found yet, not their own cache).
 export function FindHelp({ signedIn, className = '' }) {
   return (
-    <div className={`flex flex-col gap-1 text-small text-text-secondary ${className}`}>
+    // 8px between the lines, so "Log in to log your find." reads as its own
+    // line rather than the how-to sentence wrapping.
+    <div className={`flex flex-col gap-2 text-small text-text-secondary ${className}`}>
       {/* What you must do at the spot, before putting the cache back. The
           button above says the rest. */}
       <p>Note the 6-character code inside, then put the cache back.</p>
