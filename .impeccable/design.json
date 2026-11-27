@@ -525,7 +525,7 @@
       "**Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.",
       "**Do** follow The Bright Sun Rule (see Colors → Increase Contrast).",
       "**Do** use the theme tokens and text style classes instead of raw values.",
-      "**Do** keep motion for changes someone caused (a reveal, a press), under 300ms, on the shared ease-out (`cubic-bezier(0.23, 1, 0.32, 1)`, the theme's `ease-out`), and respect reduced motion."
+      "**Do** keep motion for changes someone caused (a reveal, a press), on the shared ease-out (`cubic-bezier(0.23, 1, 0.32, 1)`, the theme's `ease-out`), and respect reduced motion. Each animation stays under 300ms; a follow-up sequenced after the first change (like the trail drawing after a hint appears) may start up to 100ms later, so a sequence can total about 350ms."
     ],
     "donts": [
       "**Don't** make it look like an official Northeastern site: no crests, seals, official-looking university layouts, or anything implying university approval.",
