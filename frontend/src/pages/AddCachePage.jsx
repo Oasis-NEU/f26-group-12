@@ -50,6 +50,13 @@ const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const FORM_ID = 'hide-cache-form'
 const HEADING_ID = 'hide-cache-heading'
 const TEXT_LINK = `-my-1 w-fit cursor-pointer rounded-sm py-1 text-label text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
+// Something that just appeared fades in and rises 4px (200ms, the shared
+// ease-out), like a hint being revealed; with reduced motion it only
+// fades. starting: is the style it animates from (CSS @starting-style).
+const RISE_IN =
+  'transition-[opacity,translate] duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0'
+// A message that just appeared fades in (150ms).
+const FADE_IN = 'transition-opacity duration-150 ease-out starting:opacity-0'
 const FIELD_BOX = `w-full rounded-lg border border-border-input bg-bg-surface px-4 text-body text-text-primary placeholder:text-text-secondary ${FOCUS_RING}`
 
 // A part of the form ("Where is it?", "What is it?"...), labelled by its
@@ -72,7 +79,7 @@ function Section({ title, headingId, children }) {
 function FieldMessage({ id, error, help }) {
   if (!error && !help) return null
   return (
-    <div id={id} className="flex items-start gap-2">
+    <div id={id} key={error || 'help'} className={`flex items-start gap-2 ${error ? FADE_IN : ''}`}>
       {error && (
         <span
           aria-hidden="true"
@@ -125,7 +132,9 @@ function DifficultyPicker({ value, onChange, error }) {
         {[1, 2, 3, 4, 5].map((level) => (
           <label
             key={level}
-            className={`flex h-12 flex-1 cursor-pointer items-center justify-center rounded-lg border text-body-strong has-focus-visible:ring-2 has-focus-visible:ring-focus has-focus-visible:ring-offset-2 ${
+            // The fill eases in (150ms) and the option shrinks to 97% while
+            // pressed, like a Button, so a tap feels heard.
+            className={`flex h-12 flex-1 cursor-pointer items-center justify-center rounded-lg border text-body-strong active:scale-97 motion-safe:transition-[background-color,border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out has-focus-visible:ring-2 has-focus-visible:ring-focus has-focus-visible:ring-offset-2 ${
               value === level
                 ? 'border-bg-inverse bg-bg-inverse text-text-on-accent'
                 : `bg-bg-surface text-text-primary hover:bg-bg-subtle ${error ? 'border-error' : 'border-border-strong'}`
@@ -257,6 +266,7 @@ function HintsSection({ hints, onChange }) {
       {hints.map((hint, index) => (
         <TextField
           key={index}
+          className={index > 0 ? RISE_IN : ''}
           id={`${listId}-${index}`}
           label={`Hint ${index + 1}`}
           placeholder={index === 0 ? 'e.g. Sit on the steps and look down' : undefined}
@@ -300,7 +310,14 @@ function SecretCodeSection({ code, onNewCode }) {
             aria-describedby={helpId}
             className="flex h-12 min-w-0 flex-1 items-center rounded-lg border border-border-input bg-bg-surface px-4 text-code text-text-primary"
           >
-            {code}
+            {/* Keyed by the code, so each new one fades in from a slight
+                blur (150ms): it reads as the code changing, not a flicker. */}
+            <span
+              key={code}
+              className="motion-safe:transition-[opacity,filter] motion-safe:duration-150 motion-safe:ease-out motion-safe:starting:opacity-0 motion-safe:starting:blur-[2px]"
+            >
+              {code}
+            </span>
           </output>
           <Button variant="secondary" onClick={onNewCode}>
             New code
@@ -334,14 +351,21 @@ function HiddenPin() {
           <path key={d} d={d} fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
         ))}
       </svg>
-      <span className="block scale-200">
-        <MapPin />
+      {/* Grows in from 90% (250ms); see CacheHidden. */}
+      <span className="block transition-[opacity,scale] duration-250 ease-out starting:scale-90 starting:opacity-0 motion-reduce:starting:scale-100">
+        <span className="block scale-200">
+          <MapPin />
+        </span>
       </span>
     </span>
   )
 }
 
 // "Cache hidden!": the code once more, "Print a slip", and where to go next.
+// Hiding a cache is the hider's version of "Find logged!", so it gets the
+// same short entrance: the pin grows in from 90% (250ms), then the code
+// card rises 4px (200ms, from 100ms), done by about 300ms. With reduced
+// motion they only fade.
 function CacheHidden({ cache, onHideAnother }) {
   useEffect(() => {
     document.getElementById(HEADING_ID)?.focus()
@@ -357,7 +381,7 @@ function CacheHidden({ cache, onHideAnother }) {
         “<span className="wrap-break-word text-text-primary">{cache.title}</span>” is now on the map. Print the slip
         and put it inside the container.
       </p>
-      <div className="flex w-full flex-col items-center gap-1.5 rounded-2xl bg-bg-subtle p-5">
+      <div className={`flex w-full flex-col items-center gap-1.5 rounded-2xl bg-bg-subtle p-5 delay-100 ${RISE_IN}`}>
         <p className="text-label text-text-secondary">Secret code</p>
         <p className="font-mono text-[2rem]/[2.75rem] font-bold tracking-[4px] text-text-primary">{cache.secretCode}</p>
       </div>
