@@ -1,3 +1,4 @@
+import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import Button from '../components/Button.jsx'
@@ -5,6 +6,7 @@ import { FOCUS_RING } from '../components/focusRing.js'
 import SiteHeader from '../components/SiteHeader.jsx'
 import TextField from '../components/TextField.jsx'
 import {
+  checkCode,
   checkEmail,
   checkNewPassword,
   checkUsername,
@@ -15,16 +17,19 @@ import {
   resendConfirmation,
   safeNextPath,
   saveNewPassword,
+  sendLoginCode,
   sendPasswordReset,
   signUp,
+  verifyLoginCode,
 } from '../lib/auth.js'
 import { supabase } from '../lib/supabaseClient.js'
 
 // Log in, sign up and reset a password: /login. From the Figma section
 // "Log in · /login" and its notes.
 //
-// One page, four modes, picked by ?mode= in the URL:
-//   (none)        Log in
+// One page, five modes, picked by ?mode= in the URL:
+//   (none)        Log in with email and password
+//   ?mode=code    Log in with a code (we email a 6-digit code instead)
 //   ?mode=signup  Create your account
 //   ?mode=forgot  Reset your password (we email a link)
 //   ?mode=reset   Set a new password (where that emailed link lands)
@@ -45,9 +50,10 @@ import { supabase } from '../lib/supabaseClient.js'
 // fixed distance from the top, so it doesn't jump around between screens or
 // when the phone keyboard opens.
 
-const MODES = ['login', 'signup', 'forgot', 'reset']
+const MODES = ['login', 'code', 'signup', 'forgot', 'reset']
 const TITLES = {
   login: 'Log in',
+  code: 'Log in with a code',
   signup: 'Create your account',
   forgot: 'Reset your password',
   reset: 'Set a new password',
@@ -56,7 +62,7 @@ const TITLES = {
 // tap area (DESIGN.md's floor) without moving the text. The underline
 // thickens on hover (mouse only; Tailwind's hover: skips touch screens).
 const TEXT_LINK = `-my-1 cursor-pointer rounded-sm py-1 font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
-// Small links under a field: "Forgot password?", "Show password".
+// Small links under a field: "Forgot password?", "Log in instead".
 const SMALL_LINK = `-my-1 w-fit cursor-pointer rounded-sm py-1 text-small text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
 // A screen someone switched to (Log in, Sign up, Reset, Check your email)
 // fades in and rises 4px: 200ms on the shared ease-out, like a hint being
@@ -179,12 +185,31 @@ function Heading({ children }) {
   )
 }
 
-// "Show password" / "Hide password", under a password field.
-function ShowPasswordButton({ shown, onToggle }) {
+// The eye inside a password field that shows or hides the password. It's
+// a toggle: its name stays "Show password" and aria-pressed says whether
+// it's on; the icon changes (eye, then eye crossed out) for everyone else.
+function PasswordEye({ shown, onToggle }) {
   return (
-    <button type="button" onClick={onToggle} className={SMALL_LINK}>
-      {shown ? 'Hide password' : 'Show password'}
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label="Show password"
+      aria-pressed={shown}
+      className={`flex size-10 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
+    >
+      {shown ? <EyeOff aria-hidden="true" size={20} /> : <Eye aria-hidden="true" size={20} />}
     </button>
+  )
+}
+
+// "or" between two ways to do the same thing, as in Figma.
+function OrDivider() {
+  return (
+    <div className="flex items-center gap-3" aria-hidden="true">
+      <span className="h-px flex-1 bg-border-subtle contrast-more:bg-border-input" />
+      <span className="text-small text-text-secondary">or</span>
+      <span className="h-px flex-1 bg-border-subtle contrast-more:bg-border-input" />
+    </div>
   )
 }
 
@@ -284,13 +309,11 @@ function LoginForm({ email, onEmailChange, notice, linkError, confirmRedirect, s
               form.clearError('password')
             }}
             error={form.errors.password}
+            action={<PasswordEye shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />}
           />
-          <div className="flex items-center justify-between gap-4">
-            <button type="button" onClick={() => switchTo('forgot')} className={SMALL_LINK}>
-              Forgot password?
-            </button>
-            <ShowPasswordButton shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />
-          </div>
+          <button type="button" onClick={() => switchTo('forgot')} className={SMALL_LINK}>
+            Forgot password?
+          </button>
         </div>
       </div>
       <div className="flex flex-col gap-3">
@@ -298,6 +321,11 @@ function LoginForm({ email, onEmailChange, notice, linkError, confirmRedirect, s
           Log in
         </SubmitButton>
         <FormError message={form.formError} />
+        {/* The other way in: a code by email instead of the password. */}
+        <OrDivider />
+        <Button variant="secondary" fullWidth onClick={() => switchTo('code')}>
+          Email me a code instead
+        </Button>
         {unconfirmed && linkError !== 'confirm' && (
           <p className="text-small text-text-secondary">Didn’t get the link? {resendButton}</p>
         )}
@@ -396,8 +424,8 @@ function SignUpForm({ email, onEmailChange, confirmRedirect, onSent, switchTo })
               form.clearError('password')
             }}
             error={form.errors.password}
+            action={<PasswordEye shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />}
           />
-          <ShowPasswordButton shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />
         </div>
       </div>
       <div className="flex flex-col gap-3">
@@ -407,6 +435,139 @@ function SignUpForm({ email, onEmailChange, confirmRedirect, onSent, switchTo })
         <FormError message={form.formError} />
       </div>
       <LiveRegion text={form.announcement} />
+    </form>
+  )
+}
+
+// Log in with a code: enter your email, we email a code, type it in. For
+// existing accounts only (sign-up needs a username). Two steps on one
+// screen; the second fades in like a screen switch.
+function CodeForm({ email, onEmailChange, redirectTo }) {
+  const [step, setStep] = useState('email')
+  const [code, setCode] = useState('')
+  const [resendStatus, sayResendStatus] = useAnnouncer()
+  const form = useFormState({ email: 'code-email', code: 'login-code' })
+
+  async function sendCode() {
+    await sendLoginCode(supabase, { email, redirectTo })
+  }
+
+  async function handleSendSubmit(event) {
+    event.preventDefault()
+    if (form.submitting) return
+    if (form.showProblems({ email: checkEmail(email) })) return
+    form.setSubmitting(true)
+    try {
+      await sendCode()
+      form.setSubmitting(false)
+      setCode('')
+      setStep('code')
+      requestAnimationFrame(() => document.getElementById('login-code')?.focus())
+    } catch (error) {
+      form.showError(error)
+      form.setSubmitting(false)
+    }
+  }
+
+  async function handleCodeSubmit(event) {
+    event.preventDefault()
+    if (form.submitting) return
+    if (form.showProblems({ code: checkCode(code) })) return
+    form.setSubmitting(true)
+    try {
+      // On success the page notices the new login and moves on by itself.
+      await verifyLoginCode(supabase, { email, code })
+    } catch (error) {
+      form.showError(error)
+      form.setSubmitting(false)
+    }
+  }
+
+  async function handleResend() {
+    sayResendStatus('Sending…')
+    try {
+      await sendCode()
+      sayResendStatus('Sent a new code.')
+    } catch (error) {
+      sayResendStatus(describeAuthError(error).message)
+    }
+  }
+
+  if (step === 'email') {
+    return (
+      <form noValidate onSubmit={handleSendSubmit} className="flex flex-col gap-6">
+        <Heading>Log in with a code</Heading>
+        <p className="text-balance text-center text-body text-text-secondary">
+          We’ll email you a 6-digit code to log in with. No password needed.
+        </p>
+        <EmailField
+          id="code-email"
+          email={email}
+          onEmailChange={onEmailChange}
+          error={form.errors.email}
+          clearError={form.clearError}
+        />
+        <div className="flex flex-col gap-3">
+          <SubmitButton busy={form.submitting} busyLabel="Sending…">
+            Send code
+          </SubmitButton>
+          <FormError message={form.formError} />
+        </div>
+        <LiveRegion text={form.announcement} />
+      </form>
+    )
+  }
+
+  return (
+    <form noValidate onSubmit={handleCodeSubmit} className={`flex flex-col gap-6 ${SCREEN_ENTER}`}>
+      <Heading>Enter your code</Heading>
+      <p className="text-balance text-center text-body text-text-primary">
+        We sent a code to <strong className="wrap-anywhere">{email.trim()}</strong>. It works once.
+      </p>
+      {/* one-time-code lets phones offer the code from the email or a text. */}
+      <TextField
+        id="login-code"
+        label="Code"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={12}
+        value={code}
+        onChange={(event) => {
+          setCode(event.target.value)
+          form.clearError('code')
+        }}
+        error={form.errors.code}
+      />
+      <div className="flex flex-col gap-3">
+        <SubmitButton busy={form.submitting} busyLabel="Logging in…">
+          Log in
+        </SubmitButton>
+        <FormError message={form.formError} />
+      </div>
+      <div className="flex flex-col items-center gap-2 text-center text-small text-text-secondary">
+        <p>
+          Didn’t get it?{' '}
+          <button type="button" onClick={handleResend} className={TEXT_LINK}>
+            Send a new code
+          </button>
+        </p>
+        <p>
+          Wrong email?{' '}
+          <button
+            type="button"
+            onClick={() => {
+              setStep('email')
+              requestAnimationFrame(() => document.getElementById('code-email')?.focus())
+            }}
+            className={TEXT_LINK}
+          >
+            Use a different one
+          </button>
+        </p>
+        {resendStatus && <p>{resendStatus}</p>}
+      </div>
+      <LiveRegion text={form.announcement} />
+      <LiveRegion text={resendStatus} />
     </form>
   )
 }
@@ -503,8 +664,8 @@ function ResetForm({ hasSession, onSaved, switchTo }) {
             form.clearError('password')
           }}
           error={form.errors.password}
+          action={<PasswordEye shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />}
         />
-        <ShowPasswordButton shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />
       </div>
       <div className="flex flex-col gap-3">
         <SubmitButton busy={form.submitting} busyLabel="Saving…">
@@ -616,6 +777,9 @@ function LoginPage() {
   if (next) confirmParams.set('next', next)
   const confirmRedirect = `${origin}/login?${confirmParams}`
   const resetRedirect = `${origin}/login?mode=reset`
+  // If the code email still has a link in it (Supabase's default template), the link
+  // logs them in and comes back here, keeping ?next=.
+  const loginRedirect = `${origin}/login${next ? `?next=${encodeURIComponent(next)}` : ''}`
 
   // Keep track of whether someone is logged in (Supabase also logs people in
   // when they arrive from a confirm or reset link).
@@ -691,10 +855,11 @@ function LoginPage() {
         </button>
       </>
     )
-  } else if (!sent && (mode === 'signup' || mode === 'forgot' || (mode === 'reset' && !session))) {
+  } else if (!sent && (mode === 'signup' || mode === 'forgot' || mode === 'code' || (mode === 'reset' && !session))) {
+    const prompt = { signup: 'Already a member?', code: 'Rather use your password?' }[mode] ?? 'Remembered it?'
     switchLine = (
       <>
-        {mode === 'signup' ? 'Already a member?' : 'Remembered it?'}{' '}
+        {prompt}{' '}
         <button type="button" onClick={() => switchTo('login')} className={TEXT_LINK}>
           Log in
         </button>
@@ -720,6 +885,8 @@ function LoginPage() {
     screen = (
       <LoginForm {...shared} notice={notice} linkError={linkError} confirmRedirect={confirmRedirect} switchTo={switchTo} />
     )
+  } else if (ready && mode === 'code') {
+    screen = <CodeForm {...shared} redirectTo={loginRedirect} />
   } else if (ready && mode === 'signup') {
     screen = (
       <SignUpForm

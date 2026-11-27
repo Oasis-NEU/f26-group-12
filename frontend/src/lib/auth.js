@@ -36,6 +36,15 @@ export function checkNewPassword(password) {
   return ''
 }
 
+// The emailed login code: digits only. Supabase sends 6 by default (a
+// project can set 6 to 10), so any of those lengths is accepted.
+export function checkCode(code) {
+  const value = code.replace(/\s/g, '')
+  if (!value) return 'Enter the code from the email.'
+  if (!/^\d{6,10}$/.test(value)) return 'Enter the 6-digit code from the email.'
+  return ''
+}
+
 export function checkUsername(username) {
   const value = username.trim()
   if (!value) return 'Choose a username.'
@@ -58,6 +67,14 @@ export function describeAuthError(error) {
   }
   if (code === 'user_already_exists' || code === 'email_exists') {
     return { field: 'email', message: 'That email already has an account.' }
+  }
+  // A login code that's wrong, already used or too old.
+  if (code === 'otp_expired' || code === 'invalid_otp') {
+    return { field: 'code', message: 'That code is wrong or has expired. Check it, or send a new one.' }
+  }
+  // Login codes are only for existing accounts (sign-up needs a username).
+  if (code === 'otp_disabled' || /signups not allowed/i.test(message)) {
+    return { field: 'email', message: 'There’s no account with that email yet.' }
   }
   if (code === 'email_address_invalid') {
     return { field: 'email', message: 'Enter an email like you@northeastern.edu.' }
@@ -112,6 +129,22 @@ export async function signUp(supabase, { username, email, password, redirectTo }
     throw Object.assign(new Error('That email already has an account.'), { code: 'user_already_exists' })
   }
   return { needsConfirmation: !data.session }
+}
+
+// Emails a login code (and a link, if the email template still has one) to
+// an existing account. shouldCreateUser: false, so it never makes accounts.
+export async function sendLoginCode(supabase, { email, redirectTo }) {
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim(),
+    options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
+  })
+  if (error) throw error
+}
+
+// Logs in with the emailed code.
+export async function verifyLoginCode(supabase, { email, code }) {
+  const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.replace(/\s/g, ''), type: 'email' })
+  if (error) throw error
 }
 
 // Sends the confirmation email again.

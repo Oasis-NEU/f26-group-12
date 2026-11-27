@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  checkCode,
   checkEmail,
   checkNewPassword,
   checkUsername,
@@ -85,4 +86,13 @@ test('username check looks for an exact match in profiles', async () => {
     ['select', 'id'],
     ['eq', 'username', 'husky'],
   ])
+})
+
+test('login codes: digits only, 6 to 10 of them, spaces ignored', () => {
+  assert.equal(checkCode(''), 'Enter the code from the email.')
+  assert.equal(checkCode('12345'), 'Enter the 6-digit code from the email.')
+  assert.equal(checkCode('12a456'), 'Enter the 6-digit code from the email.')
+  assert.equal(checkCode('123 456'), '')
+  assert.equal(describeAuthError({ code: 'otp_expired' }).field, 'code')
+  assert.equal(describeAuthError({ message: 'Signups not allowed for otp' }).field, 'email')
 })
