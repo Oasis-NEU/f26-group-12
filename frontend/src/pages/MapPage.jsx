@@ -331,7 +331,7 @@ function MapControls({ locationStatus, onLocate, onCampus, onZoom }) {
 }
 
 function MapPage() {
-  const { caches, foundIds, userId, cacheLoading, dataError, authError, realtimeStatus, retry } = useMapData()
+  const { caches, foundIds, ratings, userId, cacheLoading, dataError, authError, realtimeStatus, retry } = useMapData()
   const myLocation = useMyLocation()
   const isDesktop = useIsDesktop()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -575,6 +575,10 @@ function MapPage() {
                       title={cache.title}
                       location={placeName(cache.location_name)}
                       difficulty={cache.difficulty}
+                      image={cache.image}
+                      // A cache missing from the ratings has none yet; no
+                      // ratings at all (null) means they couldn't load.
+                      rating={ratings ? (ratings[cache.id] ?? { average: null, count: 0 }) : undefined}
                       found={found}
                       selected={selects && cache.id === selectedCache?.id}
                       {...(selects ? { onClick: () => selectFromList(cache) } : { to: `/caches/${cache.id}` })}

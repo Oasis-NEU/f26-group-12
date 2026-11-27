@@ -161,9 +161,28 @@ function DevComponentsPage() {
           </State>
         </Section>
 
-        <Section title="CacheCard" note="Cards with to= or onClick are hoverable. The last two are clickable: click one to select it.">
+        <Section title="CacheCard" note="Cards with to= or onClick are hoverable. No photo shows the empty dashed box; no rating prop hides the rating. The last two are clickable: click one to select it.">
           <State name="Default (hover me)" wide>
             <CacheCard title="Quad riddle" location="Krentzman Quad" difficulty={4} to="/dev/components" />
+          </State>
+          <State name="Photo and rating" wide>
+            <CacheCard
+              title="Krentzman Corner"
+              location="Krentzman Quad"
+              difficulty={3}
+              image="/assets/krentzman-quad.jpeg"
+              rating={{ average: 4.6, count: 12 }}
+              to="/dev/components"
+            />
+          </State>
+          <State name="No ratings yet" wide>
+            <CacheCard
+              title="Common Ground"
+              location="Centennial Common"
+              difficulty={2}
+              rating={{ average: null, count: 0 }}
+              to="/dev/components"
+            />
           </State>
           <State name="Selected" wide>
             <CacheCard title="Quad riddle" location="Krentzman Quad" difficulty={4} selected />

@@ -118,7 +118,12 @@ function CacheDetails({ cacheId, detail }) {
               {!cache.is_active && !detail.findChecking && (
                 <TakenDownNotice cacheId={cacheId} isHider={detail.isHider} />
               )}
-              <MetaRow cache={cache} className={`border-y py-3 ${CARD_BORDER}`} />
+              {/* A taken-down cache has no rating to show (finders can't log it). */}
+              <MetaRow
+                cache={cache}
+                rating={cache.is_active ? detail.rating : undefined}
+                className={`border-y py-3 ${CARD_BORDER}`}
+              />
               {/* The description is the hider's own clue, so it stays with the
                   place facts above; "Get directions" comes after it. */}
               <Description cache={cache} />

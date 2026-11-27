@@ -1,10 +1,22 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import checkIcon from '../assets/figma/check.svg'
 import DifficultyMeter from './DifficultyMeter.jsx'
 import { FOCUS_RING } from './focusRing.js'
+import RatingSummary from './RatingSummary.jsx'
 
-// A cache in a list, from the Figma "CacheCard" component.
-// Used in the desktop map list, the phone map card, and anywhere caches are listed.
+// A cache in a list, from the Figma "CacheCard" component (reworked
+// 2026-11-27: photo, rating, difficulty on its own line). Used in the map's
+// list, and anywhere caches are listed.
+//
+// Layout: an 80px photo of the spot on the left (an empty dashed box when
+// there's no photo yet, dashed meaning "not there yet"), then the name (and
+// the found tag), the place, and a line with the difficulty and the average
+// rating.
+//
+// Props: title, location, difficulty, image (photo URL, optional), rating
+// ({ average, count } from loadCacheRatings; leave it out if ratings
+// couldn't load, and the rating isn't shown), found, selected, to / onClick.
 //
 // Figma variants -> props:
 //   Found: true        -> found      (shows the "Found by you" tag)
@@ -37,10 +49,39 @@ export function FoundTag() {
   )
 }
 
+// The photo, or the empty dashed box. A photo that fails to load falls back
+// to the box. Decorative: the card's text already names the cache.
+function CardPhoto({ image }) {
+  const [failed, setFailed] = useState(false)
+  const box = 'size-20 shrink-0 rounded-lg'
+  if (image && !failed) {
+    return (
+      <img
+        src={image}
+        alt=""
+        width={80}
+        height={80}
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
+        className={`${box} bg-bg-subtle object-cover`}
+      />
+    )
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className={`${box} border-2 border-dashed border-border-input bg-bg-page contrast-more:border-text-secondary`}
+    />
+  )
+}
+
 function CacheCard({
   title,
   location,
   difficulty,
+  image,
+  rating,
   found = false,
   selected = false,
   to,
@@ -49,7 +90,7 @@ function CacheCard({
 }) {
   const isInteractive = Boolean(to || onClick)
   const classes = [
-    'flex w-full flex-col gap-2 rounded-2xl border border-border-subtle bg-bg-surface p-4 text-left',
+    'flex w-full items-start gap-3 rounded-2xl border border-border-subtle bg-bg-surface p-3 text-left',
     // Selected is a 2px dark border in Figma. The 1px border plus a 1px inset
     // ring looks the same, so the card doesn't grow.
     selected ? 'border-border-strong inset-ring-1 inset-ring-border-strong' : '',
@@ -60,13 +101,18 @@ function CacheCard({
 
   const content = (
     <>
-      <span className="flex w-full items-start gap-3">
-        <span className="min-w-0 flex-1 text-body-strong text-text-primary">{title}</span>
-        {found && <FoundTag />}
-      </span>
-      <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-        <span className="whitespace-nowrap text-small text-text-secondary">{location}</span>
-        <DifficultyMeter level={difficulty} />
+      <CardPhoto key={image} image={image} />
+      <span className="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
+        <span className="flex w-full items-start gap-3">
+          <span className="min-w-0 flex-1 wrap-break-word text-body-strong text-text-primary">{title}</span>
+          {found && <FoundTag />}
+        </span>
+        {location && <span className="text-small text-text-secondary">{location}</span>}
+        {/* Fits on one line in the 400px desktop list, even with "No ratings yet". */}
+        <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <DifficultyMeter level={difficulty} />
+          <RatingSummary rating={rating} />
+        </span>
       </span>
     </>
   )

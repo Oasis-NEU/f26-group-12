@@ -1,4 +1,5 @@
-const CACHE_COLUMNS = 'id,title,latitude,longitude,location_name,difficulty'
+// image: the cache's photo, for its card in the list. Never secret_code.
+const CACHE_COLUMNS = 'id,title,latitude,longitude,location_name,difficulty,image'
 
 export async function loadActiveCaches(supabase) {
   const { data, error } = await supabase

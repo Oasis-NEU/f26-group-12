@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { loadCacheDetails, loadHint, loadHintCount, loadUserFind } from '../pages/cacheDetailData.js'
 import { rememberedRun } from '../pages/cacheDetail/hintRows.js'
+import { loadCacheRatings } from './cacheRatings.js'
 import { supabase } from './supabaseClient.js'
 
 // Everything the cache detail page loads, in one hook, so every version of
@@ -83,6 +84,10 @@ export function useCacheDetail(cacheId) {
   // The hint someone most recently tapped to reveal, so only the trail
   // segment leading to it draws itself (nothing animates on page load).
   const [lastTapped, setLastTapped] = useState({ cacheId: null, order: null })
+  // The cache's average rating: { average, count }, or undefined when it
+  // couldn't load (e.g. cache_ratings isn't in the database yet), so the page
+  // leaves it out rather than saying "No ratings yet" wrongly.
+  const [ratingResult, setRatingResult] = useState({ cacheId: null, rating: undefined })
 
   const detailsKey = `${cacheId}:${retryCount}`
   const loading = details.key !== detailsKey
@@ -126,6 +131,22 @@ export function useCacheDetail(cacheId) {
         if (active) setDetails({ key, cache: null, hintCount: 0, hintCountError: false, error: true })
       })
 
+    return () => {
+      active = false
+    }
+  }, [cacheId, retryCount])
+
+  // Its average rating (totals only; see cacheRatings.js). A cache with no
+  // row has no ratings yet. Failing doesn't affect the rest of the page.
+  useEffect(() => {
+    let active = true
+    loadCacheRatings(supabase, [cacheId])
+      .then((ratings) => {
+        if (active) setRatingResult({ cacheId, rating: ratings[cacheId] ?? { average: null, count: 0 } })
+      })
+      .catch(() => {
+        if (active) setRatingResult({ cacheId, rating: undefined })
+      })
     return () => {
       active = false
     }
@@ -287,6 +308,7 @@ export function useCacheDetail(cacheId) {
     pendingOrder: hints.cacheId === cacheId ? hints.pendingOrder : null,
     hintError: hints.cacheId === cacheId ? hints.error : '',
     find,
+    rating: ratingResult.cacheId === cacheId ? ratingResult.rating : undefined,
     revealHint,
     retry: () => setRetryCount((count) => count + 1),
   }

@@ -122,6 +122,13 @@ CREATE TRIGGER on_auth_user_created
 -- public.log_find(p_cache_id uuid, p_secret_code text,
 --   p_rating smallint DEFAULT NULL, p_journal_note text DEFAULT NULL,
 --   p_photo text DEFAULT NULL) RETURNS bigint      -- new find id
+--
+-- Full code: supabase/changes/2026-11-27_cache-ratings.sql
+-- public.cache_ratings(p_cache_ids uuid[] DEFAULT NULL)
+--   RETURNS TABLE (cache_id uuid, average_rating numeric,
+--   rating_count integer, find_count integer)
+-- Totals only (never who rated what), active caches only. SECURITY DEFINER
+-- so it can count every find; execute granted to anon and authenticated.
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security (RLS)
