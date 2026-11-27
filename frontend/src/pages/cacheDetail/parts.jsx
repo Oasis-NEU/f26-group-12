@@ -71,8 +71,12 @@ export function MetaRow({ cache, className = '' }) {
     <div className={`flex items-center justify-between gap-4 lg:justify-start lg:gap-6 ${className}`}>
       {cache.location_name && (
         // The location is what you act on outdoors, so it's the strongest line
-        // in the strip (Body Strong, primary), on every screen size.
-        <p className="min-w-0 wrap-anywhere text-body-strong text-text-primary">{cache.location_name}</p>
+        // in the strip (Body Strong, primary), on every screen size. Hiders
+        // often type it lowercase ("near Snell Library"), so the first letter
+        // is capitalized for display only; the saved text is unchanged.
+        <p className="min-w-0 wrap-anywhere text-body-strong text-text-primary first-letter:uppercase">
+          {cache.location_name}
+        </p>
       )}
       <DifficultyMeter level={cache.difficulty} />
     </div>
@@ -221,10 +225,9 @@ export function DirectionsLink({ cache }) {
 export function FindHelp({ signedIn, className = '' }) {
   return (
     <div className={`flex flex-col gap-1 text-small text-text-secondary ${className}`}>
-      <p>
-        Found it? Open it, find the 6-character code on the slip, then <span className="lg:hidden">tap</span>
-        <span className="hidden lg:inline">click</span> “I found it”. Put it back where it was.
-      </p>
+      {/* What you must do at the spot, before putting the cache back. The
+          button above says the rest. */}
+      <p>Note the 6-character code inside, then put the cache back.</p>
       {signedIn === false && (
         <p>
           <Link to="/login" className={`rounded-sm font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`}>
