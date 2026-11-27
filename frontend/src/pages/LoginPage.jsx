@@ -29,7 +29,8 @@ import { supabase } from '../lib/supabaseClient.js'
 //   ?mode=forgot  Reset your password (we email a link)
 //   ?mode=reset   Set a new password (where that emailed link lands)
 // After sign up or a reset request, a "Check your email" screen replaces
-// the form.
+// the form. The email address is shared by every screen, so switching
+// between them never means typing it again.
 //
 // After logging in, people go back where they came from: the ?next= page if
 // the link gave one (e.g. /login?next=/caches/abc/log), otherwise the page
@@ -38,9 +39,11 @@ import { supabase } from '../lib/supabaseClient.js'
 // the page before the login page.
 //
 // Phones (the base styles): the form fills the screen, with "Not a member?
-// Join now" at the bottom. Desktop (lg:): the form sits in a 448px card in
-// the middle of the page, and that line moves inside the card, under the
-// button, because the bottom of a big screen is too far away to notice.
+// Join now" at the bottom. Desktop (lg:): the form sits in a 448px card,
+// and that line moves inside the card, under the button, because the bottom
+// of a big screen is too far away to notice. On both, the form starts a
+// fixed distance from the top, so it doesn't jump around between screens or
+// when the phone keyboard opens.
 
 const MODES = ['login', 'signup', 'forgot', 'reset']
 const TITLES = {
@@ -49,9 +52,12 @@ const TITLES = {
   forgot: 'Reset your password',
   reset: 'Set a new password',
 }
-// Text links thicken their underline on hover (mouse only; Tailwind's hover:
-// already skips touch screens).
-const TEXT_LINK = `rounded-sm font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
+// Text links. Padding with matching negative margins gives them a 28px-tall
+// tap area (DESIGN.md's floor) without moving the text. The underline
+// thickens on hover (mouse only; Tailwind's hover: skips touch screens).
+const TEXT_LINK = `-my-1 cursor-pointer rounded-sm py-1 font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
+// Small links under a field: "Forgot password?", "Show password".
+const SMALL_LINK = `-my-1 w-fit cursor-pointer rounded-sm py-1 text-small text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
 // A screen someone switched to (Log in, Sign up, Reset, Check your email)
 // fades in and rises 4px: 200ms on the shared ease-out, like a hint being
 // revealed, so the swap reads as a new step in the same place. starting: is
@@ -68,35 +74,51 @@ function readLinkError() {
   return hash.get('error_code') || search.get('error_code') || hash.get('error') || search.get('error') || ''
 }
 
-// Focus a field by id once React has drawn its error, so screen readers read
-// the field and its message together.
-function focusField(id) {
-  requestAnimationFrame(() => document.getElementById(id)?.focus())
+// Text for a screen-reader live region. Saying the same thing twice ("Sent
+// again.") isn't announced unless the text changes, so it's cleared first.
+function useAnnouncer() {
+  const [text, setText] = useState('')
+  function announce(message) {
+    setText('')
+    requestAnimationFrame(() => setText(message))
+  }
+  return [text, announce]
 }
 
 // The errors, "busy" flag and helpers every form here shares. fieldIds maps
-// a field name ('email') to its input's id, so an error can focus it.
+// a field name ('email') to its input's id, so an error can point at it.
 function useFormState(fieldIds) {
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [announcement, announce] = useAnnouncer()
+
+  // Point at the field with the problem: focus it, so screen readers read
+  // the field with its error. If it already has focus (e.g. Enter pressed
+  // in it), focusing again says nothing, so the error is announced instead.
+  function point(field, message) {
+    const id = fieldIds[field]
+    if (document.activeElement?.id === id) announce(message)
+    else requestAnimationFrame(() => document.getElementById(id)?.focus())
+  }
 
   // Shows the problems found before sending. Returns true if there were any.
   function showProblems(found) {
     const first = Object.keys(found).find((field) => found[field])
     setErrors(found)
     setFormError('')
-    if (first) focusField(fieldIds[first])
+    if (first) point(first, found[first])
     return Boolean(first)
   }
 
   // Shows what Supabase said, under the field it's about if there is one.
+  // (A whole-form error is announced by FormError's role="alert".)
   function showError(error) {
     const { field, message } = describeAuthError(error)
     if (field && fieldIds[field]) {
       setErrors({ [field]: message })
       setFormError('')
-      focusField(fieldIds[field])
+      point(field, message)
     } else {
       setFormError(message)
     }
@@ -107,7 +129,28 @@ function useFormState(fieldIds) {
     setErrors((current) => (current[field] ? { ...current, [field]: '' } : current))
   }
 
-  return { errors, formError, submitting, setSubmitting, showProblems, showError, clearError }
+  return { errors, formError, submitting, setSubmitting, showProblems, showError, clearError, announcement }
+}
+
+// The form's submit button. While working it stays red and says what it's
+// doing ("Logging in…"): aria-disabled marks it busy and the form ignores
+// extra presses. (disabled would grey it out, which reads as broken in
+// sunlight, and would drop keyboard focus to the top of the page.)
+function SubmitButton({ busy, busyLabel, children }) {
+  return (
+    <Button type="submit" fullWidth aria-disabled={busy || undefined} className="aria-disabled:cursor-wait">
+      {busy ? busyLabel : children}
+    </Button>
+  )
+}
+
+// A hidden line screen readers read when a form announces something.
+function LiveRegion({ text }) {
+  return (
+    <p className="sr-only" aria-live="polite">
+      {text}
+    </p>
+  )
 }
 
 // A problem with the whole form (not one field), under the button.
@@ -136,16 +179,48 @@ function Heading({ children }) {
   )
 }
 
-function LoginForm({ notice, linkError, switchTo, resendRedirect }) {
-  const [email, setEmail] = useState('')
+// "Show password" / "Hide password", under a password field.
+function ShowPasswordButton({ shown, onToggle }) {
+  return (
+    <button type="button" onClick={onToggle} className={SMALL_LINK}>
+      {shown ? 'Hide password' : 'Show password'}
+    </button>
+  )
+}
+
+// The email field every screen shares. Its autocomplete is "username"
+// because the email is what people log in with, so password managers save
+// and fill it as the login.
+function EmailField({ id, email, onEmailChange, error, clearError }) {
+  return (
+    <TextField
+      id={id}
+      label="Email"
+      type="email"
+      inputMode="email"
+      autoComplete="username"
+      placeholder="you@northeastern.edu"
+      value={email}
+      onChange={(event) => {
+        onEmailChange(event.target.value)
+        clearError('email')
+      }}
+      error={error}
+    />
+  )
+}
+
+function LoginForm({ email, onEmailChange, notice, linkError, confirmRedirect, switchTo }) {
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   // Set when Supabase says the email isn't confirmed yet, to offer a new link.
   const [unconfirmed, setUnconfirmed] = useState(false)
-  const [resendStatus, setResendStatus] = useState('')
+  const [resendStatus, sayResendStatus] = useAnnouncer()
   const form = useFormState({ email: 'login-email', password: 'login-password' })
 
   async function handleSubmit(event) {
     event.preventDefault()
+    if (form.submitting) return
     setUnconfirmed(false)
     if (form.showProblems({ email: checkEmail(email), password: password ? '' : 'Enter your password.' })) return
     form.setSubmitting(true)
@@ -159,49 +234,48 @@ function LoginForm({ notice, linkError, switchTo, resendRedirect }) {
     }
   }
 
+  // Sends a new confirmation link to the email in the field.
   async function handleResend() {
-    setResendStatus('Sending…')
+    if (form.showProblems({ email: checkEmail(email) })) return
+    sayResendStatus('Sending…')
     try {
-      await resendConfirmation(supabase, { email, redirectTo: resendRedirect })
-      setResendStatus('Sent. Check your email for the new link.')
+      await resendConfirmation(supabase, { email, redirectTo: confirmRedirect })
+      sayResendStatus('Sent. Check your email for the new link.')
     } catch (error) {
-      setResendStatus(describeAuthError(error).message)
+      sayResendStatus(describeAuthError(error).message)
     }
   }
+
+  const resendButton = (
+    <button type="button" onClick={handleResend} className={TEXT_LINK}>
+      {linkError === 'confirm' ? 'send a new link' : 'Send it again'}
+    </button>
+  )
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Heading>Log in</Heading>
       {notice && <Notice>{notice}</Notice>}
-      {linkError && (
+      {/* A confirmation link that expired: send a new one to the email typed below. */}
+      {linkError === 'confirm' && (
         <Notice>
-          That email link has expired or was already used. Log in, or{' '}
-          <button type="button" onClick={() => switchTo('forgot')} className={`cursor-pointer ${TEXT_LINK}`}>
-            get a new reset link
-          </button>
-          .
+          That confirmation link has expired or was already used. Enter your email below, then {resendButton}.
         </Notice>
       )}
+      {linkError === 'other' && <Notice>That email link has expired or was already used.</Notice>}
       <div className="flex flex-col gap-4">
-        <TextField
+        <EmailField
           id="login-email"
-          label="Email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          placeholder="you@northeastern.edu"
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value)
-            form.clearError('email')
-          }}
+          email={email}
+          onEmailChange={onEmailChange}
           error={form.errors.email}
+          clearError={form.clearError}
         />
         <div className="flex flex-col gap-2">
           <TextField
             id="login-password"
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="Enter your password"
             value={password}
@@ -211,43 +285,44 @@ function LoginForm({ notice, linkError, switchTo, resendRedirect }) {
             }}
             error={form.errors.password}
           />
-          {/* Padding gives the link a taller tap area; negative margins keep the spacing. */}
-          <button
-            type="button"
-            onClick={() => switchTo('forgot')}
-            className={`-my-1 w-fit cursor-pointer rounded-sm py-1 text-small text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`}
-          >
-            Forgot password?
-          </button>
+          <div className="flex items-center justify-between gap-4">
+            <button type="button" onClick={() => switchTo('forgot')} className={SMALL_LINK}>
+              Forgot password?
+            </button>
+            <ShowPasswordButton shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />
+          </div>
         </div>
       </div>
       <div className="flex flex-col gap-3">
-        <Button type="submit" fullWidth disabled={form.submitting}>
-          {form.submitting ? 'Logging in…' : 'Log in'}
-        </Button>
+        <SubmitButton busy={form.submitting} busyLabel="Logging in…">
+          Log in
+        </SubmitButton>
         <FormError message={form.formError} />
-        {unconfirmed && (
-          <p className="text-small text-text-secondary">
-            Didn’t get the link?{' '}
-            <button type="button" onClick={handleResend} className={`cursor-pointer ${TEXT_LINK}`}>
-              Send it again
-            </button>
-            {resendStatus && <span role="status"> {resendStatus}</span>}
-          </p>
+        {unconfirmed && linkError !== 'confirm' && (
+          <p className="text-small text-text-secondary">Didn’t get the link? {resendButton}</p>
         )}
+        {resendStatus && <p className="text-small text-text-secondary">{resendStatus}</p>}
       </div>
+      {/* Hidden regions that are always there, so screen readers hear each
+          change: field errors, and "Sending…" / "Sent." for a new link. */}
+      <LiveRegion text={form.announcement} />
+      <LiveRegion text={resendStatus} />
     </form>
   )
 }
 
-function SignUpForm({ confirmRedirect, onSent }) {
+function SignUpForm({ email, onEmailChange, confirmRedirect, onSent, switchTo }) {
   const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  // Set when the email already has an account, to offer "Log in instead".
+  const [emailTaken, setEmailTaken] = useState(false)
   const form = useFormState({ username: 'signup-username', email: 'signup-email', password: 'signup-password' })
 
   async function handleSubmit(event) {
     event.preventDefault()
+    if (form.submitting) return
+    setEmailTaken(false)
     const found = { username: checkUsername(username), email: checkEmail(email), password: checkNewPassword(password) }
     if (form.showProblems(found)) return
     form.setSubmitting(true)
@@ -265,6 +340,7 @@ function SignUpForm({ confirmRedirect, onSent }) {
       // moves on by itself.
       if (needsConfirmation) onSent(email.trim())
     } catch (error) {
+      if (error?.code === 'user_already_exists' || error?.code === 'email_exists') setEmailTaken(true)
       form.showError(error)
       form.setSubmitting(false)
     }
@@ -274,13 +350,15 @@ function SignUpForm({ confirmRedirect, onSent }) {
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Heading>Create your account</Heading>
       <div className="flex flex-col gap-4">
+        {/* "nickname", not "username": the email is the login, so password
+            managers shouldn't save this as the account name. */}
         <TextField
           id="signup-username"
           label="Username"
-          autoComplete="username"
+          autoComplete="nickname"
           autoCapitalize="none"
           spellCheck={false}
-          help="Other students see this on the leaderboard."
+          help="Up to 30 characters. Other students see this on the leaderboard."
           value={username}
           onChange={(event) => {
             setUsername(event.target.value)
@@ -288,50 +366,57 @@ function SignUpForm({ confirmRedirect, onSent }) {
           }}
           error={form.errors.username}
         />
-        <TextField
-          id="signup-email"
-          label="Email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          placeholder="you@northeastern.edu"
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value)
-            form.clearError('email')
-          }}
-          error={form.errors.email}
-        />
-        <TextField
-          id="signup-password"
-          label="Password"
-          type="password"
-          autoComplete="new-password"
-          help="At least 8 characters."
-          value={password}
-          onChange={(event) => {
-            setPassword(event.target.value)
-            form.clearError('password')
-          }}
-          error={form.errors.password}
-        />
+        <div className="flex flex-col gap-2">
+          <EmailField
+            id="signup-email"
+            email={email}
+            onEmailChange={(value) => {
+              onEmailChange(value)
+              setEmailTaken(false)
+            }}
+            error={form.errors.email}
+            clearError={form.clearError}
+          />
+          {emailTaken && (
+            <button type="button" onClick={() => switchTo('login')} className={SMALL_LINK}>
+              Log in instead
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <TextField
+            id="signup-password"
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="new-password"
+            help="At least 8 characters."
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value)
+              form.clearError('password')
+            }}
+            error={form.errors.password}
+          />
+          <ShowPasswordButton shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />
+        </div>
       </div>
       <div className="flex flex-col gap-3">
-        <Button type="submit" fullWidth disabled={form.submitting}>
-          {form.submitting ? 'Creating account…' : 'Create account'}
-        </Button>
+        <SubmitButton busy={form.submitting} busyLabel="Creating account…">
+          Create account
+        </SubmitButton>
         <FormError message={form.formError} />
       </div>
+      <LiveRegion text={form.announcement} />
     </form>
   )
 }
 
-function ForgotForm({ resetRedirect, onSent }) {
-  const [email, setEmail] = useState('')
+function ForgotForm({ email, onEmailChange, resetRedirect, onSent }) {
   const form = useFormState({ email: 'forgot-email' })
 
   async function handleSubmit(event) {
     event.preventDefault()
+    if (form.submitting) return
     if (form.showProblems({ email: checkEmail(email) })) return
     form.setSubmitting(true)
     try {
@@ -349,26 +434,20 @@ function ForgotForm({ resetRedirect, onSent }) {
       <p className="text-balance text-center text-body text-text-secondary">
         Enter your email and we’ll send you a link to set a new password.
       </p>
-      <TextField
+      <EmailField
         id="forgot-email"
-        label="Email"
-        type="email"
-        inputMode="email"
-        autoComplete="email"
-        placeholder="you@northeastern.edu"
-        value={email}
-        onChange={(event) => {
-          setEmail(event.target.value)
-          form.clearError('email')
-        }}
+        email={email}
+        onEmailChange={onEmailChange}
         error={form.errors.email}
+        clearError={form.clearError}
       />
       <div className="flex flex-col gap-3">
-        <Button type="submit" fullWidth disabled={form.submitting}>
-          {form.submitting ? 'Sending…' : 'Send link'}
-        </Button>
+        <SubmitButton busy={form.submitting} busyLabel="Sending…">
+          Send link
+        </SubmitButton>
         <FormError message={form.formError} />
       </div>
+      <LiveRegion text={form.announcement} />
     </form>
   )
 }
@@ -377,17 +456,18 @@ function ForgotForm({ resetRedirect, onSent }) {
 // so without a session the link was bad, expired or already used.
 function ResetForm({ hasSession, onSaved, switchTo }) {
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const form = useFormState({ password: 'reset-password' })
 
   if (!hasSession) {
     return (
       <div className="flex flex-col gap-6">
-        <Heading>Set a new password</Heading>
+        <Heading>That link has expired</Heading>
         <p className="text-balance text-center text-body text-text-secondary">
-          That reset link has expired or was already used. Ask for a new one.
+          Reset links only work once, and only for a while. Get a new one and use it soon.
         </p>
         <Button fullWidth onClick={() => switchTo('forgot')}>
-          Send a new link
+          Get a new link
         </Button>
       </div>
     )
@@ -395,6 +475,7 @@ function ResetForm({ hasSession, onSaved, switchTo }) {
 
   async function handleSubmit(event) {
     event.preventDefault()
+    if (form.submitting) return
     if (form.showProblems({ password: checkNewPassword(password) })) return
     form.setSubmitting(true)
     try {
@@ -409,41 +490,46 @@ function ResetForm({ hasSession, onSaved, switchTo }) {
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Heading>Set a new password</Heading>
-      <TextField
-        id="reset-password"
-        label="New password"
-        type="password"
-        autoComplete="new-password"
-        help="At least 8 characters."
-        value={password}
-        onChange={(event) => {
-          setPassword(event.target.value)
-          form.clearError('password')
-        }}
-        error={form.errors.password}
-      />
+      <div className="flex flex-col gap-2">
+        <TextField
+          id="reset-password"
+          label="New password"
+          type={showPassword ? 'text' : 'password'}
+          autoComplete="new-password"
+          help="At least 8 characters."
+          value={password}
+          onChange={(event) => {
+            setPassword(event.target.value)
+            form.clearError('password')
+          }}
+          error={form.errors.password}
+        />
+        <ShowPasswordButton shown={showPassword} onToggle={() => setShowPassword((shown) => !shown)} />
+      </div>
       <div className="flex flex-col gap-3">
-        <Button type="submit" fullWidth disabled={form.submitting}>
-          {form.submitting ? 'Saving…' : 'Save password'}
-        </Button>
+        <SubmitButton busy={form.submitting} busyLabel="Saving…">
+          Save password
+        </SubmitButton>
         <FormError message={form.formError} />
       </div>
+      <LiveRegion text={form.announcement} />
     </form>
   )
 }
 
 // "Check your email", after sign up (kind="signup") or a reset request
-// (kind="reset"): one sentence and a button back to Log in.
-function CheckEmail({ kind, email, onBack, onResend }) {
-  const [resendStatus, setResendStatus] = useState('')
+// (kind="reset"): one sentence and a button back to Log in, plus a way to
+// fix a mistyped email (and, after sign up, to send the link again).
+function CheckEmail({ kind, email, onBack, onResend, onChangeEmail }) {
+  const [resendStatus, sayResendStatus] = useAnnouncer()
 
   async function handleResend() {
-    setResendStatus('Sending…')
+    sayResendStatus('Sending…')
     try {
       await onResend()
-      setResendStatus('Sent again.')
+      sayResendStatus('Sent again.')
     } catch (error) {
-      setResendStatus(describeAuthError(error).message)
+      sayResendStatus(describeAuthError(error).message)
     }
   }
 
@@ -465,15 +551,25 @@ function CheckEmail({ kind, email, onBack, onResend }) {
       <Button fullWidth onClick={onBack}>
         Back to log in
       </Button>
-      {kind === 'signup' && (
-        <p className="text-center text-small text-text-secondary">
-          Didn’t get it?{' '}
-          <button type="button" onClick={handleResend} className={`cursor-pointer ${TEXT_LINK}`}>
-            Send it again
+      <div className="flex flex-col items-center gap-2 text-center text-small text-text-secondary">
+        {kind === 'signup' && (
+          <p>
+            Didn’t get it?{' '}
+            <button type="button" onClick={handleResend} className={TEXT_LINK}>
+              Send it again
+            </button>
+          </p>
+        )}
+        <p>
+          Wrong email?{' '}
+          <button type="button" onClick={onChangeEmail} className={TEXT_LINK}>
+            Use a different one
           </button>
-          {resendStatus && <span role="status"> {resendStatus}</span>}
         </p>
-      )}
+        {resendStatus && <p>{resendStatus}</p>}
+      </div>
+      {/* Always there, so screen readers hear each change. */}
+      <LiveRegion text={resendStatus} />
     </div>
   )
 }
@@ -489,13 +585,21 @@ function LoginPage() {
   // Captured when the page opens: did they get here from another page of
   // the app? ("default" means this is the first page in the tab.)
   const [cameFromApp] = useState(() => location.key !== 'default')
-  const [linkError] = useState(readLinkError)
+  // An expired or bad email link: 'confirm' for a sign-up confirmation link
+  // (they're tagged ?link=confirm), 'other' for any other, '' for none.
+  const [linkError] = useState(() => {
+    if (!readLinkError()) return ''
+    return searchParams.get('link') === 'confirm' ? 'confirm' : 'other'
+  })
   // undefined while checking, then the session or null.
   const [session, setSession] = useState(undefined)
+  // The email typed on any screen, shared so switching never means retyping.
+  const [email, setEmail] = useState('')
   // After sign up or a reset request: { kind, email } for "Check your email".
   const [sent, setSent] = useState(null)
   const [notice, setNotice] = useState('')
-  const leftRef = useRef(false)
+  // The history entry the page left from after logging in (see below).
+  const leftFromRef = useRef(null)
   // Bumped each time someone switches screens: the new screen animates in
   // and its heading takes focus. Stays 0 for the first screen on page load.
   const [switches, setSwitches] = useState(0)
@@ -504,10 +608,13 @@ function LoginPage() {
     if (switches) document.getElementById('login-heading')?.focus({ preventScroll: true })
   }, [switches])
 
-  // Where the emailed links come back to. The confirm link keeps ?next=, so
-  // confirming an account still ends up where they were headed.
+  // Where the emailed links come back to. The confirm link is tagged
+  // (link=confirm) so an expired one gets the right message, and keeps
+  // ?next=, so confirming an account still ends up where they were headed.
   const origin = window.location.origin
-  const confirmRedirect = `${origin}/login${next ? `?next=${encodeURIComponent(next)}` : ''}`
+  const confirmParams = new URLSearchParams({ link: 'confirm' })
+  if (next) confirmParams.set('next', next)
+  const confirmRedirect = `${origin}/login?${confirmParams}`
   const resetRedirect = `${origin}/login?mode=reset`
 
   // Keep track of whether someone is logged in (Supabase also logs people in
@@ -535,13 +642,17 @@ function LoginPage() {
 
   // Logged in (just now, or already): go back where they came from. Not
   // while setting a new password, which needs the reset link's login.
+  // Going one step back can land on another login screen (e.g. if the
+  // header's "Log in" was used while already here); if the page is still
+  // here after leaving once, it goes to the map instead of staying blank.
   useEffect(() => {
-    if (!session || mode === 'reset' || leftRef.current) return
-    leftRef.current = true
+    if (!session || mode === 'reset' || leftFromRef.current === location.key) return
+    const firstTry = leftFromRef.current === null
+    leftFromRef.current = location.key
     if (next) navigate(next, { replace: true })
-    else if (cameFromApp) navigate(-1)
+    else if (cameFromApp && firstTry) navigate(-1)
     else navigate('/map', { replace: true })
-  }, [session, mode, next, cameFromApp, navigate])
+  }, [session, mode, next, cameFromApp, navigate, location.key])
 
   // Switch mode without adding a history step (see the top of the file).
   function switchTo(nextMode) {
@@ -555,8 +666,8 @@ function LoginPage() {
   }
 
   // After sign up or a reset request: show "Check your email".
-  function showSent(kind, email) {
-    setSent({ kind, email })
+  function showSent(kind, sentTo) {
+    setSent({ kind, email: sentTo })
     setSwitches((count) => count + 1)
   }
 
@@ -569,22 +680,22 @@ function LoginPage() {
     switchTo('login')
   }
 
-  // The line that switches between Log in and Sign up.
+  // The line that switches between screens.
   let switchLine = null
   if (!sent && mode === 'login') {
     switchLine = (
       <>
         Not a member?{' '}
-        <button type="button" onClick={() => switchTo('signup')} className={`cursor-pointer ${TEXT_LINK}`}>
+        <button type="button" onClick={() => switchTo('signup')} className={TEXT_LINK}>
           Join now
         </button>
       </>
     )
-  } else if (!sent && (mode === 'signup' || mode === 'forgot')) {
+  } else if (!sent && (mode === 'signup' || mode === 'forgot' || (mode === 'reset' && !session))) {
     switchLine = (
       <>
         {mode === 'signup' ? 'Already a member?' : 'Remembered it?'}{' '}
-        <button type="button" onClick={() => switchTo('login')} className={`cursor-pointer ${TEXT_LINK}`}>
+        <button type="button" onClick={() => switchTo('login')} className={TEXT_LINK}>
           Log in
         </button>
       </>
@@ -593,6 +704,7 @@ function LoginPage() {
 
   // While checking who's logged in (a moment), or while leaving, show no form.
   const ready = session !== undefined && !(session && mode !== 'reset')
+  const shared = { email, onEmailChange: setEmail }
   let screen = null
   if (ready && sent) {
     screen = (
@@ -601,26 +713,32 @@ function LoginPage() {
         email={sent.email}
         onBack={() => switchTo('login')}
         onResend={() => resendConfirmation(supabase, { email: sent.email, redirectTo: confirmRedirect })}
+        onChangeEmail={() => switchTo(sent.kind === 'signup' ? 'signup' : 'forgot')}
       />
     )
   } else if (ready && mode === 'login') {
     screen = (
-      <LoginForm
-        notice={notice}
-        linkError={Boolean(linkError)}
-        switchTo={switchTo}
-        resendRedirect={confirmRedirect}
-      />
+      <LoginForm {...shared} notice={notice} linkError={linkError} confirmRedirect={confirmRedirect} switchTo={switchTo} />
     )
   } else if (ready && mode === 'signup') {
-    screen = <SignUpForm confirmRedirect={confirmRedirect} onSent={(email) => showSent('signup', email)} />
+    screen = (
+      <SignUpForm
+        {...shared}
+        confirmRedirect={confirmRedirect}
+        onSent={(sentTo) => showSent('signup', sentTo)}
+        switchTo={switchTo}
+      />
+    )
   } else if (ready && mode === 'forgot') {
-    screen = <ForgotForm resetRedirect={resetRedirect} onSent={(email) => showSent('reset', email)} />
+    screen = <ForgotForm {...shared} resetRedirect={resetRedirect} onSent={(sentTo) => showSent('reset', sentTo)} />
   } else if (ready && mode === 'reset') {
     screen = <ResetForm hasSession={Boolean(session)} onSaved={handlePasswordSaved} switchTo={switchTo} />
   }
 
-  const title = sent ? 'Check your email' : TITLES[mode]
+  const screenKey = sent ? `sent-${sent.kind}` : mode
+  const enter = switches ? SCREEN_ENTER : ''
+  let title = sent ? 'Check your email' : TITLES[mode]
+  if (mode === 'reset' && session === null && !sent) title = 'That link has expired'
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg-page text-text-primary">
@@ -636,21 +754,28 @@ function LoginPage() {
 
       {/* The page's own <main> (Layout leaves it out here), with the header outside it. */}
       <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
-        <div className="flex flex-1 flex-col justify-center px-4 py-8 lg:items-center lg:py-16">
+        <div className="flex flex-1 flex-col px-4 pb-8 pt-10 lg:items-center lg:pb-16 lg:pt-20">
           {/* Phones: the form on the page. Desktop: a 448px white card. Capped
               at 448px in between too, so it never stretches across a tablet. */}
           <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-6 lg:rounded-2xl lg:border lg:border-border-subtle lg:bg-bg-surface lg:p-8 lg:contrast-more:border-border-input">
             {screen && (
-              <div key={sent ? `sent-${sent.kind}` : mode} className={switches ? SCREEN_ENTER : ''}>
+              <div key={screenKey} className={enter}>
                 {screen}
               </div>
             )}
-            {screen && switchLine && <p className="hidden text-center text-label text-text-secondary lg:block">{switchLine}</p>}
+            {screen && switchLine && (
+              <p key={`${screenKey}-switch`} className={`hidden text-center text-label text-text-secondary lg:block ${enter}`}>
+                {switchLine}
+              </p>
+            )}
           </div>
         </div>
         {/* Phones: the switch line sits at the bottom of the screen, as in Figma. */}
         {screen && switchLine && (
-          <p className="px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 text-center text-label text-text-secondary lg:hidden">
+          <p
+            key={`${screenKey}-switch-phone`}
+            className={`px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 text-center text-label text-text-secondary lg:hidden ${enter}`}
+          >
             {switchLine}
           </p>
         )}

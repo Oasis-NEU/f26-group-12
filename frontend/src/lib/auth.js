@@ -57,7 +57,7 @@ export function describeAuthError(error) {
     return { field: 'email', message: 'Confirm your email first: open the link we sent when you signed up.' }
   }
   if (code === 'user_already_exists' || code === 'email_exists') {
-    return { field: 'email', message: 'That email already has an account. Log in instead.' }
+    return { field: 'email', message: 'That email already has an account.' }
   }
   if (code === 'email_address_invalid') {
     return { field: 'email', message: 'Enter an email like you@northeastern.edu.' }
