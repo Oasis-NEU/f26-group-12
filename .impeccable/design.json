@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-26T04:46:48+00:00",
+  "generatedAt": "2026-11-26T06:17:52+00:00",
   "title": "Design System: HuskyCache",
   "extensions": {
     "colorMeta": {
@@ -348,14 +348,39 @@
       {
         "name": "pin",
         "value": "0 1px 3px 0 rgb(0 0 0 / 0.2)",
-        "purpose": "Map pins only, so they stand out from the map."
+        "purpose": "Map pins only, so they stand out from the map. Figma style: Shadow / Pin."
+      },
+      {
+        "name": "overlay",
+        "value": "0 6px 20px 0 rgb(23 27 24 / 0.14)",
+        "purpose": "Popups, the map card and menus. Figma style: Shadow / Overlay; code token shadow-overlay."
       }
     ],
     "motion": [
       {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "The shared easing for every UI animation (the theme ease-out)."
+      },
+      {
+        "name": "press",
+        "value": "scale 160ms ease-out to 97% (hint rows 98%)",
+        "purpose": "Buttons and hint rows shrink while pressed so a tap feels heard."
+      },
+      {
+        "name": "hint-reveal",
+        "value": "opacity + translate 4px, 200ms ease-out (@starting-style)",
+        "purpose": "A hint revealed by a tap fades in and rises; fade only with reduced motion."
+      },
+      {
+        "name": "trail-draw",
+        "value": "clip-path, 250ms ease-out, 100ms delay",
+        "purpose": "The walked trail line draws down to the newly revealed hint; instant with reduced motion."
+      },
+      {
         "name": "pin-hover",
-        "value": "scale 150ms ease-out",
-        "purpose": "Map pin grows to 110% on hover; skipped when reduced motion is on."
+        "value": "scale 150ms ease-out to 110%",
+        "purpose": "Clickable map pins only grow on hover; decorative pins stay still; skipped with reduced motion."
       }
     ],
     "focusRing": {
@@ -446,11 +471,16 @@
       "Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.",
       "Four meaning colors, each with one job: red (to find, the main action), green (found), gold (ratings and selection), blue (keyboard focus).",
       "Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars and pill tags.",
-      "Flat surfaces; map pins are the only things that cast a shadow.",
+      "Flat surfaces; only things that float above the page cast a shadow: map pins and overlays (popups, the map card, menus).",
       "Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.",
       "Mobile-first, built for one-handed, outdoor use; desktop is the same system with more room."
     ],
     "rules": [
+      {
+        "name": "The Bright Sun Rule",
+        "body": "Anything that carries meaning must stay readable with Increase Contrast on. Anything that's only mood is allowed to vanish.",
+        "section": "colors"
+      },
       {
         "name": "The One Meaning Rule",
         "body": "Red, green, gold and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something \"pop\".",
@@ -493,16 +523,20 @@
       "**Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.",
       "**Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.",
       "**Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.",
-      "**Do** use the theme tokens and text style classes instead of raw values."
+      "**Do** follow The Bright Sun Rule (see Colors → Increase Contrast).",
+      "**Do** use the theme tokens and text style classes instead of raw values.",
+      "**Do** keep motion for changes someone caused (a reveal, a press), on the shared ease-out (`cubic-bezier(0.23, 1, 0.32, 1)`, the theme's `ease-out`), and respect reduced motion. Each animation stays under 300ms; a follow-up sequenced after the first change (like the trail drawing after a hint appears) may start up to 100ms later, so a sequence can total about 350ms."
     ],
     "donts": [
       "**Don't** make it look like an official Northeastern site: no crests, seals, official-looking university layouts, or anything implying university approval.",
       "**Don't** make it look like a corporate dashboard: no dense data panels, gradient cards or enterprise styling.",
       "**Don't** make it look like a kids' game: no cartoon mascots, confetti bursts or candy colors.",
       "**Don't** put more than one Husky Red button on a page.",
-      "**Don't** add shadows to cards, buttons or fields; only map pins have one.",
+      "**Don't** add shadows to cards, buttons or fields; shadows are only for map pins and floating overlays (popups, the map card, menus).",
       "**Don't** use Star Gold for text.",
-      "**Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes."
+      "**Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.",
+      "**Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast.",
+      "**Don't** animate decoration (such as the contour rings), stagger page entrances, smooth-scroll when focus moves, or give a hover effect to something that can't be clicked. Save celebrations for the moment they happen (the \"Find logged!\" screen), not for states seen later, like \"Found by you\"."
     ]
   }
 }

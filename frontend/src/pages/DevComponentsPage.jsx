@@ -190,7 +190,10 @@ function DevComponentsPage() {
           ))}
         </Section>
 
-        <Section title="MapPin" note="Hover any pin. The last pin is a button: click it to toggle Selected.">
+        <Section
+          title="MapPin"
+          note="Only clickable pins grow on hover; the first four are decorative and stay still. The last pin is a button: click it to toggle Selected."
+        >
           <State name="Not found">
             <MapPin />
           </State>

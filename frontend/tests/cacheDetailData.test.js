@@ -49,13 +49,16 @@ test('cache detail query selects only safe fields', async () => {
     difficulty: 4,
     image: 'https://example.test/cache.jpg',
     is_active: true,
+    created_by: 'user-9',
+    latitude: 42.3398,
+    longitude: -71.0892,
   }
   const { client, calls } = createSupabaseStub({ data: cache, error: null })
 
   assert.deepEqual(await loadCacheDetails(client, 'cache-1'), cache)
   assert.deepEqual(calls, [
     ['from', 'caches'],
-    ['select', 'id,title,description,location_name,difficulty,image,is_active'],
+    ['select', 'id,title,description,location_name,difficulty,image,is_active,created_by,latitude,longitude'],
     ['eq', 'id', 'cache-1'],
     ['maybeSingle'],
   ])
@@ -125,8 +128,8 @@ test('cache, find, and hint query errors are surfaced', async () => {
   await assert.rejects(loadHintCount(countClient.client, 'cache-1'), error)
 })
 
-test('found date reads like "Oct 30"', async () => {
+test('found date reads like "Oct 30, 2026"', async () => {
   const { formatFoundDate } = await getCacheDetailData()
   // Midday UTC so the date is the same in every US time zone.
-  assert.equal(formatFoundDate('2026-10-30T16:00:00Z'), 'Oct 30')
+  assert.equal(formatFoundDate('2026-10-30T16:00:00Z'), 'Oct 30, 2026')
 })

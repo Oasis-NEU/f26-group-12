@@ -1,176 +1,187 @@
-import { Check } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
-import DifficultyMeter from '../components/DifficultyMeter.jsx'
+import { useState } from 'react'
+import { useParams } from 'react-router'
+import MapPin from '../components/MapPin.jsx'
+import { FOCUS_RING } from '../components/focusRing.js'
 import SiteHeader from '../components/SiteHeader.jsx'
-import { supabase } from '../lib/supabaseClient.js'
+import { useCacheDetail } from '../lib/useCacheDetail.js'
+import { contourRing } from './cacheDetail/contours.js'
+import CacheMiniMap from './cacheDetail/CacheMiniMap.jsx'
+import { cacheCoordinates } from './cacheDetail/coords.js'
+import HintTrail from './cacheDetail/HintTrail.jsx'
 import {
-  formatFoundDate,
-  loadCacheDetails,
-  loadHint,
-  loadHintCount,
-  loadUserFind,
-} from './cacheDetailData.js'
+  BackLink,
+  CachePhoto,
+  CacheTitle,
+  Description,
+  DirectionsLink,
+  FindAction,
+  FindHelp,
+  HintsHeader,
+  HintsList,
+  MetaRow,
+  PhoneActionBar,
+  TakenDownNotice,
+} from './cacheDetail/parts.jsx'
 
-const FOCUS_RING =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]'
-const PRIMARY_BUTTON = `flex h-12 w-full items-center justify-center bg-black px-5 text-[15px] font-bold leading-[21px] text-white hover:bg-[#292929] ${FOCUS_RING}`
+// The page for one cache: /caches/:cacheId
+//
+// It looks like a spot on a trail map: contour lines circle the cache's map
+// pin (or its photo), so the cache sits at the top of the "hill", its name is set
+// big like a place label, and the hints are a trail that ends at the cache.
+// The data comes from useCacheDetail (src/lib), which never loads secret_code.
+//
+// contrast-more: classes apply when someone turns on Increase Contrast
+// (iPhone: Settings > Accessibility > Display & Text Size): the contour lines
+// hide and faint borders darken, so the page stays crisp in bright sun.
 
-// Who is signed in. undefined = still checking, null = signed out.
-function useUserId() {
-  const [userId, setUserId] = useState(undefined)
+// Rings around the pin, 36 units apart, worked out once. The SVG is centred
+// on the pin, so (0, 0) is the pin.
+const PIN_RINGS = Array.from({ length: 24 }, (_, i) => contourRing(0, 0, 30 + i * 36, 2.2 + i * 0.13))
 
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? null)
-    })
-
-    supabase.auth
-      .getSession()
-      .then(({ data }) => setUserId(data.session?.user?.id ?? null))
-      .catch(() => setUserId(null))
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  return userId
-}
-
-function CachePhoto({ cache }) {
-  if (!cache.image) {
-    return (
-      <div className="flex h-[170px] w-full items-center justify-center bg-[#f5f5f5] text-[13px] font-medium leading-[18px] text-[#444] lg:h-[400px]">
-        No photo for this cache
-      </div>
-    )
-  }
+// The rings sit behind everything (-z-10) and fade out with distance from the
+// pin, so the hints and description sit on plain page. The pin's centre is
+// 1.625rem in from the photo's bottom-left corner on phones (0.75rem inset +
+// half of the 1.75rem pin) and 2.125rem on desktop (1.25rem inset). These are
+// in rem, like the pin, so the rings stay centred at any text size.
+// centered: the rings sit on the middle of the slot instead (where the mini
+// map's pin is, or the middle of a photo, which has no pin).
+const CORNER = 'bottom-[1.625rem] left-[1.625rem] translate-y-1/2 lg:bottom-[2.125rem] lg:left-[2.125rem]'
+const CENTER = 'left-1/2 top-1/2 -translate-y-1/2'
+function PinContours({ centered = false }) {
   return (
-    <img
-      src={cache.image}
-      alt={`Photo of the area around ${cache.title}`}
-      className="h-[170px] w-full object-cover lg:h-[400px]"
-    />
+    <svg
+      aria-hidden="true"
+      viewBox="-1000 -1000 2000 2000"
+      className={`pointer-events-none absolute -z-10 size-[2000px] -translate-x-1/2 text-border-subtle [mask-image:radial-gradient(closest-side,black_30%,transparent_75%)] contrast-more:hidden ${
+        centered ? CENTER : CORNER
+      }`}
+    >
+      {PIN_RINGS.map((d) => (
+        <path key={d} d={d} fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+      ))}
+    </svg>
   )
 }
 
-// One row in the hints list: revealed (white with border), the next one you
-// can open (a button), or locked behind the one before it.
-function HintRow({ order, text, isNext, pending, onReveal }) {
-  if (text !== undefined) {
-    return (
-      <li className="flex flex-col gap-0.5 border border-black bg-white px-[14px] py-2.5">
-        <span className="text-[12px] font-bold leading-[17px] text-[#444]">Hint {order}</span>
-        <span className="text-[15px] font-medium leading-[21px] text-black">{text}</span>
-      </li>
-    )
-  }
+const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 
-  const rowClass =
-    'flex h-11 w-full items-center justify-between bg-[#f5f5f5] px-[14px] text-left'
-  const label = <span className="text-[15px] font-bold leading-[21px] text-black">Hint {order}</span>
-  const note = 'text-[13px] font-medium leading-[18px] text-[#444]'
-
-  if (!isNext) {
-    return (
-      <li className={rowClass}>
-        {label}
-        <span className={note}>Reveal hint {order - 1} first</span>
-      </li>
-    )
-  }
-
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={() => onReveal(order)}
-        disabled={pending}
-        className={`${rowClass} hover:bg-[#ebebeb] disabled:cursor-wait ${FOCUS_RING}`}
-      >
-        {label}
-        <span className={note}>
-          {pending ? (
-            'Revealing…'
-          ) : (
-            <>
-              {/* The design says "Tap" on phones and "Click" on desktop. */}
-              <span className="lg:hidden">Tap</span>
-              <span className="hidden lg:inline">Click</span> to reveal
-            </>
-          )}
-        </span>
-      </button>
-    </li>
-  )
-}
-
-function HintsPanel({ hintCount, hintCountError, revealed, pendingOrder, hintError, onReveal }) {
-  const revealedCount = Object.keys(revealed).length
-  const hintsLeft = hintCount - revealedCount
-  // The lowest-numbered hint that hasn't been revealed yet.
-  let nextOrder = 1
-  while (revealed[nextOrder] !== undefined) nextOrder += 1
-
-  let status = ''
-  if (hintCount > 0) {
-    status = hintsLeft === 0 ? 'All hints revealed' : hintsLeft === 1 ? '1 hint left' : `${hintsLeft} hints left`
-  }
+function CacheDetails({ cacheId, detail }) {
+  const { cache, find } = detail
+  const found = Boolean(find)
+  // No photo? Show a small real map of the spot instead, when Google Maps is
+  // set up (same key as the map page) and the cache can still be hunted. If
+  // Maps fails to load, fall back to the empty photo frame.
+  const [mapFailed, setMapFailed] = useState(false)
+  const showMap =
+    !cache.image && cache.is_active && !mapFailed && Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY) && Boolean(cacheCoordinates(cache))
+  const action = <FindAction cacheId={cacheId} find={find} isHider={detail.isHider} checking={detail.findChecking} />
+  // With no hints (or if they failed to load) there's no trail to end at the
+  // cache, so the card shows a plain divider and button instead.
+  const hasTrail = !detail.hintCountError && detail.hintCount > 0
+  // How-to line under "I found it", only while this person can still log it.
+  const help = !found && !detail.isHider && !detail.findChecking ? <FindHelp signedIn={detail.signedIn} /> : null
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <h2 className="text-[18px] font-bold leading-[25px]">Hints</h2>
-        {status && <p className="text-[13px] font-medium leading-[18px] text-[#444]">{status}</p>}
+      {/* React 19 moves this into the page's <head>: the tab says which cache it is. */}
+      <title>{`${cache.title} · HuskyCache`}</title>
+      {/* isolate keeps the rings above the page background but behind the content;
+          overflow-clip trims the big rings to this area, so they don't spill over the
+          header or make the page scroll sideways. (clip, unlike hidden, keeps the
+          desktop card's sticky scrolling working.) */}
+      <div className="relative isolate flex w-full flex-1 flex-col overflow-clip">
+        <div className="flex w-full flex-1 flex-col gap-4 p-4 lg:gap-6 lg:px-[10%] lg:pb-12 lg:pt-8">
+          <BackLink />
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-12">
+            <div className="flex min-w-0 flex-col gap-4 lg:flex-1 lg:gap-5">
+              <div className="relative">
+                {/* A photo has no pin of its own (see below), so the rings circle
+                    the photo's middle, as they circle the mini map's pin. */}
+                <PinContours centered={showMap || Boolean(cache.image)} />
+                {showMap ? (
+                  <CacheMiniMap cache={cache} found={found} onFail={() => setMapFailed(true)} />
+                ) : (
+                  <CachePhoto cache={cache} />
+                )}
+                {/* The corner pin, only on the empty frame. On a photo it could be
+                    read as "the cache is hidden here in the picture", so photos get
+                    none. The mini map has its own pin at the spot. A taken-down
+                    cache isn't something to find, so it gets no red pin. */}
+                {cache.is_active && !showMap && !cache.image && (
+                  <MapPin found={found} className="absolute bottom-3 left-3 lg:bottom-5 lg:left-5" />
+                )}
+              </div>
+              <CacheTitle cache={cache} className="text-display lg:text-section" />
+              {/* Taken down: say so straight away, before anything that could send
+                  someone out looking for it. It waits for the sign-in check (a
+                  moment), so the hider doesn't see the general wording flash first. */}
+              {!cache.is_active && !detail.findChecking && (
+                <TakenDownNotice cacheId={cacheId} isHider={detail.isHider} />
+              )}
+              <MetaRow cache={cache} className={`border-y py-3 ${CARD_BORDER}`} />
+              {/* The description is the hider's own clue, so it stays with the
+                  place facts above; "Get directions" comes after it. */}
+              <Description cache={cache} />
+              {cache.is_active && <DirectionsLink cache={cache} />}
+            </div>
+
+            {/* The hints and the find action: the page's main task, so a section
+                labelled by its heading (not an <aside>, which screen readers call
+                "complementary"). Phones: this flows under the description.
+                Desktop: a card on the right that stays in view. Taken-down caches
+                have nothing to hunt, so it's left out. */}
+            {cache.is_active && (
+              <section
+                aria-labelledby="hints-heading"
+                className={`flex flex-col gap-4 lg:sticky lg:top-6 lg:w-[400px] lg:shrink-0 lg:rounded-2xl lg:border lg:bg-bg-surface lg:p-6 ${CARD_BORDER}`}
+              >
+                  <HintsHeader detail={detail} headingId="hints-heading" />
+                  <HintsList
+                    detail={detail}
+                    renderRows={(rows, onReveal) => (
+                      <HintTrail
+                        rows={rows}
+                        onReveal={onReveal}
+                        found={found}
+                        action={action}
+                        drawTo={detail.lastTappedOrder}
+                      />
+                    )}
+                  />
+                  {!hasTrail && (
+                    <div className="hidden flex-col gap-4 lg:flex">
+                      <div className="h-px w-full bg-border-subtle contrast-more:bg-border-input" />
+                      {action}
+                    </div>
+                  )}
+                  {/* The how-to line, under the trail's end on every screen size. On
+                      phones it stays in the page, not the sticky bottom bar, so the
+                      bar stays small and doesn't cover the screen. */}
+                  {help}
+              </section>
+            )}
+          </div>
+        </div>
       </div>
-      {hintCountError ? (
-        <p className="text-[14px] font-medium leading-5 text-[#444]">Hints couldn’t load right now.</p>
-      ) : hintCount === 0 ? (
-        <p className="text-[14px] font-medium leading-5 text-[#444]">This cache doesn’t have any hints.</p>
-      ) : (
-        <ol className="flex flex-col gap-2">
-          {Array.from({ length: hintCount }, (_, index) => index + 1).map((order) => (
-            <HintRow
-              key={order}
-              order={order}
-              text={revealed[order]}
-              isNext={order === nextOrder}
-              pending={pendingOrder === order}
-              onReveal={onReveal}
-            />
-          ))}
-        </ol>
-      )}
-      {hintError && (
-        <p role="alert" className="text-[13px] font-bold leading-[18px] text-[#c8102e]">
-          {hintError}
-        </p>
+      {cache.is_active && (
+        <PhoneActionBar
+          cacheId={cacheId}
+          find={find}
+          isHider={detail.isHider}
+          checking={detail.findChecking}
+          className={`border-t ${CARD_BORDER}`}
+        />
       )}
     </>
   )
 }
 
-// What goes where the "I found it" button is.
-function FindAction({ cacheId, find }) {
-  if (find) {
-    return (
-      <p className="flex h-12 items-center justify-center gap-2 border border-black text-[15px] font-bold leading-[21px]">
-        <Check aria-hidden="true" size={18} strokeWidth={3} />
-        Found by you on {formatFoundDate(find.created_at)}
-      </p>
-    )
-  }
-  return (
-    <Link to={`/caches/${cacheId}/log`} className={PRIMARY_BUTTON}>
-      I found it
-    </Link>
-  )
-}
-
+// Loading, errors and "not found".
 function Notice({ children, role = 'status' }) {
   return (
-    <div role={role} className="border border-black bg-white p-4 text-[14px] font-medium leading-5 text-[#444]">
+    // Capped at a readable width on desktop, like the description, so it
+    // doesn't stretch into a thin bar across the whole page.
+    <div role={role} className={`rounded-2xl border bg-bg-surface p-4 text-body text-text-secondary lg:max-w-[640px] ${CARD_BORDER}`}>
       {children}
     </div>
   )
@@ -178,190 +189,59 @@ function Notice({ children, role = 'status' }) {
 
 function CacheDetailPage() {
   const { cacheId } = useParams()
-  const userId = useUserId()
-  const [retryCount, setRetryCount] = useState(0)
-  // Each piece of loaded data is tagged with what it belongs to, so stale
-  // results from a previous cache (or user) are ignored instead of shown.
-  const [details, setDetails] = useState({ key: null, cache: null, hintCount: 0, hintCountError: false, error: false })
-  const [findResult, setFindResult] = useState({ key: null, find: null })
-  const [hints, setHints] = useState({ cacheId: null, revealed: {}, pendingOrder: null, error: '' })
+  const detail = useCacheDetail(cacheId)
 
-  const detailsKey = `${cacheId}:${retryCount}`
-  const loading = details.key !== detailsKey
-  const { cache } = details
-  const findKey = `${cacheId}:${userId}`
-  const find = findResult.key === findKey ? findResult.find : null
-  const revealed = hints.cacheId === cacheId ? hints.revealed : {}
-
-  // Load the cache and how many hints it has.
-  useEffect(() => {
-    let active = true
-    const key = `${cacheId}:${retryCount}`
-
-    Promise.all([
-      loadCacheDetails(supabase, cacheId),
-      // A failed count shouldn't hide the whole cache, so catch it separately.
-      loadHintCount(supabase, cacheId).then(
-        (count) => ({ count, failed: false }),
-        () => ({ count: 0, failed: true }),
-      ),
-    ])
-      .then(([loadedCache, { count, failed }]) => {
-        if (active) setDetails({ key, cache: loadedCache, hintCount: count, hintCountError: failed, error: false })
-      })
-      .catch(() => {
-        if (active) setDetails({ key, cache: null, hintCount: 0, hintCountError: false, error: true })
-      })
-
-    return () => {
-      active = false
+  let content
+  if (detail.loading || detail.error || !detail.cache) {
+    let notice
+    if (detail.loading) {
+      notice = <Notice>Loading cache…</Notice>
+    } else if (detail.error) {
+      notice = (
+        <Notice role="alert">
+          We couldn’t load this cache.{' '}
+          <button
+            type="button"
+            onClick={detail.retry}
+            className={`cursor-pointer rounded-lg font-bold text-text-primary underline ${FOCUS_RING}`}
+          >
+            Try again
+          </button>
+        </Notice>
+      )
+    } else {
+      // "Taken down", the app's word for it (caches are never deleted). A
+      // taken-down cache lands here for everyone but its hider.
+      notice = <Notice>We couldn’t find that cache. It may have been taken down, or the link is wrong.</Notice>
     }
-  }, [cacheId, retryCount])
-
-  // Has the signed-in user already found this cache?
-  useEffect(() => {
-    if (userId === undefined) return
-    let active = true
-
-    loadUserFind(supabase, cacheId, userId)
-      .then((loadedFind) => {
-        if (active) setFindResult({ key: `${cacheId}:${userId}`, find: loadedFind })
-      })
-      // If this fails we just show the normal "I found it" button.
-      .catch(() => {})
-
-    return () => {
-      active = false
-    }
-  }, [cacheId, userId])
-
-  // Reveal hint 1 to start. If they've already found it, reveal every hint.
-  const hintCount = loading ? 0 : details.hintCount
-  const revealAll = Boolean(find)
-  useEffect(() => {
-    if (hintCount === 0) return
-    let active = true
-    const orders = revealAll ? Array.from({ length: hintCount }, (_, index) => index + 1) : [1]
-
-    Promise.all(orders.map((order) => loadHint(supabase, cacheId, order)))
-      .then((loaded) => {
-        if (!active) return
-        setHints((current) => {
-          const base = current.cacheId === cacheId ? current.revealed : {}
-          const next = { ...base }
-          loaded.forEach((hint) => {
-            if (hint) next[hint.hint_order] = hint.hint_text
-          })
-          return { cacheId, revealed: next, pendingOrder: null, error: '' }
-        })
-      })
-      .catch(() => {
-        if (active) setHints({ cacheId, revealed: {}, pendingOrder: null, error: 'Hints couldn’t load right now.' })
-      })
-
-    return () => {
-      active = false
-    }
-  }, [cacheId, hintCount, revealAll])
-
-  // Revealing only fetches that one hint, so later hints never reach the
-  // browser until someone asks. Nothing is saved; a refresh starts over.
-  async function revealHint(order) {
-    setHints((current) => ({ ...current, cacheId, pendingOrder: order, error: '' }))
-    try {
-      const hint = await loadHint(supabase, cacheId, order)
-      setHints((current) => ({
-        cacheId,
-        revealed: hint ? { ...current.revealed, [order]: hint.hint_text } : current.revealed,
-        pendingOrder: null,
-        error: hint ? '' : 'That hint isn’t available.',
-      }))
-    } catch {
-      setHints((current) => ({ ...current, pendingOrder: null, error: 'That hint couldn’t load. Try again.' }))
-    }
-  }
-
-  let body
-  if (loading) {
-    body = <Notice>Loading cache…</Notice>
-  } else if (details.error) {
-    body = (
-      <Notice role="alert">
-        We couldn’t load this cache.{' '}
-        <button type="button" onClick={() => setRetryCount((count) => count + 1)} className="font-bold text-black underline">
-          Try again
-        </button>
-      </Notice>
-    )
-  } else if (!cache) {
-    body = <Notice>We couldn’t find that cache. It may have been removed, or the link is wrong.</Notice>
-  } else {
-    body = (
-      <div className="flex flex-col gap-[14px] lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-12">
-        <div className="flex flex-col gap-[14px] lg:gap-5">
-          <CachePhoto cache={cache} />
-          <h1 className="text-[24px] font-extrabold leading-[34px] lg:text-[36px] lg:leading-[44px]">
-            {cache.title}
-          </h1>
-          <div className="flex items-center justify-between gap-4 lg:justify-start lg:gap-6">
-            {cache.location_name && (
-              <p className="text-[14px] font-medium leading-5 text-[#444] lg:text-[15px] lg:leading-[21px]">
-                {cache.location_name}
-              </p>
-            )}
-            <DifficultyMeter difficulty={cache.difficulty} />
-          </div>
-          {cache.description && (
-            <p className="whitespace-pre-line text-[15px] font-medium leading-[21px] lg:max-w-[640px] lg:text-[17px] lg:leading-6">
-              {cache.description}
-            </p>
-          )}
-        </div>
-
-        {/* Phones: this flows under the description. Desktop: a card on the right that stays in view. */}
-        <aside className="flex flex-col gap-[14px] lg:sticky lg:top-6 lg:gap-4 lg:border lg:border-black lg:bg-white lg:p-6">
-          {cache.is_active ? (
-            <>
-              <HintsPanel
-                hintCount={details.hintCount}
-                hintCountError={details.hintCountError}
-                revealed={revealed}
-                pendingOrder={hints.cacheId === cacheId ? hints.pendingOrder : null}
-                hintError={hints.cacheId === cacheId ? hints.error : ''}
-                onReveal={revealHint}
-              />
-              <div className="hidden flex-col gap-4 lg:flex">
-                <div className="h-px w-full bg-[#f5f5f5]" />
-                <FindAction cacheId={cacheId} find={find} />
-              </div>
-            </>
-          ) : (
-            <p className="border border-black bg-[#f5f5f5] p-4 text-[15px] font-medium leading-[21px]">
-              This cache has been taken down, so it can’t be logged anymore.
-            </p>
-          )}
-        </aside>
+    content = (
+      <div className="flex w-full flex-1 flex-col gap-4 p-4 lg:gap-6 lg:px-[10%] lg:pb-12 lg:pt-8">
+        <title>{detail.loading || detail.error ? 'HuskyCache' : 'Cache not found · HuskyCache'}</title>
+        {/* Screen readers still get a page heading while there's no cache title. */}
+        <h1 className="sr-only">{detail.loading || detail.error ? 'Cache details' : 'Cache not found'}</h1>
+        <BackLink />
+        {notice}
       </div>
     )
+  } else {
+    content = <CacheDetails cacheId={cacheId} detail={detail} />
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white text-black">
+    <div className="flex min-h-dvh flex-col bg-bg-page text-text-primary">
+      {/* Hidden until someone presses Tab, so keyboard users can jump past the header. */}
+      <a
+        href="#main-content"
+        className={`sr-only rounded-lg bg-bg-surface px-4 py-2 text-label text-text-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 ${FOCUS_RING}`}
+      >
+        Skip to content
+      </a>
       <SiteHeader />
-
-      <div className="flex w-full flex-1 flex-col gap-[14px] p-4 md:px-8 lg:gap-6 lg:px-[10%] lg:py-8">
-        <Link to="/" className={`w-fit text-[14px] font-bold leading-5 text-[#444] hover:text-black ${FOCUS_RING}`}>
-          ← Back to map
-        </Link>
-        {body}
-      </div>
-
-      {/* Phones: the action is pinned to the bottom of the screen. */}
-      {!loading && cache?.is_active && (
-        <div className="sticky bottom-0 border-t border-black bg-white p-4 lg:hidden">
-          <FindAction cacheId={cacheId} find={find} />
-        </div>
-      )}
+      {/* The page's own <main> (Layout leaves it out here), with the header outside it.
+          tabIndex={-1} lets the skip link move focus here. */}
+      <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
+        {content}
+      </main>
     </div>
   )
 }

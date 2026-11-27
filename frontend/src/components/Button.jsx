@@ -21,13 +21,19 @@ import { FOCUS_RING } from './focusRing.js'
 const BASE =
   `inline-flex h-12 items-center justify-center whitespace-nowrap rounded-lg px-5 text-label ${FOCUS_RING}`
 
+// Pressing shrinks an enabled button to 97% (160ms, the theme's strong
+// ease-out) so a tap feels heard, which matters outdoors on a phone. The
+// shrink is tiny, so it stays with reduced motion on; only its animation is
+// dropped.
+const PRESS = 'active:scale-97 motion-safe:transition-transform motion-safe:duration-160 motion-safe:ease-out'
+
 const VARIANTS = {
   primary: {
-    enabled: 'bg-accent text-text-on-accent hover:bg-accent-pressed',
+    enabled: `bg-accent text-text-on-accent hover:bg-accent-pressed ${PRESS}`,
     disabled: 'cursor-not-allowed bg-bg-subtle text-text-secondary',
   },
   secondary: {
-    enabled: 'border border-border-strong bg-bg-surface text-text-primary hover:bg-bg-subtle',
+    enabled: `border border-border-strong bg-bg-surface text-text-primary hover:bg-bg-subtle ${PRESS}`,
     disabled: 'cursor-not-allowed border border-border-subtle bg-bg-surface text-text-secondary',
   },
 }

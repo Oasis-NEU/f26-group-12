@@ -1,4 +1,7 @@
-const CACHE_DETAIL_COLUMNS = 'id,title,description,location_name,difficulty,image,is_active'
+// created_by is the hider's account id, so the page can tell a hider they
+// can't log their own cache. latitude/longitude feed the "Get directions"
+// link. (Never secret_code.)
+const CACHE_DETAIL_COLUMNS = 'id,title,description,location_name,difficulty,image,is_active,created_by,latitude,longitude'
 
 export async function loadCacheDetails(supabase, cacheId) {
   const { data, error } = await supabase
@@ -36,9 +39,10 @@ export async function loadUserFind(supabase, cacheId, userId) {
   return data
 }
 
-// "2026-10-30T15:00:00Z" -> "Oct 30" (in the viewer's time zone).
+// "2026-10-30T15:00:00Z" -> "Oct 30, 2026" (in the viewer's time zone). The
+// year keeps it clear once the app has been around for more than a year.
 export function formatFoundDate(timestamp) {
-  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 // How many hints the cache has, without downloading any hint text, so locked

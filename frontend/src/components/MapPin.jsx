@@ -12,31 +12,41 @@ import { FOCUS_RING } from './focusRing.js'
 // exported from Figma (in src/assets/figma).
 //
 // Inside a Google Maps <AdvancedMarker>, the marker already handles clicks,
-// so use the pin on its own:  <AdvancedMarker onClick={...}><MapPin found /></AdvancedMarker>
+// so use the pin on its own and pass hoverable, since it can be clicked:
+//   <AdvancedMarker onClick={...}><MapPin found hoverable /></AdvancedMarker>
 // Anywhere else, pass onClick and a label and it becomes a real <button>:
 //   <MapPin onClick={select} label="Quad riddle" />
+// With neither, it's a decorative pin (e.g. on a cache's photo) and stays still.
 
-// Hover grows the pin a little so you can tell which one you're pointing at
-// (the gold ring already means "selected"). It animates only when the
+// Hover grows a clickable pin a little so you can tell which one you're
+// pointing at (the gold ring already means "selected"). Only clickable pins
+// get it: growing on hover promises a click. It animates only when the
 // person hasn't asked their device for reduced motion.
 const HOVER = 'hover:scale-110 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out'
 
-function MapPin({ found = false, selected = false, onClick, label, className = '' }) {
+function MapPin({ found = false, selected = false, onClick, hoverable = false, label, className = '' }) {
   let pin
   if (found) {
     // The SVGs include the shadow, so they're bigger than the pin and hang
-    // over its edges by the same amounts as in Figma.
+    // over its edges by the same amounts as in Figma. The outer box is in
+    // rem, and the inner span stretches past it by percentages, so the
+    // artwork grows with the pin when someone makes their text bigger
+    // (as in Figma's own export: a positioned box, image filling it).
     pin = (
       <span className={`relative block ${selected ? 'size-10' : 'size-7'}`}>
-        <img
-          src={selected ? pinFoundSelected : pinFound}
-          width={selected ? 54 : 38}
-          height={selected ? 54 : 38}
-          alt=""
-          className={`absolute block max-w-none ${
+        <span
+          className={`absolute block ${
             selected ? 'inset-[-15%_-17.5%_-20%_-17.5%]' : 'inset-[-14.29%_-17.86%_-21.43%_-17.86%]'
           }`}
-        />
+        >
+          <img
+            src={selected ? pinFoundSelected : pinFound}
+            width={selected ? 54 : 38}
+            height={selected ? 54 : 38}
+            alt=""
+            className="block size-full max-w-none"
+          />
+        </span>
       </span>
     )
   } else {
@@ -65,9 +75,9 @@ function MapPin({ found = false, selected = false, onClick, label, className = '
   }
 
   return (
-    // Inside a map marker the marker is what gets clicked, but the pin still
-    // reacts to hover so it feels clickable.
-    <span aria-hidden="true" className={`block ${HOVER} ${className}`}>
+    // Inside a map marker (hoverable) the marker is what gets clicked, so the
+    // pin still reacts to hover. A decorative pin doesn't.
+    <span aria-hidden="true" className={`block ${hoverable ? HOVER : ''} ${className}`}>
       {pin}
     </span>
   )
