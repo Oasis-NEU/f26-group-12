@@ -59,6 +59,11 @@ export function useCacheDetail(cacheId) {
   const loading = details.key !== detailsKey
   const findKey = `${cacheId}:${userId}`
   const find = findResult.key === findKey ? findResult.find : null
+  // Still finding out whether this person has found it (or who they are).
+  // The page waits on this so "I found it" doesn't flash before "Found by you".
+  const findChecking = userId === undefined || findResult.key !== findKey
+  // The signed-in person hid this cache. They know its code.
+  const isHider = Boolean(userId && details.cache?.created_by && details.cache.created_by === userId)
   const revealed = hints.cacheId === cacheId ? hints.revealed : {}
 
   // Load the cache, how many hints it has, and hint 1, all at the same time.
@@ -106,17 +111,20 @@ export function useCacheDetail(cacheId) {
       .then((loadedFind) => {
         if (active) setFindResult({ key: `${cacheId}:${userId}`, find: loadedFind })
       })
-      // If this fails we just show the normal "I found it" button.
-      .catch(() => {})
+      // If this fails we just show the normal "I found it" button (rather
+      // than waiting forever).
+      .catch(() => {
+        if (active) setFindResult({ key: `${cacheId}:${userId}`, find: null })
+      })
 
     return () => {
       active = false
     }
   }, [cacheId, userId])
 
-  // If they've already found it, reveal every hint.
+  // If they've already found it, or hid it themselves, reveal every hint.
   const hintCount = loading ? 0 : details.hintCount
-  const revealAll = Boolean(find)
+  const revealAll = Boolean(find) || isHider
   useEffect(() => {
     if (hintCount === 0 || !revealAll) return
     let active = true
@@ -182,7 +190,8 @@ export function useCacheDetail(cacheId) {
     cache: details.cache,
     // True when the signed-in person hid this cache. They know its code, so
     // the page doesn't offer them "I found it".
-    isHider: Boolean(userId && details.cache?.created_by && details.cache.created_by === userId),
+    isHider,
+    findChecking,
     // undefined while checking, then true or false. Logging a find needs an
     // account, so the page tells signed-out visitors before they try.
     signedIn: userId === undefined ? undefined : Boolean(userId),

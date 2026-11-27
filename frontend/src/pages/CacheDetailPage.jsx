@@ -59,15 +59,17 @@ const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 function CacheDetails({ cacheId, detail }) {
   const { cache, find } = detail
   const found = Boolean(find)
-  const action = <FindAction cacheId={cacheId} find={find} isHider={detail.isHider} />
+  const action = <FindAction cacheId={cacheId} find={find} isHider={detail.isHider} checking={detail.findChecking} />
   // With no hints (or if they failed to load) there's no trail to end at the
   // cache, so the card shows a plain divider and button instead.
   const hasTrail = !detail.hintCountError && detail.hintCount > 0
   // How-to line under "I found it", only while this person can still log it.
-  const help = !found && !detail.isHider ? <FindHelp signedIn={detail.signedIn} /> : null
+  const help = !found && !detail.isHider && !detail.findChecking ? <FindHelp signedIn={detail.signedIn} /> : null
 
   return (
     <>
+      {/* React 19 moves this into the page's <head>: the tab says which cache it is. */}
+      <title>{`${cache.title} · HuskyCache`}</title>
       {/* isolate keeps the rings above the page background but behind the content;
           overflow-clip trims the big rings to this area, so they don't spill over the
           header or make the page scroll sideways. (clip, unlike hidden, keeps the
@@ -123,6 +125,7 @@ function CacheDetails({ cacheId, detail }) {
           cacheId={cacheId}
           find={find}
           isHider={detail.isHider}
+          checking={detail.findChecking}
           help={help}
           className={`border-t ${CARD_BORDER}`}
         />
@@ -167,6 +170,7 @@ function CacheDetailPage() {
     }
     content = (
       <div className="flex w-full flex-1 flex-col gap-4 p-4 lg:gap-6 lg:px-[10%] lg:pb-12 lg:pt-8">
+        <title>{detail.loading || detail.error ? 'HuskyCache' : 'Cache not found · HuskyCache'}</title>
         {/* Screen readers still get a page heading while there's no cache title. */}
         <h1 className="sr-only">{detail.loading || detail.error ? 'Cache details' : 'Cache not found'}</h1>
         <BackLink />

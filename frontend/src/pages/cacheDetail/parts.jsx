@@ -149,7 +149,12 @@ function defaultRows(rows, onReveal) {
 // checkmark (the design's "already found" state). For the person who hid the
 // cache it says "You hid this cache" with an Edit link instead: they know the
 // code, so logging their own cache wouldn't prove anything.
-export function FindAction({ cacheId, find, isHider = false }) {
+export function FindAction({ cacheId, find, isHider = false, checking = false }) {
+  // While we're still checking whether this person found it (or hid it),
+  // hold the space with a quiet placeholder instead of guessing.
+  if (checking) {
+    return <div aria-hidden="true" className="h-12 rounded-lg bg-bg-subtle" />
+  }
   if (isHider) {
     return (
       <div className="flex h-12 items-center justify-between gap-3 rounded-lg bg-bg-subtle px-4">
@@ -238,10 +243,10 @@ export function TakenDownNotice({ className = '' }) {
 // Phones: the action is pinned to the bottom of the screen.
 // className lets a version change the bar's top edge.
 // help is the FindHelp text, shown under the button when it applies.
-export function PhoneActionBar({ cacheId, find, isHider, help, className = 'border-t border-border-subtle' }) {
+export function PhoneActionBar({ cacheId, find, isHider, checking, help, className = 'border-t border-border-subtle' }) {
   return (
     <div className={`sticky bottom-0 z-20 flex flex-col gap-2 bg-bg-surface p-4 lg:hidden ${className}`}>
-      <FindAction cacheId={cacheId} find={find} isHider={isHider} />
+      <FindAction cacheId={cacheId} find={find} isHider={isHider} checking={checking} />
       {help}
     </div>
   )

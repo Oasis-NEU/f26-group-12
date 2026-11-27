@@ -383,9 +383,10 @@ On a cache's page, its name is set like a map label: Display on phones, Section 
 
 ### Find Action
 The one main action on a cache's page: beside the trail's end pin on desktop, in the bottom bar on phones. It's always 48px tall.
+- **Checking:** while the page finds out whether you've found or hidden this cache, a plain 48px Subtle placeholder holds the space, so "I found it" never flashes before "Found by you".
 - **Not found yet:** the Primary "I found it" button.
 - **Found:** a Found Green Soft line with a green check, "Found by you on Oct 30, 2026" (with the year, so it stays clear over time).
-- **Your own cache:** a Subtle line, "You hid this cache", with an "Edit cache" link. Hiders know the code, so the page doesn't offer to log their own cache.
+- **Your own cache:** a Subtle line, "You hid this cache", with an "Edit cache" link. Hiders know the code, so the page doesn't offer to log their own cache, and all their hints are shown.
 - **How-to line:** while someone can still log the cache (not found yet, not their own), Small Text Secondary text under the action explains the proof step: "Found it? Open it, find the 6-letter code on the slip, then tap “I found it”. Put it back where it was." ("click" on desktop). Signed-out visitors also see "Log in to log your find.", with "Log in" as a link.
 
 ## Do's and Don'ts
