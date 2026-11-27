@@ -10,6 +10,7 @@ import SiteHeader from '../components/SiteHeader.jsx'
 import TextField from '../components/TextField.jsx'
 import {
   DESCRIPTION_MAX_LENGTH,
+  DIFFICULTY_MEANINGS,
   HINT_MAX_LENGTH,
   LOCATION_MAX_LENGTH,
   MAX_HINTS,
@@ -17,11 +18,14 @@ import {
   TITLE_MAX_LENGTH,
   checkCacheForm,
   clearDraft,
+  clearHidden,
   createCache,
   describeCreateError,
   generateSecretCode,
   readDraft,
+  readHidden,
   saveDraft,
+  saveHidden,
 } from '../lib/hideCache.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { useHideCache } from '../lib/useHideCache.js'
@@ -32,14 +36,16 @@ import { contourRing } from './cacheDetail/contours.js'
 //
 // The hider sets where it is (a pin on the map, or their current location),
 // names and describes it, picks a difficulty, adds up to 3 hints, and gets
-// a secret code ("New code" makes another). create_cache saves it all
-// together. Then "Cache hidden!" shows the code once more, with "Print a
-// slip": a page with just the cache's name and code, to cut out and put
-// inside the container.
+// a secret code ("Use a different code" makes another, with an Undo).
+// create_cache saves it all together. Then "Cache hidden!" shows the code
+// once more, with "Print a slip" (a page with the cache's name, its code
+// and a line telling finders what to do) and "Copy code" for phones.
 //
-// The form is kept for this tab as they type (a reload or a trip to log in
-// doesn't lose it, and the code doesn't change after they've written it
-// down). Signed-out visitors are sent to log in and come back here.
+// The form is kept for this tab as they type, and so is "Cache hidden!"
+// after saving, so a reload or a dropped tab never loses the code or makes
+// it look as if nothing saved. Signed-out visitors log in and come back.
+// Enter moves to the next field rather than saving, so the keyboard's Go
+// can't save half a cache.
 //
 // Phones (the base styles): one column, "Where is it?" first, with "Hide
 // this cache" in a bar at the bottom of the screen. Desktop (lg:): the
@@ -49,6 +55,9 @@ import { contourRing } from './cacheDetail/contours.js'
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const FORM_ID = 'hide-cache-form'
 const HEADING_ID = 'hide-cache-heading'
+const LOCATION_BUTTON_ID = 'use-my-location'
+// GPS readings rougher than this get a warning (metres).
+const ROUGH_ACCURACY_M = 30
 const TEXT_LINK = `-my-1 w-fit cursor-pointer rounded-sm py-1 text-label text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
 // Something that just appeared fades in and rises 4px (200ms, the shared
 // ease-out), like a hint being revealed; with reduced motion it only
@@ -59,14 +68,18 @@ const RISE_IN =
 const FADE_IN = 'transition-opacity duration-150 ease-out starting:opacity-0'
 const FIELD_BOX = `w-full rounded-lg border border-border-input bg-bg-surface px-4 text-body text-text-primary placeholder:text-text-secondary ${FOCUS_RING}`
 
-// A part of the form ("Where is it?", "What is it?"...), labelled by its
-// heading. headingId lets the form move focus to the heading (tabIndex -1).
-function Section({ title, headingId, children }) {
-  const generatedId = useId()
-  const id = headingId ?? generatedId
+// "K7MQ2X" -> "K 7 M Q 2 X", so screen readers read a code letter by
+// letter instead of trying to say it as a word.
+function spelled(code) {
+  return code.split('').join(' ')
+}
+
+// A part of the form ("Where is it?", "What is it?"...), labelled by its heading.
+function Section({ title, children }) {
+  const id = useId()
   return (
     <section aria-labelledby={id} className="flex flex-col gap-4">
-      <h2 id={id} tabIndex={-1} className="text-heading text-text-primary outline-none">
+      <h2 id={id} className="text-heading text-text-primary">
         {title}
       </h2>
       {children}
@@ -75,7 +88,7 @@ function Section({ title, headingId, children }) {
 }
 
 // An error or help line under a field, with the "!" icon for errors (as
-// in TextField).
+// in TextField). A new error fades in.
 function FieldMessage({ id, error, help }) {
   if (!error && !help) return null
   return (
@@ -105,24 +118,29 @@ function DescriptionField({ value, onChange }) {
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="What should finders know? Size, what it looks like…"
+        placeholder="e.g. A small mint tin with a sticker on the lid."
         maxLength={DESCRIPTION_MAX_LENGTH}
         rows={3}
+        aria-describedby={`${id}-help`}
         className={`min-h-24 resize-y py-3 ${FIELD_BOX}`}
       />
+      <p id={`${id}-help`} className="text-small text-text-secondary">
+        What to look for, not where it is: its size and what it looks like.
+      </p>
     </div>
   )
 }
 
 // Difficulty 1-5: five big options, one picked at a time (radio buttons,
 // so arrow keys move between them). The picked one is the Inverse fill,
-// and bars beside the label show it the way difficulty always appears.
-// (The legend has to be the fieldset's first child to name the group, so
-// it's for screen readers; the visible row repeats it with the bars.)
+// bars beside the label show it the way difficulty always appears, and the
+// line under the options says what it means. (The legend has to be the
+// fieldset's first child to name the group, so it's for screen readers;
+// the visible row repeats it with the bars.)
 function DifficultyPicker({ value, onChange, error }) {
   const messageId = useId()
   return (
-    <fieldset aria-describedby={messageId} className="flex flex-col gap-2">
+    <fieldset aria-describedby={messageId} aria-required="true" className="flex flex-col gap-2">
       <legend className="sr-only">Difficulty</legend>
       <div aria-hidden="true" className="flex items-center justify-between gap-4">
         <span className="text-label text-text-primary">Difficulty</span>
@@ -133,11 +151,14 @@ function DifficultyPicker({ value, onChange, error }) {
           <label
             key={level}
             // The fill eases in (150ms) and the option shrinks to 97% while
-            // pressed, like a Button, so a tap feels heard.
+            // pressed, like a Button, so a tap feels heard. With an error,
+            // the outline turns red and is drawn 2px, like a field's.
             className={`flex h-12 flex-1 cursor-pointer items-center justify-center rounded-lg border text-body-strong active:scale-97 motion-safe:transition-[background-color,border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out has-focus-visible:ring-2 has-focus-visible:ring-focus has-focus-visible:ring-offset-2 ${
               value === level
                 ? 'border-bg-inverse bg-bg-inverse text-text-on-accent'
-                : `bg-bg-surface text-text-primary hover:bg-bg-subtle ${error ? 'border-error' : 'border-border-strong'}`
+                : `bg-bg-surface text-text-primary hover:bg-bg-subtle ${
+                    error ? 'border-error inset-ring-1 inset-ring-error' : 'border-border-strong'
+                  }`
             }`}
           >
             <input
@@ -147,13 +168,20 @@ function DifficultyPicker({ value, onChange, error }) {
               value={level}
               checked={value === level}
               onChange={() => onChange(level)}
+              aria-invalid={error ? true : undefined}
               className="sr-only"
             />
             {level}
+            {/* Each option's full name for screen readers: "1, easy to spot". */}
+            <span className="sr-only">, {DIFFICULTY_MEANINGS[level].toLowerCase()}</span>
           </label>
         ))}
       </div>
-      <FieldMessage id={messageId} error={error} help="1 = easy to spot, 5 = a real challenge" />
+      <FieldMessage
+        id={messageId}
+        error={error}
+        help={value ? `Difficulty ${value}: ${DIFFICULTY_MEANINGS[value]}` : '1 = easy to spot, 5 = a real challenge'}
+      />
     </fieldset>
   )
 }
@@ -161,12 +189,16 @@ function DifficultyPicker({ value, onChange, error }) {
 // "Where is it?": the map to place the pin (when Google Maps is set up),
 // and "Use my current location", which works without a map and is quickest
 // when you're standing at the spot. The browser asks first; the location
-// only sets the pin and is saved as the cache's spot.
+// only sets the pin (saved as the cache's spot), and says how accurate it
+// is, warning when it's rough.
 function WhereSection({ position, onPosition, locationName, onLocationName, error }) {
   const [locating, setLocating] = useState('idle')
+  // How accurate the last location was, in metres (not saved anywhere).
+  const [accuracy, setAccuracy] = useState(null)
   const messageId = useId()
 
   function useMyLocation() {
+    if (locating === 'locating') return
     if (!('geolocation' in navigator)) {
       setLocating('unavailable')
       return
@@ -175,6 +207,7 @@ function WhereSection({ position, onPosition, locationName, onLocationName, erro
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         onPosition({ lat: coords.latitude, lng: coords.longitude })
+        setAccuracy(Number.isFinite(coords.accuracy) ? Math.round(coords.accuracy) : null)
         setLocating('idle')
       },
       (failure) => setLocating(failure.code === failure.PERMISSION_DENIED ? 'denied' : 'unavailable'),
@@ -182,18 +215,28 @@ function WhereSection({ position, onPosition, locationName, onLocationName, erro
     )
   }
 
-  const locateMessage = {
-    locating: 'Finding where you are…',
-    denied: 'Location is off for this site. Allow it in your browser’s settings, or place the pin on the map.',
-    unavailable: 'Your location isn’t available right now. Try again outside, or place the pin on the map.',
-  }[locating]
+  let help = 'Sets the pin to where you’re standing.'
+  if (locating === 'locating') help = 'Finding where you are…'
+  else if (locating === 'denied') {
+    help = 'Location is off for this site. Allow it in your browser’s settings, or place the pin on the map.'
+  } else if (locating === 'unavailable') {
+    help = 'Your location isn’t available right now. Try again outside, or place the pin on the map.'
+  } else if (accuracy !== null && position) {
+    help =
+      accuracy > ROUGH_ACCURACY_M
+        ? `That’s only accurate to about ${accuracy} m. Step into the open, wait a moment, then try again.`
+        : `Pin set to where you’re standing (accurate to about ${accuracy} m).`
+  }
 
   return (
-    <Section title="Where is it?" headingId="where-heading">
+    <Section title="Where is it?">
       {GOOGLE_MAPS_API_KEY ? (
         <LocationPicker
           position={position}
-          onChange={onPosition}
+          onChange={(value) => {
+            onPosition(value)
+            setAccuracy(null)
+          }}
           className="h-[180px] overflow-hidden rounded-2xl lg:h-[360px]"
         />
       ) : (
@@ -204,14 +247,13 @@ function WhereSection({ position, onPosition, locationName, onLocationName, erro
             {position ? 'Pin set to your location' : 'The map isn’t set up here yet'}
           </p>
           <p className="text-small text-text-secondary">
-            {position
-              ? `${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`
-              : 'Stand at the cache and use your current location.'}
+            {position ? 'Use your location again to move it.' : 'Stand at the cache and use your current location.'}
           </p>
         </div>
       )}
       <div className="flex flex-col gap-2">
         <Button
+          id={LOCATION_BUTTON_ID}
           variant="secondary"
           fullWidth
           onClick={useMyLocation}
@@ -223,17 +265,15 @@ function WhereSection({ position, onPosition, locationName, onLocationName, erro
           {position ? 'Use my current location again' : 'Use my current location'}
         </Button>
         <div aria-live="polite">
-          <FieldMessage
-            id={messageId}
-            error={error}
-            help={locateMessage ?? 'Sets the pin to where you’re standing.'}
-          />
+          <FieldMessage id={messageId} error={error} help={help} />
         </div>
       </div>
       <TextField
         label="Location name (optional)"
         placeholder="e.g. near Snell Library"
+        help="The general area finders head for."
         maxLength={LOCATION_MAX_LENGTH}
+        enterKeyHint="next"
         value={locationName}
         onChange={(event) => onLocationName(event.target.value)}
       />
@@ -241,36 +281,48 @@ function WhereSection({ position, onPosition, locationName, onLocationName, erro
   )
 }
 
-// Hints: up to 3, in order. Each one after the first can be removed.
+// Hints: up to 3, in order. Each one after the first can be removed. Each
+// field gets a stable key, so removing hint 2 removes hint 2's field, and
+// only fields added now rise in (ones restored from the draft just appear).
 function HintsSection({ hints, onChange }) {
   const listId = useId()
+  const nextKey = useRef(hints.length)
+  const [keys, setKeys] = useState(() => hints.map((_, index) => index))
+  const [added, setAdded] = useState(() => new Set())
 
   function setHint(index, text) {
     onChange(hints.map((hint, i) => (i === index ? text : hint)))
   }
 
   function addHint() {
+    const key = nextKey.current++
+    setKeys((current) => [...current, key])
+    setAdded((current) => new Set(current).add(key))
     onChange([...hints, ''])
     // Move to the new field, so they can type straight away.
     requestAnimationFrame(() => document.getElementById(`${listId}-${hints.length}`)?.focus())
   }
 
   function removeHint(index) {
+    setKeys((current) => current.filter((_, i) => i !== index))
     onChange(hints.filter((_, i) => i !== index))
     requestAnimationFrame(() => document.getElementById(`${listId}-${Math.max(0, index - 1)}`)?.focus())
   }
 
   return (
-    <Section title="Hints (optional, up to 3)">
-      <p className="-mt-2 text-small text-text-secondary">Start vague. Each hint should give away a little more.</p>
+    <Section title="Hints (optional)">
+      <p className="-mt-2 text-small text-text-secondary">
+        Up to 3. Start vague, and make each one give away a little more of where it is.
+      </p>
       {hints.map((hint, index) => (
         <TextField
-          key={index}
-          className={index > 0 ? RISE_IN : ''}
+          key={keys[index]}
           id={`${listId}-${index}`}
+          className={added.has(keys[index]) ? RISE_IN : ''}
           label={`Hint ${index + 1}`}
           placeholder={index === 0 ? 'e.g. Sit on the steps and look down' : undefined}
           maxLength={HINT_MAX_LENGTH}
+          enterKeyHint="next"
           value={hint}
           onChange={(event) => setHint(index, event.target.value)}
           action={
@@ -296,37 +348,68 @@ function HintsSection({ hints, onChange }) {
   )
 }
 
-// The secret code: shown in JetBrains Mono (the face DESIGN.md keeps for
-// codes), with "New code" to make another before saving.
-function SecretCodeSection({ code, onNewCode }) {
+// The secret code, in JetBrains Mono (the face DESIGN.md keeps for codes).
+// "Use a different code" is a quiet link, not a button beside the code, and
+// offers an Undo, so a mistap can't silently replace a code someone has
+// already written down.
+function SecretCodeSection({ code, onChangeCode }) {
   const helpId = useId()
+  // The code before the last change, for Undo.
+  const [previous, setPrevious] = useState(null)
+  // Only animate a code that changed here (not the first one on the page).
+  const [changed, setChanged] = useState(false)
+
+  function useDifferentCode() {
+    setPrevious(code)
+    setChanged(true)
+    onChangeCode(generateSecretCode())
+  }
+
+  function undo() {
+    onChangeCode(previous)
+    setPrevious(null)
+  }
+
   return (
     <Section title="Secret code">
       <div className="flex flex-col gap-2">
-        <p className="text-label text-text-primary">Your cache’s code</p>
-        <div className="flex items-stretch gap-2">
-          <output
-            aria-live="polite"
-            aria-describedby={helpId}
-            className="flex h-12 min-w-0 flex-1 items-center rounded-lg border border-border-input bg-bg-surface px-4 text-code text-text-primary"
+        <output
+          aria-live="polite"
+          aria-describedby={helpId}
+          className="flex h-14 items-center rounded-lg border border-border-input bg-bg-surface px-4 text-code text-text-primary"
+        >
+          {/* Keyed by the code, so a new one fades in from a slight blur
+              (150ms): it reads as the code changing, not a flicker. */}
+          <span
+            key={code}
+            className={
+              changed
+                ? 'motion-safe:transition-[opacity,filter] motion-safe:duration-150 motion-safe:ease-out motion-safe:starting:opacity-0 motion-safe:starting:blur-[2px]'
+                : ''
+            }
           >
-            {/* Keyed by the code, so each new one fades in from a slight
-                blur (150ms): it reads as the code changing, not a flicker. */}
-            <span
-              key={code}
-              className="motion-safe:transition-[opacity,filter] motion-safe:duration-150 motion-safe:ease-out motion-safe:starting:opacity-0 motion-safe:starting:blur-[2px]"
-            >
-              {code}
-            </span>
-          </output>
-          <Button variant="secondary" onClick={onNewCode}>
-            New code
-          </Button>
-        </div>
+            <span aria-hidden="true">{code}</span>
+            {/* Read letter by letter, also when a new code is announced. */}
+            <span className="sr-only">Your cache’s code: {spelled(code)}</span>
+          </span>
+        </output>
         <p id={helpId} className="text-small text-text-secondary">
-          We made this code for you. Write it on a slip and put it inside the cache. Finders type it in to prove they
-          found it.
+          We made this code for you. After you save, print it on a slip (or write it down) and put it inside the cache.
+          Finders type it in to prove they found it.
         </p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1" aria-live="polite">
+          <button type="button" onClick={useDifferentCode} className={TEXT_LINK}>
+            Use a different code
+          </button>
+          {previous && (
+            <p className={`text-small text-text-secondary ${FADE_IN}`}>
+              Changed from <span className="font-mono">{previous}</span>.{' '}
+              <button type="button" onClick={undo} className={TEXT_LINK}>
+                Undo
+              </button>
+            </p>
+          )}
+        </div>
       </div>
     </Section>
   )
@@ -361,15 +444,27 @@ function HiddenPin() {
   )
 }
 
-// "Cache hidden!": the code once more, "Print a slip", and where to go next.
+// "Cache hidden!": the code once more, "Print a slip" and "Copy code" (for
+// a phone at the spot, where there's no printer), and where to go next.
 // Hiding a cache is the hider's version of "Find logged!", so it gets the
 // same short entrance: the pin grows in from 90% (250ms), then the code
 // card rises 4px (200ms, from 100ms), done by about 300ms. With reduced
 // motion they only fade.
 function CacheHidden({ cache, onHideAnother }) {
+  const [copied, setCopied] = useState('')
+
   useEffect(() => {
     document.getElementById(HEADING_ID)?.focus()
   }, [])
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(cache.secretCode)
+      setCopied('Copied.')
+    } catch {
+      setCopied('Couldn’t copy. Write it down instead.')
+    }
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-[28rem] flex-col items-center gap-5 text-center">
@@ -379,11 +474,21 @@ function CacheHidden({ cache, onHideAnother }) {
       </h1>
       <p className="text-body text-text-secondary">
         “<span className="wrap-break-word text-text-primary">{cache.title}</span>” is now on the map. Print the slip
-        and put it inside the container.
+        (or write the code down) and put it inside the container.
       </p>
       <div className={`flex w-full flex-col items-center gap-1.5 rounded-2xl bg-bg-subtle p-5 delay-100 ${RISE_IN}`}>
         <p className="text-label text-text-secondary">Secret code</p>
-        <p className="font-mono text-[2rem]/[2.75rem] font-bold tracking-[4px] text-text-primary">{cache.secretCode}</p>
+        {/* Bigger than the Code style (Figma's 32px), for reading off the screen. */}
+        <p className="font-mono text-[2rem]/[2.75rem] font-bold tracking-[4px] text-text-primary">
+          <span aria-hidden="true">{cache.secretCode}</span>
+          <span className="sr-only">{spelled(cache.secretCode)}</span>
+        </p>
+        <button type="button" onClick={copyCode} className={TEXT_LINK}>
+          Copy code
+        </button>
+        <p className="min-h-5 text-small text-text-secondary" aria-live="polite">
+          {copied}
+        </p>
       </div>
       <div className="flex w-full flex-col gap-3">
         {/* Prints just the slip (see Slip below). */}
@@ -394,6 +499,16 @@ function CacheHidden({ cache, onHideAnother }) {
           View your cache
         </Button>
       </div>
+      <div className="flex flex-col gap-1 text-balance text-small text-text-secondary">
+        <p>Fold the slip into a small zip bag so it stays dry.</p>
+        <p>
+          You can see this code again any time on the cache’s{' '}
+          <Link to={`/caches/${cache.cacheId}/edit`} className={`${TEXT_LINK} text-small`}>
+            Edit page
+          </Link>
+          .
+        </p>
+      </div>
       <button type="button" onClick={onHideAnother} className={TEXT_LINK}>
         Hide another cache
       </button>
@@ -401,16 +516,22 @@ function CacheHidden({ cache, onHideAnother }) {
   )
 }
 
-// The printed slip: only the cache's name and its code, inside a dashed
-// cut line, in black on white. It's hidden on screen and is the only thing
-// on the page when printing (everything else is print:hidden).
+// The printed slip: the cache's name, its code and one line telling
+// whoever opens the container what to do, inside a dashed cut line, black
+// on white. It's hidden on screen and is the only thing on the page when
+// printing (everything else is print:hidden). No link or QR code until the
+// site is deployed.
 function Slip({ cache }) {
   return (
     <div className="hidden print:flex print:justify-center print:pt-8">
       <div className="flex w-[3.5in] flex-col items-center gap-2 border-2 border-dashed border-black p-6 text-center text-black">
-        <p className="font-display text-[16pt] font-bold leading-tight">{cache.title}</p>
+        <p className="wrap-break-word font-display text-[16pt] font-bold leading-tight">{cache.title}</p>
         <p className="font-sans text-[9pt] font-bold uppercase tracking-[2px]">Secret code</p>
         <p className="font-mono text-[28pt] font-bold tracking-[6px]">{cache.secretCode}</p>
+        <p className="font-sans text-[9pt] leading-snug">
+          This is a HuskyCache geocache. Log your find on HuskyCache with this code, then put the cache back where you
+          found it.
+        </p>
       </div>
     </div>
   )
@@ -428,6 +549,16 @@ function emptyForm() {
   }
 }
 
+// Enter in a one-line field moves to the next field instead of saving the
+// whole form (the keyboard's Go would otherwise save half a cache). Only
+// the "Hide this cache" button saves.
+function moveToNextField(event) {
+  if (event.key !== 'Enter' || event.target.tagName !== 'INPUT' || event.target.type === 'radio') return
+  event.preventDefault()
+  const fields = [...event.currentTarget.querySelectorAll('input:not([type="radio"]), textarea')]
+  fields[fields.indexOf(event.target) + 1]?.focus()
+}
+
 function AddCachePage() {
   const navigate = useNavigate()
   const { userId } = useHideCache()
@@ -438,12 +569,16 @@ function AddCachePage() {
     return draft ? { ...draft, secretCode: draft.secretCode ?? generateSecretCode() } : emptyForm()
   })
   const [problems, setProblems] = useState({})
-  const [formError, setFormError] = useState('')
+  // A save problem: { message, mayHaveSaved } or null. mayHaveSaved (a slow
+  // save) adds a link to My caches, so they check before trying again.
+  const [formError, setFormError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  // After saving: { cacheId, secretCode, title }.
-  const [hidden, setHidden] = useState(null)
+  // After saving: { cacheId, secretCode, title }, kept for this tab.
+  const [hidden, setHidden] = useState(readHidden)
   // Set when the login ran out mid-form.
   const [needsLogin, setNeedsLogin] = useState(false)
+  // Bumped by "Hide another cache", so the form starts fresh (new hint keys).
+  const [formVersion, setFormVersion] = useState(0)
   const firstRender = useRef(true)
   const loginLink = `/login?next=${encodeURIComponent('/caches/new')}`
 
@@ -461,6 +596,17 @@ function AddCachePage() {
     if (!hidden) saveDraft(form)
   }, [form, hidden])
 
+  // Phones: leave room for the bottom bar when the browser scrolls a field
+  // into view (e.g. the keyboard opening), so it never hides behind it.
+  useEffect(() => {
+    const root = document.documentElement
+    const before = root.style.scrollPaddingBottom
+    root.style.scrollPaddingBottom = '6rem'
+    return () => {
+      root.style.scrollPaddingBottom = before
+    }
+  }, [])
+
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }))
     if (problems[field]) setProblems((current) => ({ ...current, [field]: '' }))
@@ -469,13 +615,14 @@ function AddCachePage() {
   async function handleSubmit(event) {
     event.preventDefault()
     if (submitting) return
-    setFormError('')
+    setFormError(null)
     const found = checkCacheForm(form)
     setProblems(found)
-    // Move to the first problem, in the order the form shows them.
+    // Move to the first problem, in the order the form shows them. For a
+    // missing spot that's the location button, which the error describes.
     const first = ['position', 'title', 'difficulty'].find((field) => found[field])
     if (first) {
-      const target = { position: 'where-heading', title: 'cache-title', difficulty: 'difficulty-1' }[first]
+      const target = { position: LOCATION_BUTTON_ID, title: 'cache-title', difficulty: 'difficulty-1' }[first]
       requestAnimationFrame(() => document.getElementById(target)?.focus())
       return
     }
@@ -484,13 +631,15 @@ function AddCachePage() {
     const timer = setTimeout(() => controller.abort(), SAVE_TIMEOUT_MS)
     try {
       const saved = await createCache(supabase, form, controller.signal)
+      const result = { ...saved, title: form.title.trim() }
+      saveHidden(result)
       clearDraft()
-      setHidden({ ...saved, title: form.title.trim() })
+      setHidden(result)
       window.scrollTo({ top: 0 })
     } catch (error) {
       const { kind, message } = describeCreateError(error)
       if (kind === 'signed-out') setNeedsLogin(true)
-      else setFormError(message)
+      else setFormError({ message, mayHaveSaved: kind === 'timeout' })
     } finally {
       clearTimeout(timer)
       setSubmitting(false)
@@ -498,9 +647,12 @@ function AddCachePage() {
   }
 
   function hideAnother() {
+    clearHidden()
     clearDraft()
     setForm(emptyForm())
+    setFormVersion((count) => count + 1)
     setProblems({})
+    setFormError(null)
     setHidden(null)
     window.scrollTo({ top: 0 })
   }
@@ -519,6 +671,18 @@ function AddCachePage() {
       </Button>
     )
   }
+
+  // A save problem, with a link to My caches when it may have saved anyway.
+  const errorMessage = formError && (
+    <p role="alert" className="text-small text-error">
+      {formError.message}{' '}
+      {formError.mayHaveSaved && (
+        <Link to="/my-caches" className={`${TEXT_LINK} text-small`}>
+          Go to My caches
+        </Link>
+      )}
+    </p>
+  )
 
   let content = null
   let title = 'Hide a cache'
@@ -549,7 +713,14 @@ function AddCachePage() {
   } else if (userId) {
     content = (
       <>
-        <form id={FORM_ID} noValidate onSubmit={handleSubmit} className="flex flex-col gap-7">
+        <form
+          key={formVersion}
+          id={FORM_ID}
+          noValidate
+          onSubmit={handleSubmit}
+          onKeyDown={moveToNextField}
+          className="flex flex-col gap-7"
+        >
           <div className="flex flex-col gap-3">
             <h1 id={HEADING_ID} tabIndex={-1} className="text-title text-text-primary outline-none lg:text-section">
               Hide a cache
@@ -559,9 +730,10 @@ function AddCachePage() {
             </p>
           </div>
           {/* Phones: "Where is it?" first (you're often standing at the spot).
-              Desktop: the form on the left, "Where is it?" on the right. */}
+              Desktop: the form on the left, "Where is it?" on the right; the
+              right column narrows at smaller desktops so the form has room. */}
           <div className="flex flex-col gap-7 lg:flex-row-reverse lg:items-start lg:gap-12">
-            <div className="flex flex-col gap-7 lg:sticky lg:top-6 lg:w-[30rem] lg:shrink-0">
+            <div className="flex flex-col gap-7 lg:sticky lg:top-6 lg:w-[22rem] lg:shrink-0 xl:w-[30rem]">
               <WhereSection
                 position={form.position}
                 onPosition={(value) => update('position', value)}
@@ -575,8 +747,11 @@ function AddCachePage() {
                 <TextField
                   id="cache-title"
                   label="Cache name"
-                  placeholder="e.g. Mint tin by the Snell steps"
+                  placeholder="e.g. Husky Hideout"
+                  help="A name for the cache, not a clue to where it is."
                   maxLength={TITLE_MAX_LENGTH}
+                  enterKeyHint="next"
+                  aria-required="true"
                   value={form.title}
                   onChange={(event) => update('title', event.target.value)}
                   error={problems.title}
@@ -589,29 +764,25 @@ function AddCachePage() {
                 />
               </Section>
               <HintsSection hints={form.hints} onChange={(value) => update('hints', value)} />
-              <SecretCodeSection code={form.secretCode} onNewCode={() => update('secretCode', generateSecretCode())} />
-              {formError && (
-                <p role="alert" className="text-small text-error">
-                  {formError}{' '}
-                  {/timeout|My caches/i.test(formError) && (
-                    <Link to="/my-caches" className={`${TEXT_LINK} text-small`}>
-                      Go to My caches
-                    </Link>
-                  )}
-                </p>
-              )}
-              {/* Desktop: the buttons sit right under the form. */}
-              <div className="hidden items-center gap-3 lg:flex">
-                {submitButton()}
-                <Button to="/map" variant="secondary">
-                  Cancel
-                </Button>
+              <SecretCodeSection code={form.secretCode} onChangeCode={(value) => update('secretCode', value)} />
+              {/* Desktop: the buttons sit right under the form, with any save
+                  problem just above them. */}
+              <div className="hidden flex-col gap-3 lg:flex">
+                {errorMessage}
+                <div className="flex items-center gap-3">
+                  {submitButton()}
+                  <Button to="/map" variant="secondary">
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </form>
-        {/* Phones: "Hide this cache" is pinned to the bottom of the screen. */}
-        <div className="sticky bottom-0 z-20 -mx-4 mt-auto border-t border-border-subtle bg-bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] contrast-more:border-border-input lg:hidden">
+        {/* Phones: "Hide this cache" is pinned to the bottom of the screen,
+            with any save problem right above it, where it's seen. */}
+        <div className="sticky bottom-0 z-20 -mx-4 mt-auto flex flex-col gap-3 border-t border-border-subtle bg-bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] contrast-more:border-border-input lg:hidden">
+          {errorMessage}
           {submitButton('w-full')}
         </div>
       </>

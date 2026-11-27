@@ -7,7 +7,9 @@ import {
   describeCreateError,
   generateSecretCode,
   readDraft,
+  readHidden,
   saveDraft,
+  saveHidden,
 } from '../src/lib/hideCache.js'
 
 test('secret codes are 6 characters from the slip alphabet', () => {
@@ -95,5 +97,21 @@ test('a saved draft comes back cleaned up', () => {
   assert.equal(draft.difficulty, null)
   assert.deepEqual(draft.hints, ['a', 'b', 'c'])
   assert.equal(draft.secretCode, null)
+  delete globalThis.window
+})
+
+test('"Cache hidden!" comes back for the tab, and a broken one is ignored', () => {
+  const store = new Map()
+  globalThis.window = {
+    sessionStorage: {
+      getItem: (key) => store.get(key) ?? null,
+      setItem: (key, value) => store.set(key, value),
+      removeItem: (key) => store.delete(key),
+    },
+  }
+  saveHidden({ cacheId: 'c1', secretCode: 'K7MQ2X', title: 'Fens fox' })
+  assert.deepEqual(readHidden(), { cacheId: 'c1', secretCode: 'K7MQ2X', title: 'Fens fox' })
+  saveHidden({ cacheId: 'c1', secretCode: 'K7', title: 'Fens fox' })
+  assert.equal(readHidden(), null)
   delete globalThis.window
 })

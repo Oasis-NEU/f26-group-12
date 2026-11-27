@@ -20,6 +20,16 @@ export const HINT_MAX_LENGTH = 200
 // Give up waiting for create_cache after this long (weak signal).
 export const SAVE_TIMEOUT_MS = 20000
 
+// What each difficulty means, shown under the picker once one is chosen
+// (and read out with each option).
+export const DIFFICULTY_MEANINGS = {
+  1: 'Easy to spot',
+  2: 'A quick look around',
+  3: 'Takes some searching',
+  4: 'Well hidden',
+  5: 'A real challenge',
+}
+
 // A new random code. Uses the browser's cryptographic random numbers
 // (crypto.getRandomValues), so codes can't be guessed from the time or a
 // pattern. getRandom is only passed in by tests.
@@ -119,6 +129,40 @@ export function readDraft() {
 export function clearDraft() {
   try {
     window.sessionStorage.removeItem(DRAFT_KEY)
+  } catch {
+    // Storage blocked: nothing to clear.
+  }
+}
+
+// The cache that was just hidden ({ cacheId, secretCode, title }), kept for
+// this tab, so "Cache hidden!" (and its code) comes back after a reload or
+// if the phone drops the tab while the hider copies the code. Cleared by
+// "Hide another cache".
+const HIDDEN_KEY = 'huskycache:hide-cache-done'
+export function saveHidden(hidden) {
+  try {
+    window.sessionStorage.setItem(HIDDEN_KEY, JSON.stringify(hidden))
+  } catch {
+    // Storage blocked: nothing kept.
+  }
+}
+export function readHidden() {
+  try {
+    const hidden = JSON.parse(window.sessionStorage.getItem(HIDDEN_KEY) ?? 'null')
+    const valid =
+      hidden &&
+      typeof hidden.cacheId === 'string' &&
+      typeof hidden.title === 'string' &&
+      typeof hidden.secretCode === 'string' &&
+      hidden.secretCode.length === CODE_LENGTH
+    return valid ? { cacheId: hidden.cacheId, secretCode: hidden.secretCode, title: hidden.title } : null
+  } catch {
+    return null
+  }
+}
+export function clearHidden() {
+  try {
+    window.sessionStorage.removeItem(HIDDEN_KEY)
   } catch {
     // Storage blocked: nothing to clear.
   }
