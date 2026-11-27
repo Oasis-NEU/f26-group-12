@@ -40,8 +40,14 @@ test('site header renders its brand, navigation, active link, and mobile menu co
     assert.ok(markup.includes(label), `header should include ${label}`)
   }
   assert.match(markup, /aria-current="page"/)
-  assert.match(markup, /aria-label="Open navigation menu"/)
+  // One label for the menu button; aria-expanded says whether it's open.
+  assert.match(markup, /aria-label="Navigation menu"/)
   assert.match(markup, /aria-expanded="false"/)
+  // The header search, with a real search button.
+  assert.match(markup, /role="search"/)
+  assert.match(markup, /role="combobox"/)
+  assert.match(markup, /placeholder="Search caches"/)
+  assert.match(markup, /aria-label="Go to the first match"/)
 })
 
 test('cache detail shell matches only cache detail routes', async () => {

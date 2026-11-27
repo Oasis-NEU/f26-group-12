@@ -177,7 +177,10 @@ All three need a logged-in user.
 - **Success screens ("Cache hidden!", "Find logged!") are page states, not routes.**
 - **Search lives in the header** (desktop) and in the address bar as
   `/map?q=…`, so it's shared with the map's own search box (phones), survives
-  a reload, and carries over from other pages. The logo is a red map pin with
+  a reload, and carries over from other pages. As you type, the header
+  suggests matching caches (open their page) and places hiders named (show
+  them on the map). Street addresses aren't searched yet; when added (with
+  the map work), picking one should open the map with the nearest caches. The logo is a red map pin with
   a cache box (not the old red "N" square).
 - **Links go places; buttons do things.** Underlined links only inside a
   sentence, to another page. Actions, and anything on its own line, are

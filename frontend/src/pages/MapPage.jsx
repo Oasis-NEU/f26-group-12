@@ -8,6 +8,7 @@ import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import MapPin from '../components/MapPin.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
+import { placeName } from '../lib/cacheSearch.js'
 import { readSearch, withSearch } from '../lib/searchQuery.js'
 import { useMapData } from '../lib/useMapData.js'
 import { useMyLocation } from '../lib/useMyLocation.js'
@@ -43,12 +44,6 @@ const FILTERS = [
 // Every control on the map: white, a dark edge, 48px to tap on phones and
 // 40px on desktop (to match the zoom buttons).
 const MAP_BUTTON = `flex size-12 cursor-pointer items-center justify-center rounded-lg border border-border-strong bg-bg-surface text-text-primary hover:bg-bg-subtle lg:size-10 ${FOCUS_RING}`
-
-// Hiders often type the location lowercase ("near Snell Library"), so show
-// it with a capital first letter. The saved text isn't changed.
-function placeName(text) {
-  return text ? text.charAt(0).toUpperCase() + text.slice(1) : ''
-}
 
 // The line above the list: how many caches are showing, in the filter's words.
 function countText(count, filter, searching) {
@@ -98,14 +93,14 @@ function SearchField({ value, onChange }) {
   return (
     <div className="relative w-full lg:hidden">
       <label htmlFor="cache-search" className="sr-only">
-        Search caches or places
+        Search caches
       </label>
       <input
         id="cache-search"
         type="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Search caches or places"
+        placeholder="Search caches"
         autoComplete="off"
         className={`h-12 w-full appearance-none rounded-lg border border-border-input bg-bg-surface pl-4 pr-12 text-body text-text-primary placeholder:text-text-secondary [&::-webkit-search-cancel-button]:appearance-none ${FOCUS_RING}`}
       />
@@ -464,6 +459,16 @@ function MapPage() {
     })
   }
 
+  // While searching, tell screen readers how many match, half a second after
+  // typing stops (not on every letter).
+  const [searchAnnouncement, setSearchAnnouncement] = useState('')
+  const matchCount = visibleCaches.length
+  useEffect(() => {
+    const text = search.trim() && !cacheLoading ? countText(matchCount, activeFilter, true) : ''
+    const timer = setTimeout(() => setSearchAnnouncement(text), 500)
+    return () => clearTimeout(timer)
+  }, [search, matchCount, activeFilter, cacheLoading])
+
   // Only say something about live updates when they've stopped working.
   const realtimeUnavailable = signedIn && realtimeStatus === 'polling'
   const liveMessage = realtimeUnavailable ? 'Live updates are off right now. The map still refreshes every 30 seconds.' : ''
@@ -474,7 +479,8 @@ function MapPage() {
   if (visibleCaches.length === 0 && !dataError) {
     if (cacheLoading) emptyNotice = 'Loading caches…'
     else if (caches.length === 0) emptyNotice = 'There are no caches on the map yet.'
-    else emptyNotice = 'No caches match. Try a different search or filter.'
+    // Filters are only for logged-in people, so don't suggest them otherwise.
+    else emptyNotice = signedIn ? 'No caches match. Try a different search or filter.' : 'No caches match. Try a different search.'
   }
 
   return (
@@ -556,7 +562,8 @@ function MapPage() {
                 We couldn’t check whether you’re logged in, so your finds aren’t shown.
               </p>
             )}
-            <ol className="flex flex-col gap-3">
+            {/* data-map-results: Enter in the header search moves to the first card. */}
+            <ol data-map-results className="flex flex-col gap-3">
               {visibleCaches.map((cache) => {
                 const found = foundIds.includes(cache.id)
                 // A card selects its pin on the desktop map. Everywhere else
@@ -660,6 +667,10 @@ function MapPage() {
       {/* Read out to screen readers: only when something stops working. */}
       <span className="sr-only" aria-live="polite">
         {liveMessage}
+      </span>
+      {/* How many caches match a search, read out once typing pauses. */}
+      <span className="sr-only" aria-live="polite">
+        {searchAnnouncement}
       </span>
     </div>
   )
