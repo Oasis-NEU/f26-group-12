@@ -36,10 +36,10 @@ import { contourRing } from './cacheDetail/contours.js'
 //
 // The hider sets where it is (a pin on the map, or their current location),
 // names and describes it, picks a difficulty, adds up to 3 hints, and gets
-// a secret code ("Use a different code" makes another, with an Undo).
+// a secret code (the refresh button inside its box makes another).
 // create_cache saves it all together. Then "Cache hidden!" shows the code
-// once more, with "Print a slip" (a page with the cache's name, its code
-// and a line telling finders what to do) and "Copy code" for phones.
+// once more, with a copy button for phones and "Print a slip" (a page with
+// the cache's name, its code and a line telling finders what to do).
 //
 // The form is kept for this tab as they type, and so is "Cache hidden!"
 // after saving, so a reload or a dropped tab never loses the code or makes
@@ -345,7 +345,7 @@ function HintsSection({ hints, onChange }) {
         <button
           type="button"
           onClick={addHint}
-          className={`flex h-12 w-full cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-border-input px-4 text-label text-text-secondary hover:border-text-secondary hover:text-text-primary active:scale-99 contrast-more:border-text-secondary motion-safe:transition-[border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
+          className={`flex h-12 w-full cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-border-input px-4 text-label text-text-secondary hover:border-text-secondary hover:text-text-primary active:scale-97 contrast-more:border-text-secondary motion-safe:transition-[border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
         >
           <Plus aria-hidden="true" size={18} />
           Add hint {hints.length + 1}
@@ -544,7 +544,15 @@ function CacheHidden({ cache, onHideAnother }) {
           .
         </p>
       </div>
-      <button type="button" onClick={onHideAnother} className={TEXT_LINK}>
+      {/* The third, lesser action: a quiet button (no outline; fills
+          Subtle on hover), under Primary "Print a slip" and Secondary
+          "View your cache". 8px below the tips, so it sits with them. */}
+      <button
+        type="button"
+        onClick={onHideAnother}
+        className={`-mt-3 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg px-5 text-label text-text-primary hover:bg-bg-subtle active:scale-97 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
+      >
+        <Plus aria-hidden="true" size={18} />
         Hide another cache
       </button>
     </div>
@@ -690,6 +698,9 @@ function AddCachePage() {
     setFormError(null)
     setHidden(null)
     window.scrollTo({ top: 0 })
+    // The button that was pressed is gone, so start keyboard focus at the
+    // top of the new form.
+    requestAnimationFrame(() => document.getElementById(HEADING_ID)?.focus())
   }
 
   // The submit button. While working it stays red and says so; aria-disabled

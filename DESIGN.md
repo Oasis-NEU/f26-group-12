@@ -263,6 +263,8 @@ Text, the meaning colors and the focus ring don't change; they already pass in s
 
 **The One Red Button Rule.** A page has at most one Husky Red button. Every other action is Secondary.
 
+**The Links Go Places Rule.** A link takes you to another page and sits inside a sentence ("…on the cache's edit page."). Anything that does something (saves, prints, copies, adds, starts over) is a button, and so is anything standing on its own line. Actions step down in weight: Primary (one per page), then Secondary, then a quiet button with no outline for anything lesser. A page full of underlined links reads as clutter, so when one stands alone, make it a button.
+
 **The Tokens Only Rule.** Use the token classes (`bg-accent`, `text-text-secondary`), never raw hex values.
 
 ## Typography
@@ -431,7 +433,7 @@ The home of hunting: phones get a full-screen map with search and the filters fl
 - **Secret code:** 56px box, Code style, made in the browser (6 characters, never 0, O, 1, I or L), with a 48px refresh icon button inside the box ("Make a new code"). Each press turns the icon half a turn (250ms) and the new code fades in from a slight blur (150ms). Codes are read letter by letter to screen readers.
 - **Keyboard:** Enter moves to the next field; only the button saves. Save errors sit by the button.
 - **Kept for the tab:** the form as they type, and "Cache hidden!" after saving, so a reload never loses the code or makes it look as if nothing saved.
-- **Cache hidden!:** the red MapPin ("still out there to find") at twice its size on still contour rings, "Cache hidden!" in Display, the code in a Subtle card with a copy icon button beside it (it swaps to an ink checkmark for 2 seconds; ink, not green, since green only means "found"), then "Print a slip" (Primary) and "View your cache", a tip to keep the slip dry, a note that the code is on the cache's edit page, and "Hide another cache". The pin grows in from 90% (250ms) and the code card rises 4px (200ms, from 100ms); reduced motion only fades.
+- **Cache hidden!:** the red MapPin ("still out there to find") at twice its size on still contour rings, "Cache hidden!" in Display, the code in a Subtle card with a copy icon button beside it (it swaps to an ink checkmark for 2 seconds; ink, not green, since green only means "found"), then "Print a slip" (Primary) and "View your cache", a tip to keep the slip dry, a note that the code is on the cache's edit page, and "Hide another cache" as a quiet button (no outline, + icon, Subtle fill on hover) 8px below the tips. The pin grows in from 90% (250ms) and the code card rises 4px (200ms, from 100ms); reduced motion only fades.
 - **The slip:** printed alone, black on white inside a dashed cut line, 3.5in wide: the cache's name (Bricolage), "Secret code", the code (JetBrains Mono) and one line: "This is a HuskyCache geocache. Log your find on HuskyCache with this code, then put the cache back where you found it." No link or QR code until the site is deployed.
 
 ## Do's and Don'ts

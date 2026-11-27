@@ -175,6 +175,10 @@ All three need a logged-in user.
 - **Map filters (All / To find / My finds) are about the logged-in user's finds.**
   Hidden when logged out. Found caches show a checkmark.
 - **Success screens ("Cache hidden!", "Find logged!") are page states, not routes.**
+- **Links go places; buttons do things.** Underlined links only inside a
+  sentence, to another page. Actions, and anything on its own line, are
+  buttons: Primary (one per page), Secondary, then a quiet button with no
+  outline. See "The Links Go Places Rule" in DESIGN.md.
 
 ## Security
 
