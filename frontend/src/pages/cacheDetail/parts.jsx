@@ -216,7 +216,7 @@ export function FindHelp({ signedIn, className = '' }) {
   return (
     <div className={`flex flex-col gap-1 text-small text-text-secondary ${className}`}>
       <p>
-        Found it? Open it, find the 6-letter code on the slip, then <span className="lg:hidden">tap</span>
+        Found it? Open it, find the 6-character code on the slip, then <span className="lg:hidden">tap</span>
         <span className="hidden lg:inline">click</span> “I found it”. Put it back where it was.
       </p>
       {signedIn === false && (
