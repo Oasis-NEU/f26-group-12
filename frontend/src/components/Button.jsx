@@ -11,6 +11,8 @@ import { FOCUS_RING } from './focusRing.js'
 // Use Primary (Husky red) for the one main action on a page; everything else
 // is Secondary.
 // Width hugs the label; pass fullWidth for full-width phone buttons.
+// 48px tall; size="small" makes it 40px, for the header, where it sits in
+// line with the 40px page pills.
 //
 // It renders the right element for the job:
 //   <Button onClick={...}>       -> <button>   (does something on this page)
@@ -18,8 +20,8 @@ import { FOCUS_RING } from './focusRing.js'
 //   <Button href="https://...">  -> <a>        (goes to another site)
 // Links can't be disabled, so `disabled` only works on real buttons.
 
-const BASE =
-  `inline-flex h-12 items-center justify-center whitespace-nowrap rounded-lg px-5 text-label ${FOCUS_RING}`
+const BASE = `inline-flex items-center justify-center whitespace-nowrap rounded-lg text-label ${FOCUS_RING}`
+const SIZES = { regular: 'h-12 px-5', small: 'h-10 px-4' }
 
 // Pressing shrinks an enabled button to 97% (160ms, the theme's strong
 // ease-out) so a tap feels heard, which matters outdoors on a phone. The
@@ -44,6 +46,7 @@ function Button({
   href,
   disabled = false,
   fullWidth = false,
+  size = 'regular',
   type = 'button',
   className = '',
   children,
@@ -53,6 +56,7 @@ function Button({
   const isLink = Boolean(to || href)
   const classes = [
     BASE,
+    SIZES[size] ?? SIZES.regular,
     disabled && !isLink ? colors.disabled : colors.enabled,
     fullWidth ? 'w-full' : '',
     className,

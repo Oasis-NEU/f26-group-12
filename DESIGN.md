@@ -54,11 +54,6 @@ typography:
     fontSize: "1.375rem"
     fontWeight: 800
     lineHeight: "1.75rem"
-  brand-mark:
-    fontFamily: "Bricolage Grotesque, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 800
-    lineHeight: 1
   body-large:
     fontFamily: "Atkinson Hyperlegible Next, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.25rem"
@@ -190,8 +185,8 @@ components:
   nav-bar:
     backgroundColor: "{colors.bg-surface}"
     textColor: "{colors.text-secondary}"
-    typography: "{typography.body}"
-    padding: "0 10%"
+    typography: "{typography.label}"
+    padding: "0 24px"
     height: "64px"
   nav-bar-phone:
     backgroundColor: "{colors.bg-surface}"
@@ -214,7 +209,7 @@ The look is confident but never official. HuskyCache is an unofficial student pr
 **Key Characteristics:**
 - Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.
 - Four meaning colors, each with one job: red (to find, the main action), green (found), gold (ratings and selection), blue (keyboard focus).
-- Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars and pill tags.
+- Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars, pill tags and the header's search and pages.
 - Flat surfaces; only things that float above the page cast a shadow: map pins and overlays (popups, the map card, menus).
 - Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.
 - Mobile-first, built for one-handed, outdoor use; desktop is the same system with more room.
@@ -301,7 +296,7 @@ Text, the meaning colors and the focus ring don't change; they already pass in s
 
 Each screen is designed twice in Figma: a phone frame (393px) and a desktop frame (1440px). Phone styles are the base and desktop styles are added at a breakpoint. The components switch at Tailwind's `md` breakpoint (768px). Pages currently mix `md:` and `lg:` (1024px), and the team doc says `lg:`; this is not yet settled.
 
-Spacing follows Tailwind's 4px scale, and Figma's spacing variables are the same steps (4, 8, 12, 16, 20, 24, 32, 48, 64). Phone layouts use a 16px side margin; the desktop nav bar uses 10% side margins (144px at 1440px). Content columns stay narrow enough to read: list pages max out around 800px and long body text around 640px. Content is left-aligned.
+Spacing follows Tailwind's 4px scale, and Figma's spacing variables are the same steps (4, 8, 12, 16, 20, 24, 32, 48, 64). Phone layouts use a 16px side margin; the nav bar runs edge to edge, with the logo 24px in on desktop (16px on phones), while desktop page content keeps 10% side margins (144px at 1440px). Content columns stay narrow enough to read: list pages max out around 800px and long body text around 640px. Content is left-aligned.
 
 **Detail pages** use two columns on desktop: a flexible main column, and a 400px card on the right that stays in view while the page scrolls, 48px apart. On phones the card's contents flow under the main column, and its main action moves to a bar pinned to the bottom of the screen.
 
@@ -318,7 +313,7 @@ The system is flat. Depth comes from tonal layering: white surfaces on the off-w
 
 ## Shapes
 
-Corners are gently rounded: 8px (`rounded-lg`) for buttons, fields, hint rows and the phone menu button; 16px (`rounded-2xl`) for cards. Fully round (`rounded-full`) is only for map pins, avatars, pill tags and the small error dot. The red brand mark stays square.
+Corners are gently rounded: 8px (`rounded-lg`) for buttons, fields, hint rows and the phone menu button; 16px (`rounded-2xl`) for cards. Fully round (`rounded-full`) is only for map pins, avatars, pill tags, the small error dot, and the header's search field and page pills.
 
 Borders are 1px. Where Figma draws a 2px border (the selected card, the error field), the code uses a 1px border plus a 1px inset ring, so the element looks the same but doesn't grow by a pixel when its state changes.
 
@@ -349,9 +344,14 @@ Big, friendly and plain.
 - **Action (optional):** a 40px button inside the box at its right edge, 4px in, such as the eye that shows a password (Text Secondary icon, Text on hover). The text stops short of it.
 
 ### Navigation
-- **Nav bar:** a white bar with a 1px Border Subtle bottom line, 64px tall on desktop and 56px on phones. On the left are the red square "N" mark and the HuskyCache wordmark.
-- **Desktop:** links in Body, Text Secondary, 32px apart; hover darkens to Text. The current page's link is Text and underlined. "Log in" is a Secondary button.
-- **Phone:** a 40px menu button (8px corners, Border Subtle outline, three 18px lines) that opens the same links. The open menu and the logged-in avatar menu aren't designed in the system yet.
+- **Nav bar:** a white bar with a 1px Border Subtle bottom line, 64px tall on desktop and 56px on phones and tablets (it switches at 1024px, like the pages). On every page, including the ones not rebuilt yet.
+- **Logo:** at the far left (24px in on desktop, 16px on phones), not on the page's content margin. The mark is a Husky Red map pin with a white cache box in its head (lid, body and a latch in the pin's red, `components/Logo.jsx`), meaning "a cache hidden at a spot"; red because a red pin is a cache to find. Beside it, the HuskyCache wordmark (Wordmark on desktop, Heading on phones). The browser tab icon (`public/favicon.svg`) is the same drawing. It replaced the red square "N", which looked too much like Northeastern's own mark.
+- **Search (desktop):** after the logo, a 40px fully round white field with a Border Input edge and "Search caches", filling all the space between the logo and the pages (24px short of "Map"). The magnifier at its start is the search button. The search is kept in the address bar (`/map?q=…`). Phones and tablets use the map's own search box.
+- **Suggestions:** as you type, a floating box (white, 16px corners, Border Subtle edge, Overlay shadow, 8px below the field, as wide as it) suggests up to 5 caches ("Caches": name, with the place under it) and up to 3 places hiders named ("Places": "Near Snell Library", "2 caches here"), with the typed text in bold. A cache opens its page; a place shows its caches on the map; when there are more matches than it lists, a last row (under a divider) shows them all on the map. Each row is 48px with a 32px round Page-coloured icon (box, pin, magnifier); the row the arrow keys or mouse are on gets the Subtle fill. Arrow keys move through it, Enter picks, Escape closes; it doesn't animate, since typing opens it. Nothing matching says so and suggests trying part of a name or a place. Street addresses aren't searched yet (that needs a geocoding service; planned with the map work). Without a pick, Enter on the map moves to the first match, and anywhere else goes to the map showing the matches ("Enter" hint at the end of the field). On the map the number of matches is also read out to screen readers once typing pauses. The suggestions load only id, title and place, never secret codes.
+- **Pages (desktop):** Map, Hide a cache, Journal, Leaderboard as 40px fully round pills in Label text, 4px apart. The current page is Text on the Subtle fill (plus a Border Input edge with Increase Contrast); the others are Text Secondary and darken to Text over a paler Page fill on hover (150ms). No underline: they're places you can be, not links (The Links Go Places Rule). "Map" goes to the plain map, so on a search it also clears it. On the Log in page the header leaves out its own "Log in". Then the avatar (40px) or "Log in" as a 40px Secondary button, so everything in the bar is one height.
+- **Account menu (desktop):** the avatar (named "Account menu for <username>") opens a small panel: name and points, "My caches", "Log out". It's a simple show/hide panel, not an arrow-key menu. A click outside, Escape (focus goes back to the avatar) or tabbing out of it closes it. The name and points are remembered between pages, so the avatar doesn't blank on each page.
+- **Phone:** a 40px menu button (8px corners, Border Subtle outline) that opens the same pages full screen in Heading text. The current one has the Subtle fill and a 4px ink bar at its left, so it shows in sun. Then the account, or "Log in" as a full-width Secondary button. While it's open, focus starts on the first page, the page behind can't be tabbed to or scrolled, and Escape, a page change or widening past 1024px closes it.
+- **Motion:** the account menu fades in and grows from 97% out of the avatar's corner (150ms); the phone menu fades in and drops 4px (200ms), and the menu button's icon pops in from 75% as it swaps (150ms). Closing is instant. Page pills, the avatar, the menu button and the search's clear button shrink to 97% when pressed. Moving between pages doesn't animate, and nor does the clear button appearing as you type. With reduced motion the menus only fade.
 
 ### Difficulty Meter
 Five 7 × 14px bars, 3px apart: filled bars in Text, empty ones in Border Subtle, followed by "Difficulty N" in Label. The label can be hidden visually but always stays for screen readers.
@@ -396,7 +396,7 @@ The one main action on a cache's page: beside the trail's end pin on desktop, in
 A cache that's been taken down can't be hunted. The database only lets its own hider read it, so everyone else gets the not-found notice ("We couldn’t find that cache. It may have been taken down, or the link is wrong."). The hider sees "You took this cache down, so finders can’t see it or log it." with an "Edit cache" link, right under the title (anyone else who could ever see it gets "This cache has been taken down, so it can’t be logged anymore."); the hints, the find action, "Get directions" and the red pin are all left out; and an empty photo frame just says "No photo of this spot".
 
 ### Map Page
-The home of hunting: phones get a full-screen map with search and the filters floating on top; desktop gets a 400px list panel on the left (on the Page colour, with white cache cards) and the map on the right. The panel is headed "Caches near campus" (Display on phones, Title on desktop; over the phone map it's for screen readers only).
+The home of hunting: phones get a full-screen map with search and the filters floating on top; desktop gets a 400px list panel on the left (on the Page colour, with white cache cards) and the map on the right, and searches from the header. The panel is headed "Caches near campus" (Display on phones, Title on desktop; over the phone map it's for screen readers only).
 - **Filter chips:** All / To find / My finds, shown only to logged-in people. 32px tall, 8px corners, Label text; white with a Border Strong edge, or the Inverse fill with white text when selected.
 - **List / Map chip (phones):** the same chip look, at the end of the filter row. It swaps the map for the list of cache cards and back.
 - **Selecting a cache:** a pin or a card selects it. On phones a card opens under the map (the map shrinks, so Google's logo and terms stay visible): title in Heading, location, difficulty, find status for logged-in people, and the Primary "View cache". On desktop a small popup (Overlay shadow, 16px corners) opens beside the pin, and its card in the list gets the selected outline. Opening moves focus into the popup or card; × or Escape closes it and puts focus back. A pin click doesn't move the map; a list click pans to the cache and zooms in to 16 if needed.

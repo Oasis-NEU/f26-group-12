@@ -117,15 +117,11 @@
   --text-tag--line-height: 1rem; /* 16px */
   --text-tag--font-weight: 700;
 
-  /* Brand: the HuskyCache wordmark (desktop; phones use text-heading) and
-     the "N" in the red square. */
+  /* Brand: the HuskyCache wordmark beside the logo (desktop; phones use
+     text-heading). The logo itself is an SVG (components/Logo.jsx). */
   --text-wordmark: 1.375rem; /* 22px */
   --text-wordmark--line-height: 1.75rem; /* 28px */
   --text-wordmark--font-weight: 800;
-
-  --text-brand-mark: 1.125rem; /* 18px */
-  --text-brand-mark--line-height: 1;
-  --text-brand-mark--font-weight: 800;
 
   /* Desktop landing page: */
   --text-hero: 4rem; /* 64px */
@@ -154,7 +150,6 @@
 @utility text-code { font-family: var(--font-mono); }
 @utility text-tag { font-family: var(--font-sans); }
 @utility text-wordmark { font-family: var(--font-display); }
-@utility text-brand-mark { font-family: var(--font-display); }
 
 /* Defaults for the whole app, so pages don't repeat them. */
 @layer base {
