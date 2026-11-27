@@ -241,7 +241,7 @@ A quiet sage-gray field with four saturated marks, each reserved for one meaning
 - **Text Secondary** (`text-secondary`): supporting text, placeholders, metadata and disabled labels.
 - **Text on Accent** (`text-on-accent`): white text on red or dark fills.
 - **Border Subtle** (`border-subtle`): card outlines, dividers, empty difficulty bars and the locked hint's hover fill.
-- **Border Input** (`border-input`): text field borders, dark enough for 3:1 contrast.
+- **Border Input** (`border-input`): text field borders and locked hint row outlines, dark enough for 3:1 contrast.
 - **Border Strong** (`border-strong`): Secondary buttons and the selected card.
 
 ### Utility
@@ -251,7 +251,6 @@ A quiet sage-gray field with four saturated marks, each reserved for one meaning
 ### Increase Contrast
 When someone turns on Increase Contrast (iPhone: Settings → Accessibility → Display & Text Size; code: `contrast-more:`; Figma: the Color collection's **Increase contrast** mode), faint edges darken so the page still reads in bright sun:
 - **Border Subtle** takes Border Input's value: card outlines, dividers, legend rules, revealed hint borders and empty difficulty bars.
-- **Locked hint rows** gain a Border Input outline, since their Subtle fill barely shows against the page.
 - **The hint trail's** dashes and locked rings darken to Text Secondary.
 - **Purely decorative lines,** such as the contour rings, disappear.
 
@@ -359,20 +358,20 @@ Five 28px gold stars with 8px gaps, using Figma's exported star images (filled s
 
 ### Hint Row
 Every hint starts locked, including Hint 1, so nothing is given away before someone asks. Hint 1 loads with the cache, and after each reveal the next hint loads quietly in the background but stays locked, so revealing is instant even on a weak signal. Revealed hints are remembered for that browser tab (sessionStorage: on the phone only, no location, gone when the tab closes), so they come back if the tab reloads, e.g. on the way back from Google Maps.
-- **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" on desktop). Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed, but it stays reachable by keyboard and screen readers (`aria-disabled`, not `disabled`). If a hint takes over 10 seconds to load, the row gives up with "That hint is taking too long. Check your signal and try again." and focus returns to it. Pressing shrinks it to 98%.
+- **Locked:** a 48px Subtle row with a 1px Border Input outline (drawn inside the row, so it stays 48px; the fill alone barely shows against the page in sun) and "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" with a mouse or trackpad, going by the device's pointer rather than the screen width). It grows taller if someone enlarges their text, rather than letting the words spill out. Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed, but it stays reachable by keyboard and screen readers (`aria-disabled`, not `disabled`). If a hint takes over 10 seconds to load, the row gives up with "That hint is taking too long. Check your signal and try again." and focus returns to it. Pressing shrinks it to 98%.
 - **Revealed:** a white box with a 1px Border Subtle outline: "Hint N" in Small, then the hint in Body. When revealed by a tap it fades in and rises 4px (200ms, the shared ease-out), and focus moves to it, so screen readers read it. With reduced motion on it only fades. Hints already open when the page loads just appear.
 
 ### Map Pin
 - **Unfound:** a 28px Husky Red circle with a 2px white border and the pin shadow.
 - **Found:** a 28px Found Green circle with a white check (Figma's exported image).
 - **Selected:** grows to 40px with a 4px Star Gold ring.
-- **Hover:** clickable pins (a pin button, or a pin inside a map marker) grow to 110%, animated only when reduced motion is off. Decorative pins, like the one on a cache's photo or at the end of the hint trail, stay still: growing on hover promises a click.
+- **Hover:** clickable pins (a pin button, or a pin inside a map marker) grow to 110%, animated only when reduced motion is off. Decorative pins, like the one on the empty photo frame or at the end of the hint trail, stay still: growing on hover promises a click.
 
 ### Hint Trail
 The cache's hints drawn as a path. Each hint has a 24px marker: filled ink once revealed, an ink ring for the next one to open, and a Border Input ring for later ones. Between markers, the line is solid ink where you've been and dashed Border Input ahead. Past the last hint, the trail ends at the cache's map pin, beside "I found it" on desktop. The pin turns Found Green once you've found it, and the whole trail turns solid. On phones the pin sits alone at the end; the button stays in the bottom bar. When you tap to reveal the next hint, the solid line draws itself down to it (250ms, starting 100ms after the hint appears, so about 350ms in all); with reduced motion on it switches instantly. Only that tap animates: segments that are already walked when the page loads, or that turn solid because the found check arrives, just appear solid.
 
 ### Contour Backdrop
-Faint topographic rings (1px Border Subtle) centred on the photo's map pin, so the cache sits at the top of a "hill" like a marked spot on a trail map. They sit behind all content and fade out with distance, so the hints and text sit on plain page. They're decoration only: no information lives in them, and they disappear with Increase Contrast.
+Faint topographic rings (1px Border Subtle) centred on the cache's spot (the empty frame's pin, the mini map's pin, or the middle of the photo), so the cache sits at the top of a "hill" like a marked spot on a trail map. They sit behind all content and fade out with distance, so the hints and text sit on plain page. They're decoration only: no information lives in them, and they disappear with Increase Contrast.
 
 ### Cache Photo
 - **With a photo:** the photo fills the column, 180px tall on phones and 400px on desktop, with 16px corners. It has no pin on it: a pin on a picture could be read as "the cache is hidden here in the scene". The contour rings are centred on the photo instead.
@@ -380,7 +379,7 @@ Faint topographic rings (1px Border Subtle) centred on the photo's map pin, so t
 - **No photo yet** (no map key, Maps failed to load, or taken down): a shorter see-through frame (120px on phones, 240px on desktop) with a 2px dashed Border Input edge and 16px corners. Dashed means "not reached yet", as on the hint trail, and the contour rings show through around the pin, so it reads as an unphotographed spot on the map. It says "No photo of this spot yet" (Body Strong) and "Use the location and hints to find it." (Small, Text Secondary). The location isn't repeated there, since it's shown just below. With Increase Contrast the edge darkens to Text Secondary.
 
 ### Place Label
-On a cache's page, its name is set like a map label: Display on phones, Section on desktop. Location and difficulty sit beneath it in a legend strip between two thin Border Subtle rules. The location is the strongest line in the strip (Body Strong, Text), since it's what people act on outdoors. Its first letter is shown capitalized ("Near Snell Library"), however the hider typed it. Right under the strip, a Secondary "Get directions" button opens Google Maps walking directions to the cache's coordinates (full width on phones, hugging its label on desktop). It's a plain link, so it needs no API key and stores nothing, and it's hidden when a cache has no valid coordinates.
+On a cache's page, its name is set like a map label: Display on phones, Section on desktop. Location and difficulty sit beneath it in a legend strip between two thin Border Subtle rules. The location is the strongest line in the strip (Body Strong, Text), since it's what people act on outdoors. Its first letter is shown capitalized ("Near Snell Library"), however the hider typed it. Under the strip comes the hider's description (Body, the hider's own clue, so it stays with the place facts), then a Secondary "Get directions" button opens Google Maps walking directions to the cache's coordinates (full width on phones, hugging its label on desktop). It's a plain link, so it needs no API key and stores nothing, and it's hidden when a cache has no valid coordinates.
 
 ### Find Action
 The one main action on a cache's page: beside the trail's end pin on desktop, in the bottom bar on phones. It's always 48px tall.
@@ -388,10 +387,10 @@ The one main action on a cache's page: beside the trail's end pin on desktop, in
 - **Not found yet:** the Primary "I found it" button.
 - **Found:** a Found Green Soft line with a green check, "Found by you on Oct 30, 2026" (with the year, so it stays clear over time).
 - **Your own cache:** a Subtle line, "You hid this cache", with an "Edit cache" link. Hiders know the code, so the page doesn't offer to log their own cache, and all their hints are shown.
-- **How-to line:** while someone can still log the cache (not found yet, not their own), Small Text Secondary text under the trail's end says what to do at the spot before leaving (in the page on phones, not the sticky bottom bar, which stays just the button): "Note the 6-character code inside, then put the cache back." It stays on the cache's page, not the log page, because the code has to be noted while the cache is in hand. Signed-out visitors also see "Log in to log your find.", with "Log in" as a link, 8px below it so it reads as its own line.
+- **How-to line:** while someone can still log the cache (not found yet, not their own), a Body, Text line under the trail's end says what to do at the spot before leaving (the whole find depends on it, so it isn't faint help text) (in the page on phones, not the sticky bottom bar, which stays just the button): "Note the 6-character code on the slip inside, then put the cache back." It stays on the cache's page, not the log page, because the code has to be noted while the cache is in hand. Signed-out visitors also see "Log in to log your find." (Small, Text Secondary), with "Log in" as a link, 8px below it so it reads as its own line.
 
 ### Taken-Down Cache
-A cache that's been taken down can't be hunted, so the page stops anyone from setting out: the notice "This cache has been taken down, so it can’t be logged anymore." sits right under the title; the hints, the find action, "Get directions" and the red pin are all left out; and an empty photo frame just says "No photo of this spot".
+A cache that's been taken down can't be hunted. The database only lets its own hider read it, so everyone else gets the not-found notice ("We couldn’t find that cache. It may have been taken down, or the link is wrong."). The hider sees "You took this cache down, so finders can’t see it or log it." with an "Edit cache" link, right under the title (anyone else who could ever see it gets "This cache has been taken down, so it can’t be logged anymore."); the hints, the find action, "Get directions" and the red pin are all left out; and an empty photo frame just says "No photo of this spot".
 
 ## Do's and Don'ts
 

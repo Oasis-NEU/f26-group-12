@@ -7,7 +7,7 @@ import { FOCUS_RING } from './focusRing.js'
 //   State: Locked | Revealed -> revealed={false} | revealed={true}
 //
 // Hints unlock in order. A locked row is a button that says "Tap to reveal"
-// ("Click to reveal" on desktop, as in the Figma desktop frames). Pass
+// ("Click to reveal" with a mouse or trackpad, as in the Figma desktop frames). Pass
 // canReveal={false} while an earlier hint is still locked and it says
 // "Reveal hint N first" instead (and can't be pressed). Pass revealing while
 // the hint is loading and it says "Revealing…".
@@ -68,10 +68,13 @@ function HintRow({ number, text, revealed = false, canReveal = true, revealing =
   } else if (revealing) {
     action = 'Revealing…'
   } else {
+    // "Click" with a mouse or trackpad (pointer-fine), "Tap" on a touch
+    // screen. Going by the device's pointer, not the screen width, means an
+    // iPad held sideways still says "Tap".
     action = (
       <>
-        <span className="lg:hidden">Tap</span>
-        <span className="hidden lg:inline">Click</span> to reveal
+        <span className="pointer-fine:hidden">Tap</span>
+        <span className="hidden pointer-fine:inline">Click</span> to reveal
       </>
     )
   }
@@ -99,10 +102,13 @@ function HintRow({ number, text, revealed = false, canReveal = true, revealing =
           aria-busy={revealing || undefined}
           // Hover darkens it one step (not-aria-disabled: so a row that can't
           // be revealed yet doesn't react). Pressing shrinks it to 98% so a
-          // tap feels heard (98, not 97: the row is wide). With Increase
-          // Contrast on (contrast-more:) the row gets an outline, since its
-          // gray fill barely shows against the page in bright light.
-          className={`flex h-12 w-full items-center justify-between gap-4 rounded-lg bg-bg-subtle px-4 text-left not-aria-disabled:hover:bg-border-subtle not-aria-disabled:active:scale-98 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out contrast-more:border contrast-more:border-border-input ${
+          // tap feels heard (98, not 97: the row is wide). The row always has
+          // a 1px Border Input outline, since its gray fill alone barely shows
+          // against the page in bright sun. It's an inset ring, drawn inside
+          // the row, so the row stays exactly 48px tall.
+          // min-h-12 + py-3: 48px tall at normal text size, but it grows if
+          // someone makes their text bigger, instead of the words spilling out.
+          className={`flex min-h-12 w-full items-center justify-between gap-4 rounded-lg bg-bg-subtle px-4 py-3 text-left inset-ring inset-ring-border-input not-aria-disabled:hover:bg-border-subtle not-aria-disabled:active:scale-98 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out ${
             revealing ? 'cursor-wait' : 'not-aria-disabled:cursor-pointer aria-disabled:cursor-not-allowed'
           } ${FOCUS_RING}`}
         >

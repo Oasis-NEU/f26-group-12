@@ -113,11 +113,16 @@ function CacheDetails({ cacheId, detail }) {
               </div>
               <CacheTitle cache={cache} className="text-display lg:text-section" />
               {/* Taken down: say so straight away, before anything that could send
-                  someone out looking for it. */}
-              {!cache.is_active && <TakenDownNotice />}
+                  someone out looking for it. It waits for the sign-in check (a
+                  moment), so the hider doesn't see the general wording flash first. */}
+              {!cache.is_active && !detail.findChecking && (
+                <TakenDownNotice cacheId={cacheId} isHider={detail.isHider} />
+              )}
               <MetaRow cache={cache} className={`border-y py-3 ${CARD_BORDER}`} />
-              {cache.is_active && <DirectionsLink cache={cache} />}
+              {/* The description is the hider's own clue, so it stays with the
+                  place facts above; "Get directions" comes after it. */}
               <Description cache={cache} />
+              {cache.is_active && <DirectionsLink cache={cache} />}
             </div>
 
             {/* The hints and the find action: the page's main task, so a section
@@ -174,7 +179,9 @@ function CacheDetails({ cacheId, detail }) {
 // Loading, errors and "not found".
 function Notice({ children, role = 'status' }) {
   return (
-    <div role={role} className={`rounded-2xl border bg-bg-surface p-4 text-body text-text-secondary ${CARD_BORDER}`}>
+    // Capped at a readable width on desktop, like the description, so it
+    // doesn't stretch into a thin bar across the whole page.
+    <div role={role} className={`rounded-2xl border bg-bg-surface p-4 text-body text-text-secondary lg:max-w-[640px] ${CARD_BORDER}`}>
       {children}
     </div>
   )
@@ -203,7 +210,9 @@ function CacheDetailPage() {
         </Notice>
       )
     } else {
-      notice = <Notice>We couldn’t find that cache. It may have been removed, or the link is wrong.</Notice>
+      // "Taken down", the app's word for it (caches are never deleted). A
+      // taken-down cache lands here for everyone but its hider.
+      notice = <Notice>We couldn’t find that cache. It may have been taken down, or the link is wrong.</Notice>
     }
     content = (
       <div className="flex w-full flex-1 flex-col gap-4 p-4 lg:gap-6 lg:px-[10%] lg:pb-12 lg:pt-8">

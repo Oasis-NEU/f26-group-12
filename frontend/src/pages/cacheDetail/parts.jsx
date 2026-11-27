@@ -228,8 +228,12 @@ export function FindHelp({ signedIn, className = '' }) {
     // line rather than the how-to sentence wrapping.
     <div className={`flex flex-col gap-2 text-small text-text-secondary ${className}`}>
       {/* What you must do at the spot, before putting the cache back. The
-          button above says the rest. */}
-      <p>Note the 6-character code inside, then put the cache back.</p>
+          whole find depends on it, so it's Body in the main ink, not faint
+          help text. The button above says the rest. text-balance evens out
+          the two lines, so no word is left alone on the second. */}
+      <p className="text-balance text-body text-text-primary">
+        Note the 6-character code on the slip inside, then put the cache back.
+      </p>
       {signedIn === false && (
         <p>
           <Link to="/login" className={`rounded-sm font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`}>
@@ -243,14 +247,26 @@ export function FindHelp({ signedIn, className = '' }) {
 }
 
 // The design's "taken down" state: this replaces the hints and the button.
-export function TakenDownNotice({ className = '' }) {
-  return (
-    <p
-      className={`rounded-2xl border border-border-subtle bg-bg-surface p-4 text-body text-text-primary contrast-more:border-border-input ${className}`}
-    >
-      This cache has been taken down, so it can’t be logged anymore.
-    </p>
-  )
+// The database only lets a cache's own hider read it once it's taken down,
+// so in practice the hider is who sees this: they get their own wording and
+// the Edit link. The general wording stays for anyone else who might.
+export function TakenDownNotice({ cacheId, isHider = false, className = '' }) {
+  const box = `rounded-2xl border border-border-subtle bg-bg-surface p-4 text-body text-text-primary contrast-more:border-border-input ${className}`
+  if (isHider) {
+    return (
+      <div className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-2 ${box}`}>
+        <p>You took this cache down, so finders can’t see it or log it.</p>
+        {/* Padding makes the tap area 44px tall; negative margins keep the row's height. */}
+        <Link
+          to={`/caches/${cacheId}/edit`}
+          className={`-mx-2 -my-3 rounded-lg px-2 py-3 text-label text-text-primary underline underline-offset-4 ${FOCUS_RING}`}
+        >
+          Edit cache
+        </Link>
+      </div>
+    )
+  }
+  return <p className={box}>This cache has been taken down, so it can’t be logged anymore.</p>
 }
 
 // Phones: the action is pinned to the bottom of the screen.
