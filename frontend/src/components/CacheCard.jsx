@@ -16,7 +16,7 @@ import RatingSummary from './RatingSummary.jsx'
 // Props: title, location, difficulty, image (photo URL, optional), rating
 // ({ average, count } from loadCacheRatings; leave it out if ratings
 // couldn't load, and the rating isn't shown), found, selected, to / onClick,
-// corner (an extra control for the top-right corner, e.g. <SaveButton>).
+// corner (an extra control for the top-right corner, e.g. <FavoriteButton>).
 //
 // Figma variants -> props:
 //   Found: true        -> found      (shows the "Found by you" tag)

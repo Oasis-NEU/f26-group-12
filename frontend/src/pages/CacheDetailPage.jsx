@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
+import FavoriteButton from '../components/FavoriteButton.jsx'
 import MapPin from '../components/MapPin.jsx'
-import SaveButton from '../components/SaveButton.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { useCacheDetail } from '../lib/useCacheDetail.js'
@@ -70,7 +70,7 @@ const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 function CacheDetails({ cacheId, detail }) {
   const { cache, find } = detail
   const found = Boolean(find)
-  // Your bookmarked caches, for the save button beside the title.
+  // Your favorite caches, for the Favorite button beside the name.
   const saved = useSavedCaches(detail.userId ?? null)
   // No photo? Show a small real map of the spot instead, when Google Maps is
   // set up (same key as the map page) and the cache can still be hunted. If
@@ -115,19 +115,22 @@ function CacheDetails({ cacheId, detail }) {
                   <MapPin found={found} className="absolute bottom-3 left-3 lg:bottom-5 lg:left-5" />
                 )}
               </div>
-              {/* The save button sits beside the name (not on a taken-down
-                  cache, which can't be hunted). */}
-              <div className="flex items-start justify-between gap-3">
+              {/* The labelled Favorite button sits right after the name (on a
+                  long name it drops to the next line). Not on a taken-down
+                  cache, which can't be hunted. */}
+              <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
                 <CacheTitle cache={cache} className="min-w-0 text-display lg:text-section" />
                 {cache.is_active && (
-                  <SaveButton
+                  <FavoriteButton
+                    labelled
                     title={cache.title}
                     saved={saved.isSaved(cache.id)}
                     signedIn={detail.signedIn}
-                    onToggle={() => saved.toggle(cache.id)}
+                    ready={saved.loaded}
+                    onToggle={(source) => saved.toggle(cache.id, source)}
                     error={saved.error}
                     cacheId={cache.id}
-                    className="mt-1 lg:mt-2"
+                    className="lg:mt-2"
                   />
                 )}
               </div>

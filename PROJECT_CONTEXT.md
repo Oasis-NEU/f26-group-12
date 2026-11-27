@@ -24,7 +24,7 @@ Core:
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
 - Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
-- Saved caches (favourites): a bookmark on each cache card, the map's popup and phone card, and the cache page; a "Saved" map filter. (A Saved tab in the Journal comes with the Journal rebuild.)
+- Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
 
 Next:
 - Score and leaderboard (points based on cache difficulty)

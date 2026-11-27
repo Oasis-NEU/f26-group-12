@@ -23,6 +23,8 @@ export function useMapData() {
   // yet). Ratings failing never stops the map: the cards just leave them out.
   const [ratings, setRatings] = useState(null)
   const [userId, setUserId] = useState(null)
+  // Whether we know yet who's signed in (userId is null until then too).
+  const [authChecked, setAuthChecked] = useState(false)
   const [cacheLoading, setCacheLoading] = useState(true)
   const [dataError, setDataError] = useState('')
   const [authError, setAuthError] = useState(false)
@@ -36,6 +38,7 @@ export function useMapData() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserId(session?.user?.id ?? null)
+      setAuthChecked(true)
     })
 
     supabase.auth
@@ -47,12 +50,14 @@ export function useMapData() {
         if (active) {
           setUserId(data.session?.user?.id ?? null)
           setAuthError(false)
+          setAuthChecked(true)
         }
       })
       .catch(() => {
         if (active) {
           setUserId(null)
           setAuthError(true)
+          setAuthChecked(true)
         }
       })
 
@@ -145,6 +150,7 @@ export function useMapData() {
     foundIds,
     ratings,
     userId,
+    authChecked,
     cacheLoading,
     dataError,
     authError,

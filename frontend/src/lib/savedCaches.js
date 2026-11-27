@@ -1,4 +1,4 @@
-// Saved caches (favourites): caches someone bookmarks to go find later.
+// Favorites: caches someone marks with the heart (they stay after a find).
 // Stored in the saved_caches table (supabase/changes/2026-11-27_saved-
 // caches.sql), where each person can only see and change their own. The
 // app only ever sends a cache_id: user_id fills itself in.
