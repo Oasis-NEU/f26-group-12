@@ -40,6 +40,9 @@ export function useCacheDetail(cacheId) {
   const [details, setDetails] = useState({ key: null, cache: null, hintCount: 0, hintCountError: false, error: false })
   const [findResult, setFindResult] = useState({ key: null, find: null })
   const [hints, setHints] = useState({ cacheId: null, revealed: {}, pendingOrder: null, error: '' })
+  // Hint 1, loaded early but kept locked until someone taps it, so the
+  // first reveal is instant without giving the hint away.
+  const [firstHint, setFirstHint] = useState({ cacheId: null, hint: null })
 
   const detailsKey = `${cacheId}:${retryCount}`
   const loading = details.key !== detailsKey
@@ -48,9 +51,9 @@ export function useCacheDetail(cacheId) {
   const revealed = hints.cacheId === cacheId ? hints.revealed : {}
 
   // Load the cache, how many hints it has, and hint 1, all at the same time.
-  // (Hint 1 used to wait for the count, which cost an extra round trip; on a
-  // phone outdoors that's a noticeable wait. Asking for a hint that doesn't
-  // exist just returns nothing.)
+  // Hint 1 stays locked (every hint starts locked); it's loaded now so that
+  // revealing it doesn't wait on a slow phone connection. Asking for a hint
+  // that doesn't exist just returns nothing.
   useEffect(() => {
     let active = true
     const key = `${cacheId}:${retryCount}`
@@ -68,17 +71,11 @@ export function useCacheDetail(cacheId) {
         () => ({ hint: null, failed: true }),
       ),
     ])
-      .then(([loadedCache, { count, failed }, firstHint]) => {
+      .then(([loadedCache, { count, failed }, first]) => {
         if (!active) return
         setDetails({ key, cache: loadedCache, hintCount: count, hintCountError: failed, error: false })
-        setHints((current) => {
-          const base = current.cacheId === cacheId ? current.revealed : {}
-          if (firstHint.failed && count > 0) {
-            return { cacheId, revealed: base, pendingOrder: null, error: 'Hints couldn’t load right now.' }
-          }
-          const revealed = firstHint.hint ? { ...base, [firstHint.hint.hint_order]: firstHint.hint.hint_text } : base
-          return { cacheId, revealed, pendingOrder: null, error: '' }
-        })
+        // If this early load failed, revealing hint 1 just fetches it then.
+        setFirstHint({ cacheId, hint: first.hint })
       })
       .catch(() => {
         if (active) setDetails({ key, cache: null, hintCount: 0, hintCountError: false, error: true })
@@ -106,8 +103,7 @@ export function useCacheDetail(cacheId) {
     }
   }, [cacheId, userId])
 
-  // If they've already found it, reveal every hint. (Hint 1 loads with the
-  // cache, above.)
+  // If they've already found it, reveal every hint.
   const hintCount = loading ? 0 : details.hintCount
   const revealAll = Boolean(find)
   useEffect(() => {
@@ -139,6 +135,17 @@ export function useCacheDetail(cacheId) {
   // Revealing only fetches that one hint, so later hints never reach the
   // browser until someone asks. Nothing is saved; a refresh starts over.
   async function revealHint(order) {
+    // Hint 1 is usually already here (loaded with the cache): show it now.
+    if (order === 1 && firstHint.cacheId === cacheId && firstHint.hint) {
+      const text = firstHint.hint.hint_text
+      setHints((current) => ({
+        cacheId,
+        revealed: { ...(current.cacheId === cacheId ? current.revealed : {}), 1: text },
+        pendingOrder: null,
+        error: '',
+      }))
+      return
+    }
     setHints((current) => ({ ...current, cacheId, pendingOrder: order, error: '' }))
     try {
       const hint = await loadHint(supabase, cacheId, order)

@@ -358,6 +358,7 @@ Five 7 × 14px bars, 3px apart: filled bars in Text, empty ones in Border Subtle
 Five 28px gold stars with 8px gaps, using Figma's exported star images (filled stars are Star Gold with a dark outline; empty ones are gray outlines). When picking a rating, each star is a button, and hovering with a mouse previews that rating.
 
 ### Hint Row
+Every hint starts locked, including Hint 1, so nothing is given away before someone asks. (Hint 1 is loaded early, so revealing it is instant.)
 - **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" on desktop). Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed. Pressing shrinks it to 98%.
 - **Revealed:** a white box with a 1px Border Subtle outline: "Hint N" in Small, then the hint in Body. When revealed by a tap it fades in and rises 4px (200ms, the shared ease-out), and focus moves to it, so screen readers read it. With reduced motion on it only fades. Hints already open when the page loads just appear.
 
