@@ -49,7 +49,16 @@ const TITLES = {
   forgot: 'Reset your password',
   reset: 'Set a new password',
 }
-const TEXT_LINK = `rounded-sm font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`
+// Text links thicken their underline on hover (mouse only; Tailwind's hover:
+// already skips touch screens).
+const TEXT_LINK = `rounded-sm font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
+// A screen someone switched to (Log in, Sign up, Reset, Check your email)
+// fades in and rises 4px: 200ms on the shared ease-out, like a hint being
+// revealed, so the swap reads as a new step in the same place. starting: is
+// the style it animates from (CSS @starting-style). With reduced motion on
+// it only fades. The first screen on page load doesn't animate.
+const SCREEN_ENTER =
+  'transition-[opacity,translate] duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0'
 
 // Supabase reports a bad or expired email link in the URL it sends people
 // back to (e.g. #error_code=otp_expired). Read it once, when the page opens.
@@ -116,8 +125,15 @@ function Notice({ children }) {
   return <div role="status" className="rounded-lg bg-bg-subtle px-4 py-3 text-small text-text-primary">{children}</div>
 }
 
+// Every screen's heading. It can take focus (tabIndex -1) so that after a
+// switch, keyboard and screen-reader users land on the new screen; it has
+// no focus ring because it isn't something to press.
 function Heading({ children }) {
-  return <h1 className="text-center text-title text-text-primary lg:text-display">{children}</h1>
+  return (
+    <h1 id="login-heading" tabIndex={-1} className="text-center text-title text-text-primary outline-none lg:text-display">
+      {children}
+    </h1>
+  )
 }
 
 function LoginForm({ notice, linkError, switchTo, resendRedirect }) {
@@ -199,7 +215,7 @@ function LoginForm({ notice, linkError, switchTo, resendRedirect }) {
           <button
             type="button"
             onClick={() => switchTo('forgot')}
-            className={`-my-1 w-fit cursor-pointer rounded-sm py-1 text-small text-text-primary underline underline-offset-4 ${FOCUS_RING}`}
+            className={`-my-1 w-fit cursor-pointer rounded-sm py-1 text-small text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`}
           >
             Forgot password?
           </button>
@@ -420,13 +436,6 @@ function ResetForm({ hasSession, onSaved, switchTo }) {
 // (kind="reset"): one sentence and a button back to Log in.
 function CheckEmail({ kind, email, onBack, onResend }) {
   const [resendStatus, setResendStatus] = useState('')
-  const headingRef = useRef(null)
-
-  // Focus the heading when this screen replaces the form, so screen readers
-  // announce it.
-  useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
 
   async function handleResend() {
     setResendStatus('Sending…')
@@ -440,9 +449,7 @@ function CheckEmail({ kind, email, onBack, onResend }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 ref={headingRef} tabIndex={-1} className="text-center text-title text-text-primary outline-none lg:text-display">
-        Check your email
-      </h1>
+      <Heading>Check your email</Heading>
       <p className="text-balance text-center text-body text-text-primary">
         {kind === 'signup' ? (
           <>
@@ -489,6 +496,13 @@ function LoginPage() {
   const [sent, setSent] = useState(null)
   const [notice, setNotice] = useState('')
   const leftRef = useRef(false)
+  // Bumped each time someone switches screens: the new screen animates in
+  // and its heading takes focus. Stays 0 for the first screen on page load.
+  const [switches, setSwitches] = useState(0)
+
+  useEffect(() => {
+    if (switches) document.getElementById('login-heading')?.focus({ preventScroll: true })
+  }, [switches])
 
   // Where the emailed links come back to. The confirm link keeps ?next=, so
   // confirming an account still ends up where they were headed.
@@ -536,7 +550,14 @@ function LoginPage() {
     if (next) params.set('next', next)
     const search = params.toString()
     setSent(null)
+    setSwitches((count) => count + 1)
     navigate({ pathname: '/login', search: search ? `?${search}` : '' }, { replace: true })
+  }
+
+  // After sign up or a reset request: show "Check your email".
+  function showSent(kind, email) {
+    setSent({ kind, email })
+    setSwitches((count) => count + 1)
   }
 
   // After saving a new password: log out of the reset link's session and
@@ -592,9 +613,9 @@ function LoginPage() {
       />
     )
   } else if (ready && mode === 'signup') {
-    screen = <SignUpForm confirmRedirect={confirmRedirect} onSent={(email) => setSent({ kind: 'signup', email })} />
+    screen = <SignUpForm confirmRedirect={confirmRedirect} onSent={(email) => showSent('signup', email)} />
   } else if (ready && mode === 'forgot') {
-    screen = <ForgotForm resetRedirect={resetRedirect} onSent={(email) => setSent({ kind: 'reset', email })} />
+    screen = <ForgotForm resetRedirect={resetRedirect} onSent={(email) => showSent('reset', email)} />
   } else if (ready && mode === 'reset') {
     screen = <ResetForm hasSession={Boolean(session)} onSaved={handlePasswordSaved} switchTo={switchTo} />
   }
@@ -619,7 +640,11 @@ function LoginPage() {
           {/* Phones: the form on the page. Desktop: a 448px white card. Capped
               at 448px in between too, so it never stretches across a tablet. */}
           <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-6 lg:rounded-2xl lg:border lg:border-border-subtle lg:bg-bg-surface lg:p-8 lg:contrast-more:border-border-input">
-            {screen}
+            {screen && (
+              <div key={sent ? `sent-${sent.kind}` : mode} className={switches ? SCREEN_ENTER : ''}>
+                {screen}
+              </div>
+            )}
             {screen && switchLine && <p className="hidden text-center text-label text-text-secondary lg:block">{switchLine}</p>}
           </div>
         </div>
