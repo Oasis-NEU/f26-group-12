@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
-import { isCacheDetailPath, isCacheEditPath } from './layoutRoutes.js'
+import { isCacheDetailPath, isCacheEditPath, isLogFindPath } from './layoutRoutes.js'
 
 function navLinkClass({ isActive }) {
   return isActive
@@ -12,19 +12,21 @@ function Layout() {
   const isLandingPage = pathname === '/'
   const isMapPage = pathname === '/map'
   const isLoginPage = pathname === '/login'
+  const isLogFindPage = isLogFindPath(pathname)
   const isCacheDetailPage = isCacheDetailPath(pathname)
   // These pages draw their own SiteHeader, so Layout skips its old header.
   const hasOwnHeader =
     isLandingPage ||
     isMapPage ||
     isLoginPage ||
+    isLogFindPage ||
     isCacheDetailPage ||
     isCacheEditPath(pathname) ||
     pathname === '/my-caches'
   // These pages draw their own <main> too, so their header can sit outside
   // it (screen readers only treat a header as the page header when it isn't
   // inside <main>). Add a page here once it has its own <main>.
-  const hasOwnMain = isCacheDetailPage || isMapPage || isLoginPage
+  const hasOwnMain = isCacheDetailPage || isMapPage || isLoginPage || isLogFindPage
 
   return (
     <>
