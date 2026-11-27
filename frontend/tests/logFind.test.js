@@ -9,10 +9,18 @@ import {
   pointsText,
 } from '../src/lib/logFind.js'
 
-test('codes typed off a slip are tidied before sending', () => {
+test('codes typed off a slip are tidied and checked before sending', () => {
   assert.equal(normalizeSecretCode(' qdr mx4 '), 'QDRMX4')
   assert.equal(checkSecretCode('   '), 'Enter the code from the slip.')
   assert.equal(checkSecretCode('qdrmx4'), '')
+  assert.equal(checkSecretCode('QDRMX'), 'Slip codes have 6 characters. You’ve typed 5.')
+  assert.equal(checkSecretCode('QDRM0X'), 'Codes never use 0, O, 1, I or L. Check the slip again.')
+  assert.equal(checkSecretCode('QDR-MX'), 'Codes are only letters and numbers. Check the slip again.')
+})
+
+test('a request the page gave up on reads as a timeout', () => {
+  const abort = Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' })
+  assert.equal(describeLogFindError(abort).kind, 'timeout')
 })
 
 test('log_find errors become what the page shows', () => {

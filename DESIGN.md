@@ -412,6 +412,15 @@ The home of hunting: phones get a full-screen map with search and the filters fl
 - **After logging in:** people go to `?next=` (paths on this site only), otherwise back to the page they came from, otherwise the map.
 - **Motion:** switching screens fades the new one in with a 4px rise (200ms, shared ease-out), like a hint being revealed; with reduced motion on it only fades, and the first screen doesn't animate. Focus moves to the new screen's heading.
 
+### Log a Find Page
+`/caches/:cacheId/log`, where "I found it" leads: the finder types the slip's code, can rate the cache and add a journal note, and logs the find. The `log_find` database function checks the code; the page never sees the real one.
+- **Layout:** one 448px column. Phones pin "Log find" to a full-width bar along the bottom of the screen; desktop puts "Log find" and a Secondary "Cancel" under the form.
+- **Secret code box:** 56px tall, the code in Code (JetBrains Mono, upper case). Help: "6 letters and numbers, written on the slip inside the cache." Before sending, it checks for 6 characters and none of 0, O, 1, I or L, with a message saying exactly what's wrong.
+- **Wrong code:** stays on the page, keeps what they typed, outlines the box in Error and shows "That code doesn't match. Check the slip inside the cache and try again." with the "!" icon. The message fades in and the outline eases to red (150ms).
+- **Optional parts:** a divider separates the code from "Rate this cache (optional)" (Star Rating, with a Clear link once rated) and "Journal note (optional)" (a 112px box; "N characters left" appears in its last 50 characters).
+- **States:** each has its own heading: "This is your cache" (hiders can't log their own), "You took this cache down", "This cache was taken down", "You've already found this cache" (with the date), and "Log in again to save your find" if the login runs out mid-form, which keeps what they typed for that tab. Signed-out visitors go to Log in and come back. If "Log find" gets no answer within 15 seconds, it says to check the signal.
+- **Find logged!:** the one celebration in the app. A 64px Found Green circle with a white check, "Find logged!" in Display, the cache name in Title, then the points earned on Star Gold Soft ("+3 points", Heading; "You now have 11 points.", Small), then "See your journal" (Primary) and "Back to the map". The circle grows in from 90% (250ms), the check draws itself left to right and the points rise 4px (200ms each, from 100ms), all done by about 300ms; with reduced motion they only fade.
+
 ## Do's and Don'ts
 
 ### Do:
