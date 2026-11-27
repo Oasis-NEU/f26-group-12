@@ -8,11 +8,13 @@ import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import MapPin from '../components/MapPin.jsx'
 import RatingSummary from '../components/RatingSummary.jsx'
+import SaveButton from '../components/SaveButton.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { placeName } from '../lib/cacheSearch.js'
 import { readSearch, withSearch } from '../lib/searchQuery.js'
 import { useMapData } from '../lib/useMapData.js'
 import { useMyLocation } from '../lib/useMyLocation.js'
+import { useSavedCaches } from '../lib/useSavedCaches.js'
 import { cacheCoordinates } from './cacheDetail/coords.js'
 import { filterCaches } from './mapData.js'
 
@@ -41,6 +43,7 @@ const FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'to-find', label: 'To find' },
   { id: 'my-finds', label: 'My finds' },
+  { id: 'saved', label: 'Saved' },
 ]
 // Every control on the map: white, a dark edge, 48px to tap on phones and
 // 40px on desktop (to match the zoom buttons).
@@ -51,6 +54,7 @@ function countText(count, filter, searching) {
   if (searching) return count === 1 ? '1 match' : `${count} matches`
   if (filter === 'to-find') return `${count} to find`
   if (filter === 'my-finds') return `${count} found by you`
+  if (filter === 'saved') return `${count} saved`
   return count === 1 ? '1 cache' : `${count} caches`
 }
 
@@ -132,7 +136,14 @@ function chipClass(selected) {
 // need to know what you've found.
 function FilterChips({ value, onChange }) {
   return (
-    <div role="group" aria-label="Show caches" className="flex gap-2">
+    // Four chips plus the List button are wider than a phone, so the chips
+    // scroll sideways (no scrollbar) instead of squeezing. The 4px padding
+    // keeps the keyboard focus ring from being cut off at the edges.
+    <div
+      role="group"
+      aria-label="Show caches"
+      className="-m-1 flex min-w-0 gap-2 overflow-x-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
       {FILTERS.map(({ id, label }) => (
         <button key={id} type="button" aria-pressed={value === id} onClick={() => onChange(id)} className={chipClass(value === id)}>
           {label}
@@ -208,7 +219,7 @@ function CloseButton({ onClose }) {
 // the right, clear of the 40px selected pin (as in Figma), and lets clicks
 // through so it never blocks the pin underneath. Its heading takes focus
 // when it opens (tabIndex -1), so keyboard and screen-reader users land in it.
-function PinPopup({ cache, rating, position, onClose }) {
+function PinPopup({ cache, rating, save, position, onClose }) {
   return (
     <AdvancedMarker position={position} zIndex={4} anchorPoint={AdvancedMarkerAnchorPoint.LEFT_BOTTOM}>
       <div className="pointer-events-none hidden pb-8 pl-[1.875rem] lg:block">
@@ -225,7 +236,10 @@ function PinPopup({ cache, rating, position, onClose }) {
             >
               {cache.title}
             </h2>
-            <CloseButton onClose={onClose} />
+            <div className="-my-1 flex shrink-0 items-center gap-1">
+              {save}
+              <CloseButton onClose={onClose} />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <DifficultyMeter level={cache.difficulty} />
@@ -243,7 +257,7 @@ function PinPopup({ cache, rating, position, onClose }) {
 // Phones: the card for the selected pin, under the map (the map shrinks to
 // make room, so Google's logo and terms stay visible above it). Its shadow is
 // the Overlay shadow turned upward, since it rises from below.
-function SelectedCacheCard({ cache, rating, found, signedIn, onClose }) {
+function SelectedCacheCard({ cache, rating, save, found, signedIn, onClose }) {
   return (
     <section
       data-selection
@@ -258,7 +272,10 @@ function SelectedCacheCard({ cache, rating, found, signedIn, onClose }) {
         >
           {cache.title}
         </h2>
-        <CloseButton onClose={onClose} />
+        <div className="-my-1 flex shrink-0 items-center gap-1">
+          {save}
+          <CloseButton onClose={onClose} />
+        </div>
       </div>
       <div className="flex items-center justify-between gap-4">
         {cache.location_name && (
@@ -339,6 +356,8 @@ function MapControls({ locationStatus, onLocate, onCampus, onZoom }) {
 
 function MapPage() {
   const { caches, foundIds, ratings, userId, cacheLoading, dataError, authError, realtimeStatus, retry } = useMapData()
+  // Your bookmarked caches, for the save buttons and the "Saved" filter.
+  const saved = useSavedCaches(userId)
   const myLocation = useMyLocation()
   const isDesktop = useIsDesktop()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -367,12 +386,24 @@ function MapPage() {
   // Filters are only for logged-in people, so everyone else sees every cache.
   const activeFilter = signedIn ? filter : 'all'
   const visibleCaches = useMemo(
-    () => filterCaches(caches, search, activeFilter, foundIds),
-    [caches, search, activeFilter, foundIds],
+    () => filterCaches(caches, search, activeFilter, foundIds, saved.savedIds),
+    [caches, search, activeFilter, foundIds, saved.savedIds],
   )
   // A cache's rating for its card, popup or phone card. A cache missing from
   // the ratings has none yet; no ratings at all (null) means they couldn't
   // load, and then they're left out (undefined).
+  // The save (bookmark) button for a cache's card, popup or phone card.
+  const saveButtonFor = (cache) => (
+    <SaveButton
+      title={cache.title}
+      saved={saved.isSaved(cache.id)}
+      signedIn={signedIn}
+      onToggle={() => saved.toggle(cache.id)}
+      error={saved.error}
+      cacheId={cache.id}
+    />
+  )
+
   const ratingFor = (id) => (ratings ? (ratings[id] ?? { average: null, count: 0 }) : undefined)
 
   // If the selected cache is filtered out, nothing is selected.
@@ -491,6 +522,8 @@ function MapPage() {
   if (visibleCaches.length === 0 && !dataError) {
     if (cacheLoading) emptyNotice = 'Loading caches…'
     else if (caches.length === 0) emptyNotice = 'There are no caches on the map yet.'
+    else if (activeFilter === 'saved' && !search.trim())
+      emptyNotice = 'You haven’t saved any caches yet. Tap the bookmark on a cache to save it for later.'
     // Filters are only for logged-in people, so don't suggest them otherwise.
     else emptyNotice = signedIn ? 'No caches match. Try a different search or filter.' : 'No caches match. Try a different search.'
   }
@@ -589,6 +622,7 @@ function MapPage() {
                       difficulty={cache.difficulty}
                       image={cache.image}
                       rating={ratingFor(cache.id)}
+                      corner={saveButtonFor(cache)}
                       found={found}
                       selected={selects && cache.id === selectedCache?.id}
                       {...(selects ? { onClick: () => selectFromList(cache) } : { to: `/caches/${cache.id}` })}
@@ -640,6 +674,7 @@ function MapPage() {
                     <PinPopup
                       cache={selectedCache}
                       rating={ratingFor(selectedCache.id)}
+                      save={saveButtonFor(selectedCache)}
                       position={selectedPosition}
                       onClose={closeSelection}
                     />
@@ -676,6 +711,7 @@ function MapPage() {
             <SelectedCacheCard
               cache={selectedCache}
               rating={ratingFor(selectedCache.id)}
+              save={saveButtonFor(selectedCache)}
               found={foundIds.includes(selectedCache.id)}
               signedIn={signedIn}
               onClose={closeSelection}
