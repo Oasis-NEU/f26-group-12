@@ -1,4 +1,4 @@
-import { Check, Copy, LocateFixed, RefreshCw, X } from 'lucide-react'
+import { Check, Copy, LocateFixed, Plus, RefreshCw, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import Button from '../components/Button.jsx'
@@ -339,9 +339,16 @@ function HintsSection({ hints, onChange }) {
           }
         />
       ))}
+      {/* The next hint's empty slot: dashed, like other "not there yet"
+          spots, and sitting where the new field will appear. */}
       {hints.length < MAX_HINTS && (
-        <button type="button" onClick={addHint} className={TEXT_LINK}>
-          + Add another hint
+        <button
+          type="button"
+          onClick={addHint}
+          className={`flex h-12 w-full cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-border-input px-4 text-label text-text-secondary hover:border-text-secondary hover:text-text-primary active:scale-99 contrast-more:border-text-secondary motion-safe:transition-[border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
+        >
+          <Plus aria-hidden="true" size={18} />
+          Add hint {hints.length + 1}
         </button>
       )}
     </Section>
