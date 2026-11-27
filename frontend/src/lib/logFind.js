@@ -50,6 +50,19 @@ export async function logFind(supabase, { cacheId, code, rating, note, signal })
   return data
 }
 
+// Adds a rating and journal note to the find that was just logged (asked
+// for after the code is accepted). Finders may only change rating,
+// journal_note and photo on their own finds (schema.sql), and each person
+// has one find per cache, so cache + finder picks out the row.
+export async function saveFindNotes(supabase, { cacheId, userId, rating, note }) {
+  const { error } = await supabase
+    .from('finds')
+    .update({ rating: rating || null, journal_note: note.trim() || null })
+    .eq('cache_id', cacheId)
+    .eq('finder_id', userId)
+  if (error) throw error
+}
+
 // What someone typed, kept for this browser tab only (sessionStorage: it
 // stays on this device and is gone when the tab closes) when their login
 // runs out mid-form, so it's still there when they come back from logging

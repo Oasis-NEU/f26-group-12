@@ -1,9 +1,9 @@
-import { Check } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import chevronLeft from '../assets/figma/chevron-left.svg'
 import Button from '../components/Button.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
+import MapPin from '../components/MapPin.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import StarRating from '../components/StarRating.jsx'
 import {
@@ -16,20 +16,23 @@ import {
   pointsText,
   readDraft,
   saveDraft,
+  saveFindNotes,
 } from '../lib/logFind.js'
 import { supabase } from '../lib/supabaseClient.js'
 import { useLogFind } from '../lib/useLogFind.js'
+import { contourRing } from './cacheDetail/contours.js'
 import { formatFoundDate } from './cacheDetailData.js'
 
 // Log a find: /caches/:cacheId/log. From the Figma section "Log find ·
 // /caches/:cacheId/log" and its notes.
 //
-// The finder types the secret code from the slip inside the cache, and can
-// rate the cache and write a journal note. log_find checks the code in the
-// database; a wrong code shows under the code box (and keeps what they
-// typed), a right one shows "Find logged!" with the points they earned.
-// Signed-out visitors are sent to log in, and come back here afterwards. If
-// their login runs out mid-form, what they typed is kept for this tab.
+// At the cache, the page asks for one thing: the secret code from the slip.
+// log_find checks it in the database; a wrong code shows under the code box
+// (and keeps what they typed), a right one shows "Find logged!": the
+// cache's found pin, the points earned, and then, optionally, a rating and
+// a journal note to add to the find. Signed-out visitors are sent to log
+// in, and come back here afterwards. If their login runs out mid-form, the
+// code they typed is kept for this tab.
 //
 // Phones (the base styles): the form fills the page and "Log find" sits in
 // a bar along the bottom of the screen. Desktop (lg:): the same form in a
@@ -164,75 +167,202 @@ function NoteField({ value, onChange }) {
   )
 }
 
-// "Find logged!": the check, the cache, the points earned, and where to go
-// next. The place you found leads; the points come second, since points
-// "add motivation but are not the core" (PRODUCT.md).
+// Rings for the success screen's pin, worked out once: the cache page's
+// contour backdrop, so the find looks like that spot on the map turning to
+// found. The SVG is centred on the pin, so (0, 0) is the pin.
+const SUCCESS_RINGS = Array.from({ length: 12 }, (_, i) => contourRing(0, 0, 34 + i * 30, 2.2 + i * 0.13))
+
+// The found pin with contour rings around it, like the top of a hill on a
+// map. The rings are decoration: they don't animate (DESIGN.md), fade out
+// with distance, stop just below the pin (so no line runs behind the
+// heading and text under it), and disappear with Increase Contrast. The pin is the cache page's MapPin, shown twice
+// its map size (56px).
+function FoundPin() {
+  return (
+    <span aria-hidden="true" className="relative isolate flex size-24 items-center justify-center">
+      <svg
+        viewBox="-600 -400 1200 800"
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[800px] w-[1200px] -translate-x-1/2 -translate-y-1/2 text-border-subtle [mask-composite:intersect] [mask-image:radial-gradient(closest-side,black_25%,transparent_75%),linear-gradient(to_bottom,black_38%,transparent_56%)] contrast-more:hidden"
+      >
+        {SUCCESS_RINGS.map((d) => (
+          <path key={d} d={d} fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+        ))}
+      </svg>
+      {/* The one celebration (see FindLogged): the pin grows in from 90%. */}
+      <span className="block transition-[opacity,scale] duration-250 ease-out starting:scale-90 starting:opacity-0 motion-reduce:starting:scale-100">
+        <span className="block scale-200">
+          <MapPin found />
+        </span>
+      </span>
+    </span>
+  )
+}
+
+// After the code is accepted: an optional rating and journal note, saved
+// onto the find that was just logged. Asked here rather than at the cache,
+// so the form there is just the code (and the keyboard's Go can't send
+// before a rating). The Save button only appears once there's something
+// to save.
+function JournalNotes({ cacheId, userId }) {
+  const [rating, setRating] = useState(0)
+  const [note, setNote] = useState('')
+  // 'idle' | 'saving' | 'saved' | 'error'
+  const [status, setStatus] = useState('idle')
+  const hasSomething = rating > 0 || note.trim() !== ''
+
+  function edited() {
+    if (status === 'saved' || status === 'error') setStatus('idle')
+  }
+
+  async function handleSave(event) {
+    event.preventDefault()
+    if (status === 'saving' || !hasSomething) return
+    setStatus('saving')
+    try {
+      await saveFindNotes(supabase, { cacheId, userId, rating, note })
+      setStatus('saved')
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  return (
+    <form
+      noValidate
+      onSubmit={handleSave}
+      aria-labelledby="journal-notes-title"
+      className="flex w-full flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-surface p-4 text-left contrast-more:border-border-input"
+    >
+      <div className="flex flex-col gap-1">
+        <h2 id="journal-notes-title" className="text-heading text-text-primary">
+          Add it to your journal
+        </h2>
+        <p className="text-small text-text-secondary">Optional. Rate the cache and say how it went.</p>
+      </div>
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-label text-text-primary">Your rating</p>
+          {rating > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setRating(0)
+                edited()
+              }}
+              className={`text-small ${TEXT_LINK}`}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <StarRating
+          value={rating}
+          onChange={(value) => {
+            setRating(value)
+            edited()
+          }}
+          label="Your rating"
+        />
+      </div>
+      <NoteField
+        value={note}
+        onChange={(value) => {
+          setNote(value)
+          edited()
+        }}
+      />
+      {hasSomething && (
+        <Button
+          type="submit"
+          variant="secondary"
+          fullWidth
+          aria-disabled={status === 'saving' || undefined}
+          className="aria-disabled:cursor-wait"
+        >
+          {status === 'saving' ? 'Saving…' : 'Save to journal'}
+        </Button>
+      )}
+      {status === 'saved' && <p className="text-small text-text-secondary">Saved to your journal.</p>}
+      {/* Always there (hidden), so screen readers hear "Saved" when it happens. */}
+      <p className="sr-only" aria-live="polite">
+        {status === 'saved' ? 'Saved to your journal.' : ''}
+      </p>
+      {status === 'error' && (
+        <p role="alert" className="text-small text-error">
+          That didn’t save. Check your connection and try again.
+        </p>
+      )}
+    </form>
+  )
+}
+
+// "Find logged!": the cache's pin turning to found, the place, the date,
+// the points earned, the optional journal notes, and where to go next.
+// The place leads; the points come second, since points "add motivation
+// but are not the core" (PRODUCT.md). "Back to the map" is the main action:
+// the first principle is getting people outside, to the next cache.
 //
 // This is the one celebration DESIGN.md allows (the moment the find
-// happens), kept inside its motion rules: the green circle grows in from
-// 90% (250ms), the check draws itself left to right and the points box
-// rises 4px (200ms each, starting 100ms in), all done by about 300ms, on
-// the shared ease-out. starting: is the style each part animates from (CSS
-// @starting-style). With reduced motion on, they only fade in.
-function FindLogged({ cache, totalPoints, savedExtras }) {
+// happens), kept inside its motion rules: the found pin grows in from 90%
+// (250ms), then the points and the journal box rise 4px (200ms, starting
+// 100ms in), all done by about 300ms, on the shared ease-out. starting: is
+// the style each part animates from (CSS @starting-style). With reduced
+// motion on, they only fade in.
+const RISE_IN =
+  'transition-[opacity,translate] delay-100 duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0'
+
+function FindLogged({ cache, cacheId, userId, totalPoints }) {
   useEffect(() => {
     document.getElementById(HEADING_ID)?.focus()
   }, [])
   const earned = Math.min(5, Math.max(1, Math.round(Number(cache.difficulty)) || 1))
+  // log_find doesn't send back the find's time; it was just now.
+  const [foundOn] = useState(() => formatFoundDate(new Date().toISOString()))
 
   return (
     <div className={`${COLUMN} flex flex-col items-center gap-4 text-center`}>
-      {/* Found Green, with a check: the system's mark for "found". */}
-      <span
-        aria-hidden="true"
-        className="flex size-16 items-center justify-center rounded-full bg-found text-text-on-accent transition-[opacity,scale] duration-250 ease-out starting:scale-90 starting:opacity-0 motion-reduce:starting:scale-100"
-      >
-        {/* clip-path uncovers the check from the left, so it looks drawn. */}
-        <span className="block transition-[clip-path] delay-100 duration-200 ease-out [clip-path:inset(0)] starting:[clip-path:inset(0_100%_0_0)] motion-reduce:starting:[clip-path:inset(0)]">
-          <Check size={32} strokeWidth={3} className="block" />
-        </span>
-      </span>
+      <FoundPin />
       {/* Focus lands here; screen readers then also hear the place and points. */}
       <Heading className="text-display text-text-primary" describedBy="find-logged-place find-logged-points">
         Find logged!
       </Heading>
-      <p id="find-logged-place" className="wrap-break-word text-title text-text-primary">
-        {cache.title}
-      </p>
+      <div id="find-logged-place" className="flex flex-col items-center gap-1">
+        <p className="wrap-break-word text-title text-text-primary">{cache.title}</p>
+        <p className="text-label text-found">Found by you on {foundOn}</p>
+      </div>
       {/* Star Gold Soft: the background DESIGN.md keeps for points earned. */}
       <div
         id="find-logged-points"
-        className="flex w-full flex-col items-center gap-1 rounded-2xl bg-highlight-soft p-5 transition-[opacity,translate] delay-100 duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0"
+        className={`flex w-full flex-col items-center gap-1 rounded-2xl bg-highlight-soft p-5 ${RISE_IN}`}
       >
         <p className="text-heading text-text-primary">{pointsText(earned)}</p>
         {/* The total arrives a moment later; its line keeps its space, so
-            the buttons below don't jump. */}
+            nothing below jumps. */}
         <p className="min-h-5 text-small text-text-secondary">
           {totalPoints !== null && `You now have ${totalPoints === 1 ? '1 point' : `${totalPoints} points`}.`}
         </p>
       </div>
-      {savedExtras && <p className="text-small text-text-secondary">Your rating and note are saved in your journal.</p>}
+      <div className={`w-full ${RISE_IN}`}>
+        <JournalNotes cacheId={cacheId} userId={userId} />
+      </div>
       <div className="flex w-full flex-col gap-3">
-        <Button to="/journal" fullWidth>
-          See your journal
-        </Button>
-        <Button to="/map" variant="secondary" fullWidth>
+        <Button to="/map" fullWidth>
           Back to the map
+        </Button>
+        <Button to="/journal" variant="secondary" fullWidth>
+          See your journal
         </Button>
       </div>
     </div>
   )
 }
 
-// The form. onResult({ rating, note }) after a find is saved, or
-// onResult({ kind }) when log_find says it can't be logged (see
+// The form at the cache: just the secret code. onResult() after the find is
+// saved, or onResult({ kind }) when log_find says it can't be logged (see
 // describeLogFindError).
 function LogFindForm({ cache, cacheId, onResult }) {
-  // Starts from what they typed before their login ran out, if anything.
-  const [draft] = useState(() => readDraft(cacheId))
-  const [code, setCode] = useState(draft?.code ?? '')
-  const [rating, setRating] = useState(draft?.rating ?? 0)
-  const [note, setNote] = useState(draft?.note ?? '')
+  // Starts from the code they typed before their login ran out, if any.
+  const [code, setCode] = useState(() => readDraft(cacheId)?.code ?? '')
   const [codeError, setCodeError] = useState('')
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -276,9 +406,9 @@ function LogFindForm({ cache, cacheId, onResult }) {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), LOG_TIMEOUT_MS)
     try {
-      await logFind(supabase, { cacheId, code, rating, note, signal: controller.signal })
+      await logFind(supabase, { cacheId, code, rating: 0, note: '', signal: controller.signal })
       clearDraft(cacheId)
-      onResult({ rating, note })
+      onResult({})
     } catch (error) {
       setSubmitting(false)
       const { kind, message } = describeLogFindError(error)
@@ -286,12 +416,12 @@ function LogFindForm({ cache, cacheId, onResult }) {
         // Stay on this page, under the code box, keeping what they typed.
         pointAtCode(message)
       } else if (kind === 'signed-out') {
-        // Keep what they typed for when they come back from logging in.
-        saveDraft(cacheId, { code, rating, note })
+        // Keep the code for when they come back from logging in.
+        saveDraft(cacheId, { code })
         onResult({ kind })
       } else if (kind === 'already-found' || kind === 'hider' || kind === 'inactive') {
         clearDraft(cacheId)
-        onResult({ kind, rating, note })
+        onResult({ kind })
       } else {
         setFormError(message)
       }
@@ -331,19 +461,6 @@ function LogFindForm({ cache, cacheId, onResult }) {
           }}
           error={codeError}
         />
-        <div className="h-px w-full bg-border-subtle contrast-more:bg-border-input" />
-        <div className="flex flex-col gap-2.5">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-label text-text-primary">Rate this cache (optional)</p>
-            {rating > 0 && (
-              <button type="button" onClick={() => setRating(0)} className={`text-small ${TEXT_LINK}`}>
-                Clear
-              </button>
-            )}
-          </div>
-          <StarRating value={rating} onChange={setRating} label="Rate this cache (optional)" />
-        </div>
-        <NoteField value={note} onChange={setNote} />
         {formError && (
           <p role="alert" className="text-small text-error">
             {formError}
@@ -374,9 +491,9 @@ function LogFindPage() {
   const { cacheId } = useParams()
   const navigate = useNavigate()
   const detail = useLogFind(cacheId)
-  // What happened when they pressed "Log find": { kind: 'logged', rating,
-  // note }, or the reason log_find gave ({ kind: 'already-found' | 'hider'
-  // | 'inactive' | 'signed-out' }). null before then.
+  // What happened when they pressed "Log find": { kind: 'logged' }, or the
+  // reason log_find gave ({ kind: 'already-found' | 'hider' | 'inactive' |
+  // 'signed-out' }). null before then.
   const [outcome, setOutcome] = useState(null)
   const [totalPoints, setTotalPoints] = useState(null)
   const loginLink = `/login?next=${encodeURIComponent(`/caches/${cacheId}/log`)}`
@@ -400,7 +517,7 @@ function LogFindPage() {
     // got lost (e.g. a dropped signal). That's a success.
     const lostAnswer = result.kind === 'already-found' && !detail.existingFind
     if (!result.kind || lostAnswer) {
-      setOutcome({ kind: 'logged', rating: result.rating, note: result.note })
+      setOutcome({ kind: 'logged' })
       detail.loadPoints().then(setTotalPoints)
       return
     }
@@ -440,11 +557,7 @@ function LogFindPage() {
   } else if (kind === 'logged') {
     title = 'Find logged!'
     content = (
-      <FindLogged
-        cache={cache}
-        totalPoints={totalPoints}
-        savedExtras={Boolean(outcome.rating || outcome.note?.trim())}
-      />
+      <FindLogged cache={cache} cacheId={cacheId} userId={detail.userId} totalPoints={totalPoints} />
     )
   } else if (kind === 'signed-out') {
     title = 'Log in again'
@@ -457,7 +570,7 @@ function LogFindPage() {
           </Button>
         }
       >
-        Your login ran out. We kept what you typed, so it’ll be here when you come back.
+        Your login ran out. We kept the code you typed, so it’ll be here when you come back.
       </StateScreen>
     )
   } else if (!cache) {
@@ -549,7 +662,7 @@ function LogFindPage() {
             piece inside sits in the 448px COLUMN. The success screen starts
             lower, closer to the middle of the screen. */}
         <div
-          className={`flex w-full flex-1 flex-col gap-5 px-4 lg:px-0 ${
+          className={`flex w-full flex-1 flex-col gap-5 overflow-clip px-4 lg:px-0 ${
             kind === 'logged' ? 'pb-8 pt-16 lg:pt-24' : 'pt-4 lg:pb-12 lg:pt-10'
           }`}
         >

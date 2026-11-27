@@ -7,6 +7,7 @@ import {
   logFind,
   normalizeSecretCode,
   pointsText,
+  saveFindNotes,
 } from '../src/lib/logFind.js'
 
 test('codes typed off a slip are tidied and checked before sending', () => {
@@ -62,4 +63,34 @@ test('the log-a-find route is recognised for the layout', () => {
   assert.equal(isLogFindPath('/caches/abc/log'), true)
   assert.equal(isLogFindPath('/caches/abc'), false)
   assert.equal(isLogFindPath('/caches/abc/log/extra'), false)
+})
+
+test('a rating and note are saved onto your own find of this cache', async () => {
+  const calls = []
+  const query = {
+    update(values) {
+      calls.push(['update', values])
+      return this
+    },
+    eq(column, value) {
+      calls.push(['eq', column, value])
+      return this
+    },
+    then(resolve) {
+      return Promise.resolve({ error: null }).then(resolve)
+    },
+  }
+  const fake = {
+    from(table) {
+      calls.push(['from', table])
+      return query
+    },
+  }
+  await saveFindNotes(fake, { cacheId: 'c1', userId: 'u1', rating: 4, note: ' Fun! ' })
+  assert.deepEqual(calls, [
+    ['from', 'finds'],
+    ['update', { rating: 4, journal_note: 'Fun!' }],
+    ['eq', 'cache_id', 'c1'],
+    ['eq', 'finder_id', 'u1'],
+  ])
 })
