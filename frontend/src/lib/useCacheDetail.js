@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { loadCacheDetails, loadHint, loadHintCount, loadUserFind } from '../pages/cacheDetailData.js'
+import { rememberedRun } from '../pages/cacheDetail/hintRows.js'
 import { supabase } from './supabaseClient.js'
 
 // Everything the cache detail page loads, in one hook, so every version of
@@ -19,6 +20,30 @@ function withTimeout(promise, ms) {
     timer = setTimeout(() => reject(new Error('timeout')), ms)
   })
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
+// Which hints this person has revealed on a cache, remembered for this
+// browser tab only (sessionStorage: it stays on the phone, holds no
+// location, and is gone when the tab closes). It means hints survive the
+// tab reloading, e.g. when iOS reloads it on the way back from Google Maps.
+// If storage is blocked (some private modes), hints just aren't remembered.
+const rememberKey = (cacheId) => `huskycache:revealed-hints:${cacheId}`
+function readRemembered(cacheId) {
+  try {
+    const orders = JSON.parse(window.sessionStorage.getItem(rememberKey(cacheId)) ?? '[]')
+    return Array.isArray(orders) ? orders.filter(Number.isInteger) : []
+  } catch {
+    return []
+  }
+}
+function remember(cacheId, order) {
+  try {
+    const orders = new Set(readRemembered(cacheId))
+    orders.add(order)
+    window.sessionStorage.setItem(rememberKey(cacheId), JSON.stringify([...orders]))
+  } catch {
+    // Storage blocked: just don't remember.
+  }
 }
 
 // Who is signed in. undefined = still checking, null = signed out.
@@ -51,9 +76,10 @@ export function useCacheDetail(cacheId) {
   const [details, setDetails] = useState({ key: null, cache: null, hintCount: 0, hintCountError: false, error: false })
   const [findResult, setFindResult] = useState({ key: null, find: null })
   const [hints, setHints] = useState({ cacheId: null, revealed: {}, pendingOrder: null, error: '' })
-  // Hint 1, loaded early but kept locked until someone taps it, so the
-  // first reveal is instant without giving the hint away.
-  const [firstHint, setFirstHint] = useState({ cacheId: null, hint: null })
+  // Hints loaded ahead of time but still locked on screen: hint 1 with the
+  // cache, then the next one after each reveal. Tapping one shows it
+  // instantly instead of waiting on a slow phone connection.
+  const [prefetched, setPrefetched] = useState({ cacheId: null, hints: {} })
   // The hint someone most recently tapped to reveal, so only the trail
   // segment leading to it draws itself (nothing animates on page load).
   const [lastTapped, setLastTapped] = useState({ cacheId: null, order: null })
@@ -94,7 +120,7 @@ export function useCacheDetail(cacheId) {
         if (!active) return
         setDetails({ key, cache: loadedCache, hintCount: count, hintCountError: failed, error: false })
         // If this early load failed, revealing hint 1 just fetches it then.
-        setFirstHint({ cacheId, hint: first.hint })
+        setPrefetched({ cacheId, hints: first.hint ? { 1: first.hint } : {} })
       })
       .catch(() => {
         if (active) setDetails({ key, cache: null, hintCount: 0, hintCountError: false, error: true })
@@ -128,6 +154,53 @@ export function useCacheDetail(cacheId) {
   // If they've already found it, or hid it themselves, reveal every hint.
   const hintCount = loading ? 0 : details.hintCount
   const revealAll = Boolean(find) || isHider
+
+  // Load one hint quietly and keep it locked, ready for an instant reveal.
+  function preload(id, order) {
+    loadHint(supabase, id, order).then(
+      (hint) => {
+        if (!hint) return
+        setPrefetched((current) =>
+          current.cacheId === id ? { cacheId: id, hints: { ...current.hints, [order]: hint } } : current,
+        )
+      },
+      // If it fails, tapping the hint just fetches it then.
+      () => {},
+    )
+  }
+
+  // Bring back the hints this person already revealed here (this tab only),
+  // then preload the next one. Hints unlock in order, so only an unbroken
+  // run from hint 1 counts.
+  useEffect(() => {
+    if (hintCount === 0 || revealAll) return
+    const run = rememberedRun(readRemembered(cacheId), hintCount)
+    const reached = run.length
+    if (reached === 0) return
+    let active = true
+
+    Promise.all(run.map((order) => loadHint(supabase, cacheId, order))).then(
+      (loaded) => {
+        if (!active) return
+        setHints((current) => {
+          const base = current.cacheId === cacheId ? current.revealed : {}
+          const next = { ...base }
+          loaded.forEach((hint) => {
+            if (hint) next[hint.hint_order] = hint.hint_text
+          })
+          return { cacheId, revealed: next, pendingOrder: null, error: '' }
+        })
+        if (reached + 1 <= hintCount) preload(cacheId, reached + 1)
+      },
+      // If bringing them back fails, the hints just stay locked.
+      () => {},
+    )
+
+    return () => {
+      active = false
+    }
+    // preload only uses setState, which never changes, so it isn't a dependency.
+  }, [cacheId, hintCount, revealAll])
   useEffect(() => {
     if (hintCount === 0 || !revealAll) return
     let active = true
@@ -154,19 +227,26 @@ export function useCacheDetail(cacheId) {
     }
   }, [cacheId, hintCount, revealAll])
 
-  // Revealing only fetches that one hint, so later hints never reach the
-  // browser until someone asks. Nothing is saved; a refresh starts over.
+  // After a reveal: remember it (this tab only) and preload the next hint.
+  // Only the next one is loaded early, so hints further ahead still don't
+  // reach the browser until someone gets there.
+  function afterReveal(order) {
+    remember(cacheId, order)
+    if (order + 1 <= details.hintCount) preload(cacheId, order + 1)
+  }
+
   async function revealHint(order) {
     setLastTapped({ cacheId, order })
-    // Hint 1 is usually already here (loaded with the cache): show it now.
-    if (order === 1 && firstHint.cacheId === cacheId && firstHint.hint) {
-      const text = firstHint.hint.hint_text
+    // Usually the hint is already here (preloaded): show it now.
+    const ready = prefetched.cacheId === cacheId ? prefetched.hints[order] : undefined
+    if (ready) {
       setHints((current) => ({
         cacheId,
-        revealed: { ...(current.cacheId === cacheId ? current.revealed : {}), 1: text },
+        revealed: { ...(current.cacheId === cacheId ? current.revealed : {}), [order]: ready.hint_text },
         pendingOrder: null,
         error: '',
       }))
+      afterReveal(order)
       return
     }
     setHints((current) => ({ ...current, cacheId, pendingOrder: order, error: '' }))
@@ -178,6 +258,7 @@ export function useCacheDetail(cacheId) {
         pendingOrder: null,
         error: hint ? '' : 'That hint isn’t available.',
       }))
+      if (hint) afterReveal(order)
     } catch (error) {
       // Focus goes back to the hint's button (HintRow), so trying again is one tap.
       const message =

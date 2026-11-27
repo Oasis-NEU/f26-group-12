@@ -29,3 +29,13 @@ export function hintsLeftText(hintCount, revealedCount) {
   if (left <= 0) return 'All hints revealed'
   return left === 1 ? '1 hint left' : `${left} hints left`
 }
+
+// From remembered hint numbers, the ones to bring back: an unbroken run from
+// hint 1 within the cache's hint count (hints unlock in order, so a gap or a
+// hint that no longer exists ends the run). [2, 1, 4] with 3 hints -> [1, 2].
+export function rememberedRun(orders, hintCount) {
+  const sorted = [...new Set(orders)].filter((order) => order >= 1 && order <= hintCount).sort((a, b) => a - b)
+  let reached = 0
+  while (sorted[reached] === reached + 1) reached += 1
+  return sorted.slice(0, reached)
+}
