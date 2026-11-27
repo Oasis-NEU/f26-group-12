@@ -25,7 +25,7 @@ HuskyCache is campus-first geocaching made by students, for students. Other stud
 
 ## Operating Context
 
-- **The map is the home page (`/`).** Hunting starts there; the landing page lives at `/welcome` for now.
+- **The landing page is the home page (`/`).** It introduces HuskyCache to newcomers; hunting starts on the map at `/map`. The old `/welcome` address redirects to `/`.
 - **The physical loop:** the hider puts the item and a printed slip with the code in a real spot. The finder opens it, types the code, and leaves the item in place for the next person. A cache isn't used up when found; finds are tracked per person.
 - **Hints unlock in order**, up to three per cache.
 - **Outdoor phone use.** Hunting happens on a phone outdoors, on the move, often in daylight, so legibility at a glance matters.

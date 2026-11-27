@@ -15,7 +15,7 @@ import { FOCUS_RING } from './focusRing.js'
 // menu button opens the same links in a list under the bar.
 
 const NAV_LINKS = [
-  { label: 'Map', to: '/' },
+  { label: 'Map', to: '/map' },
   { label: 'Hide a cache', to: '/caches/new' },
   { label: 'Journal', to: '/journal' },
   { label: 'Leaderboard', to: '/leaderboard' },

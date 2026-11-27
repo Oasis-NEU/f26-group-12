@@ -17,7 +17,7 @@ import { getHintRows, hintsLeftText } from './hintRows.js'
 export function BackLink() {
   return (
     <Link
-      to="/"
+      to="/map"
       className={`-mx-2 -my-3 flex w-fit items-center gap-2 rounded-lg px-2 py-3 text-label text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
     >
       {/* Figma's chevron is 8 x 14 and overflows its 6 x 12 box a little. */}
