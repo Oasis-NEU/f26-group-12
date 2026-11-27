@@ -75,7 +75,7 @@ test('active cache query selects only public map fields', async () => {
     ['from', 'caches'],
     [
       'select',
-      'id,title,latitude,longitude,location_name,difficulty',
+      'id,title,latitude,longitude,location_name,difficulty,image',
     ],
     ['eq', 'is_active', true],
     ['order', 'created_at', { ascending: false }],

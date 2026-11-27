@@ -7,6 +7,7 @@ import CacheCard, { FoundTag } from '../components/CacheCard.jsx'
 import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import MapPin from '../components/MapPin.jsx'
+import RatingSummary from '../components/RatingSummary.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { placeName } from '../lib/cacheSearch.js'
 import { readSearch, withSearch } from '../lib/searchQuery.js'
@@ -207,7 +208,7 @@ function CloseButton({ onClose }) {
 // the right, clear of the 40px selected pin (as in Figma), and lets clicks
 // through so it never blocks the pin underneath. Its heading takes focus
 // when it opens (tabIndex -1), so keyboard and screen-reader users land in it.
-function PinPopup({ cache, position, onClose }) {
+function PinPopup({ cache, rating, position, onClose }) {
   return (
     <AdvancedMarker position={position} zIndex={4} anchorPoint={AdvancedMarkerAnchorPoint.LEFT_BOTTOM}>
       <div className="pointer-events-none hidden pb-8 pl-[1.875rem] lg:block">
@@ -226,7 +227,10 @@ function PinPopup({ cache, position, onClose }) {
             </h2>
             <CloseButton onClose={onClose} />
           </div>
-          <DifficultyMeter level={cache.difficulty} />
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <DifficultyMeter level={cache.difficulty} />
+            <RatingSummary rating={rating} />
+          </div>
           <Button to={`/caches/${cache.id}`} fullWidth>
             View cache
           </Button>
@@ -239,7 +243,7 @@ function PinPopup({ cache, position, onClose }) {
 // Phones: the card for the selected pin, under the map (the map shrinks to
 // make room, so Google's logo and terms stay visible above it). Its shadow is
 // the Overlay shadow turned upward, since it rises from below.
-function SelectedCacheCard({ cache, found, signedIn, onClose }) {
+function SelectedCacheCard({ cache, rating, found, signedIn, onClose }) {
   return (
     <section
       data-selection
@@ -260,7 +264,10 @@ function SelectedCacheCard({ cache, found, signedIn, onClose }) {
         {cache.location_name && (
           <p className="min-w-0 wrap-anywhere text-small text-text-secondary">{placeName(cache.location_name)}</p>
         )}
-        <DifficultyMeter level={cache.difficulty} className="shrink-0" />
+        <div className="flex shrink-0 items-center gap-3">
+          <DifficultyMeter level={cache.difficulty} />
+          <RatingSummary rating={rating} />
+        </div>
       </div>
       {/* Only logged-in people have finds, so the status is only shown to them. */}
       {signedIn &&
@@ -331,7 +338,7 @@ function MapControls({ locationStatus, onLocate, onCampus, onZoom }) {
 }
 
 function MapPage() {
-  const { caches, foundIds, userId, cacheLoading, dataError, authError, realtimeStatus, retry } = useMapData()
+  const { caches, foundIds, ratings, userId, cacheLoading, dataError, authError, realtimeStatus, retry } = useMapData()
   const myLocation = useMyLocation()
   const isDesktop = useIsDesktop()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -363,6 +370,11 @@ function MapPage() {
     () => filterCaches(caches, search, activeFilter, foundIds),
     [caches, search, activeFilter, foundIds],
   )
+  // A cache's rating for its card, popup or phone card. A cache missing from
+  // the ratings has none yet; no ratings at all (null) means they couldn't
+  // load, and then they're left out (undefined).
+  const ratingFor = (id) => (ratings ? (ratings[id] ?? { average: null, count: 0 }) : undefined)
+
   // If the selected cache is filtered out, nothing is selected.
   const selectedCache = visibleCaches.find((cache) => cache.id === selectedId) ?? null
   const selectedPosition = selectedCache ? cacheCoordinates(selectedCache) : null
@@ -575,6 +587,8 @@ function MapPage() {
                       title={cache.title}
                       location={placeName(cache.location_name)}
                       difficulty={cache.difficulty}
+                      image={cache.image}
+                      rating={ratingFor(cache.id)}
                       found={found}
                       selected={selects && cache.id === selectedCache?.id}
                       {...(selects ? { onClick: () => selectFromList(cache) } : { to: `/caches/${cache.id}` })}
@@ -623,7 +637,12 @@ function MapPage() {
                   })}
                   {myLocation.position && <PositionMarker position={myLocation.position} />}
                   {selectedCache && selectedPosition && (
-                    <PinPopup cache={selectedCache} position={selectedPosition} onClose={closeSelection} />
+                    <PinPopup
+                      cache={selectedCache}
+                      rating={ratingFor(selectedCache.id)}
+                      position={selectedPosition}
+                      onClose={closeSelection}
+                    />
                   )}
                 </GoogleMap>
               </APIProvider>
@@ -656,6 +675,7 @@ function MapPage() {
           {mapReady && selectedCache && (
             <SelectedCacheCard
               cache={selectedCache}
+              rating={ratingFor(selectedCache.id)}
               found={foundIds.includes(selectedCache.id)}
               signedIn={signedIn}
               onClose={closeSelection}

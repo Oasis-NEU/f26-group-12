@@ -4,6 +4,7 @@ import chevronLeft from '../../assets/figma/chevron-left.svg'
 import Button from '../../components/Button.jsx'
 import DifficultyMeter from '../../components/DifficultyMeter.jsx'
 import HintRow from '../../components/HintRow.jsx'
+import RatingSummary from '../../components/RatingSummary.jsx'
 import { FOCUS_RING } from '../../components/focusRing.js'
 import { formatFoundDate } from '../cacheDetailData.js'
 import { cacheCoordinates } from './coords.js'
@@ -64,11 +65,12 @@ export function CacheTitle({ cache, className = 'text-title lg:text-display' }) 
   return <h1 className={`wrap-break-word text-text-primary ${className}`}>{cache.title}</h1>
 }
 
-// Location and difficulty. Phones spread them across the row; desktop
-// keeps them together on the left.
-export function MetaRow({ cache, className = '' }) {
+// Location, difficulty and the average rating. Phones spread them across
+// the row (wrapping if the place name is long); desktop keeps them together
+// on the left. rating: { average, count }, or undefined to leave it out.
+export function MetaRow({ cache, rating, className = '' }) {
   return (
-    <div className={`flex items-center justify-between gap-4 lg:justify-start lg:gap-6 ${className}`}>
+    <div className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-2 lg:justify-start lg:gap-x-6 ${className}`}>
       {cache.location_name && (
         // The location is what you act on outdoors, so it's the strongest line
         // in the strip (Body Strong, primary), on every screen size. Hiders
@@ -78,7 +80,10 @@ export function MetaRow({ cache, className = '' }) {
           {cache.location_name}
         </p>
       )}
-      <DifficultyMeter level={cache.difficulty} />
+      <div className="flex items-center gap-4">
+        <DifficultyMeter level={cache.difficulty} />
+        <RatingSummary rating={rating} long fadeIn />
+      </div>
     </div>
   )
 }

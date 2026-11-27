@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { loadActiveCaches, loadUserFinds, subscribeToUserFindChanges } from '../pages/mapData.js'
+import { loadCacheRatings } from './cacheRatings.js'
 import { supabase } from './supabaseClient.js'
 
 // Everything the map page loads, in one hook. This is the map page's data
 // loading moved here unchanged: who's signed in, the active caches and which
 // of them you've found (refreshed every 30 seconds), and a live update
-// whenever one of your finds changes. The queries themselves live in
-// pages/mapData.js; none of them select secret_code.
+// whenever one of your finds changes, plus every cache's average rating
+// (cacheRatings.js). The queries themselves live in pages/mapData.js; none
+// of them select secret_code.
 //
 // A "hook" is a function starting with "use" that a component calls to get
 // state that updates over time.
@@ -16,6 +18,10 @@ const REFRESH_INTERVAL_MS = 30_000
 export function useMapData() {
   const [caches, setCaches] = useState([])
   const [foundIds, setFoundIds] = useState([])
+  // { [cacheId]: { average, count } }, or null when the ratings
+  // couldn't load (e.g. the cache_ratings function isn't in the database
+  // yet). Ratings failing never stops the map: the cards just leave them out.
+  const [ratings, setRatings] = useState(null)
   const [userId, setUserId] = useState(null)
   const [cacheLoading, setCacheLoading] = useState(true)
   const [dataError, setDataError] = useState('')
@@ -70,14 +76,18 @@ export function useMapData() {
 
       refreshing = true
       try {
-        const [nextCaches, nextFoundIds] = await Promise.all([
+        const [nextCaches, nextFoundIds, nextRatings] = await Promise.all([
           loadActiveCaches(supabase),
           loadUserFinds(supabase, userId),
+          loadCacheRatings(supabase).catch(() => null),
         ])
 
         if (active) {
           setCaches(nextCaches)
           setFoundIds(nextFoundIds)
+          // A refresh that fails keeps the last ratings, so a weak signal
+          // doesn't blank them all for 30 seconds.
+          setRatings((current) => nextRatings ?? current)
           setDataError('')
         }
       } catch {
@@ -133,6 +143,7 @@ export function useMapData() {
   return {
     caches,
     foundIds,
+    ratings,
     userId,
     cacheLoading,
     dataError,
