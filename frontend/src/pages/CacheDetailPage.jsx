@@ -82,21 +82,31 @@ function CacheDetails({ cacheId, detail }) {
               <div className="relative">
                 <PinContours />
                 <CachePhoto cache={cache} />
-                <MapPin found={found} className="absolute bottom-3 left-3 lg:bottom-5 lg:left-5" />
+                {/* A taken-down cache isn't something to find, so it gets no red pin. */}
+                {cache.is_active && (
+                  <MapPin found={found} className="absolute bottom-3 left-3 lg:bottom-5 lg:left-5" />
+                )}
               </div>
               <CacheTitle cache={cache} className="text-display lg:text-section" />
+              {/* Taken down: say so straight away, before anything that could send
+                  someone out looking for it. */}
+              {!cache.is_active && <TakenDownNotice />}
               <MetaRow cache={cache} className={`border-y py-3 ${CARD_BORDER}`} />
-              <DirectionsLink cache={cache} />
+              {cache.is_active && <DirectionsLink cache={cache} />}
               <Description cache={cache} />
             </div>
 
-            {/* Phones: this flows under the description. Desktop: a card on the right that stays in view. */}
-            <aside
-              className={`flex flex-col gap-4 lg:sticky lg:top-6 lg:w-[400px] lg:shrink-0 lg:rounded-2xl lg:border lg:bg-bg-surface lg:p-6 ${CARD_BORDER}`}
-            >
-              {cache.is_active ? (
-                <>
-                  <HintsHeader detail={detail} />
+            {/* The hints and the find action: the page's main task, so a section
+                labelled by its heading (not an <aside>, which screen readers call
+                "complementary"). Phones: this flows under the description.
+                Desktop: a card on the right that stays in view. Taken-down caches
+                have nothing to hunt, so it's left out. */}
+            {cache.is_active && (
+              <section
+                aria-labelledby="hints-heading"
+                className={`flex flex-col gap-4 lg:sticky lg:top-6 lg:w-[400px] lg:shrink-0 lg:rounded-2xl lg:border lg:bg-bg-surface lg:p-6 ${CARD_BORDER}`}
+              >
+                  <HintsHeader detail={detail} headingId="hints-heading" />
                   <HintsList
                     detail={detail}
                     renderRows={(rows, onReveal) => (
@@ -119,11 +129,8 @@ function CacheDetails({ cacheId, detail }) {
                       phones it stays in the page, not the sticky bottom bar, so the
                       bar stays small and doesn't cover the screen. */}
                   {help}
-                </>
-              ) : (
-                <TakenDownNotice className="lg:border-0 lg:p-0" />
-              )}
-            </aside>
+              </section>
+            )}
           </div>
         </div>
       </div>

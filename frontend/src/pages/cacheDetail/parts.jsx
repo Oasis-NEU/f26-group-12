@@ -45,10 +45,13 @@ export function CachePhoto({
       <div
         className={`flex w-full flex-col items-center justify-center gap-1 border-2 border-dashed border-border-input px-12 text-center contrast-more:border-text-secondary ${emptyClassName}`}
       >
-        <p className="text-body-strong text-text-primary">No photo of this spot yet</p>
+        {/* A taken-down cache can't be hunted, so it gets no "yet" and no pointer to the hints. */}
+        <p className="text-body-strong text-text-primary">
+          {cache.is_active ? 'No photo of this spot yet' : 'No photo of this spot'}
+        </p>
         {/* The location itself is shown just below, in the legend strip, and
             is often written as "near ...", so it isn't repeated here. */}
-        <p className="text-small text-text-secondary">Use the location and hints to find it.</p>
+        {cache.is_active && <p className="text-small text-text-secondary">Use the location and hints to find it.</p>}
       </div>
     )
   }
@@ -80,11 +83,14 @@ export function Description({ cache }) {
   return <p className="whitespace-pre-line wrap-break-word text-body text-text-primary lg:max-w-[640px]">{cache.description}</p>
 }
 
-export function HintsHeader({ detail }) {
+// headingId lets the hints card be labelled by this heading.
+export function HintsHeader({ detail, headingId }) {
   const status = hintsLeftText(detail.hintCount, Object.keys(detail.revealed).length)
   return (
     <div className="flex items-center justify-between gap-4">
-      <h2 className="text-heading text-text-primary">Hints</h2>
+      <h2 id={headingId} className="text-heading text-text-primary">
+        Hints
+      </h2>
       {status && <p className="text-small text-text-secondary">{status}</p>}
     </div>
   )

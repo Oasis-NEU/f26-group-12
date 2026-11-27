@@ -389,6 +389,9 @@ The one main action on a cache's page: beside the trail's end pin on desktop, in
 - **Your own cache:** a Subtle line, "You hid this cache", with an "Edit cache" link. Hiders know the code, so the page doesn't offer to log their own cache, and all their hints are shown.
 - **How-to line:** while someone can still log the cache (not found yet, not their own), Small Text Secondary text under the trail's end explains the proof step (in the page on phones, not the sticky bottom bar, which stays just the button): "Found it? Open it, find the 6-character code on the slip, then tap “I found it”. Put it back where it was." ("click" on desktop). Signed-out visitors also see "Log in to log your find.", with "Log in" as a link.
 
+### Taken-Down Cache
+A cache that's been taken down can't be hunted, so the page stops anyone from setting out: the notice "This cache has been taken down, so it can’t be logged anymore." sits right under the title; the hints, the find action, "Get directions" and the red pin are all left out; and an empty photo frame just says "No photo of this spot".
+
 ## Do's and Don'ts
 
 ### Do:
