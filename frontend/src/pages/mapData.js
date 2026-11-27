@@ -52,9 +52,9 @@ export function subscribeToUserFindChanges(supabase, userId, onChange, onStatus)
     .subscribe(onStatus)
 }
 
-// filter: 'all', 'to-find', 'my-finds' or 'saved' (savedIds: the caches
-// this person bookmarked).
-export function filterCaches(caches, query, filter, foundIds, savedIds = []) {
+// filter: 'all', 'to-find', 'my-finds' or 'favorites' (favoriteIds: the
+// caches this person favorited).
+export function filterCaches(caches, query, filter, foundIds, favoriteIds = []) {
   const search = query.trim().toLowerCase()
 
   return caches.filter((cache) => {
@@ -64,8 +64,8 @@ export function filterCaches(caches, query, filter, foundIds, savedIds = []) {
         ? !isFound
         : filter === 'my-finds'
           ? isFound
-          : filter === 'saved'
-            ? savedIds.includes(cache.id)
+          : filter === 'favorites'
+            ? favoriteIds.includes(cache.id)
             : true
     const searchableText = `${cache.title} ${cache.location_name ?? ''}`.toLowerCase()
 

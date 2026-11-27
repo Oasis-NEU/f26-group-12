@@ -244,10 +244,10 @@ function DevComponentsPage() {
 
         <Section
           title="FavoriteButton"
-          note="An ink heart (never red). Click the live ones to toggle them; they don't save here. The labelled one is for the cache page."
+          note="An ink heart (never red). The second, the labelled one and the card share one state: click any of them to toggle (nothing is saved here). The labelled one is for the cache page."
         >
           <State name="Not a favorite">
-            <FavoriteButton title="Quad riddle" signedIn saved={false} onToggle={() => setDevFavorite((v) => !v)} cacheId="dev-1" />
+            <FavoriteButton title="Quad riddle" signedIn saved={false} onToggle={() => {}} cacheId="dev-1" />
           </State>
           <State name="Favorite (click to toggle)">
             <FavoriteButton title="Quad riddle" signedIn saved={devFavorite} onToggle={() => setDevFavorite((v) => !v)} cacheId="dev-2" />

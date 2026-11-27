@@ -43,7 +43,7 @@ const FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'to-find', label: 'To find' },
   { id: 'my-finds', label: 'My finds' },
-  { id: 'saved', label: 'Favorites' },
+  { id: 'favorites', label: 'Favorites' },
 ]
 // Every control on the map: white, a dark edge, 48px to tap on phones and
 // 40px on desktop (to match the zoom buttons).
@@ -54,7 +54,7 @@ function countText(count, filter, searching) {
   if (searching) return count === 1 ? '1 match' : `${count} matches`
   if (filter === 'to-find') return `${count} to find`
   if (filter === 'my-finds') return `${count} found by you`
-  if (filter === 'saved') return count === 1 ? '1 favorite' : `${count} favorites`
+  if (filter === 'favorites') return count === 1 ? '1 favorite' : `${count} favorites`
   return count === 1 ? '1 cache' : `${count} caches`
 }
 
@@ -394,7 +394,7 @@ function MapPage() {
   const filter = FILTERS.some(({ id }) => id === searchParams.get('show')) ? searchParams.get('show') : 'all'
   const [keptIds, setKeptIds] = useState([])
   function setFilter(id) {
-    setKeptIds(id === 'saved' ? saved.savedIds : [])
+    setKeptIds(id === 'favorites' ? saved.savedIds : [])
     setSearchParams(
       (current) => {
         const next = new URLSearchParams(current)
@@ -436,7 +436,7 @@ function MapPage() {
   // waits (not pressable) until we know who's signed in and their favorites
   // have loaded.
   function toggleFavorite(cacheId, source) {
-    if (activeFilter === 'saved') setKeptIds((ids) => (ids.includes(cacheId) ? ids : [...ids, cacheId]))
+    if (activeFilter === 'favorites') setKeptIds((ids) => (ids.includes(cacheId) ? ids : [...ids, cacheId]))
     saved.toggle(cacheId, source)
   }
   const favoriteButtonFor = (cache) => (
@@ -572,7 +572,7 @@ function MapPage() {
   if (visibleCaches.length === 0 && !dataError) {
     if (cacheLoading) emptyNotice = 'Loading caches…'
     else if (caches.length === 0) emptyNotice = 'There are no caches on the map yet.'
-    else if (activeFilter === 'saved' && !search.trim()) {
+    else if (activeFilter === 'favorites' && !search.trim()) {
       if (!saved.loaded) emptyNotice = 'Loading your favorites…'
       else if (saved.loadError)
         emptyNotice = (

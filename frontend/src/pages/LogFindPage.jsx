@@ -283,7 +283,7 @@ function JournalNotes({ cacheId, userId }) {
         </Button>
       )}
       {status === 'saved' && <p className="text-small text-text-secondary">Added to your journal.</p>}
-      {/* Always there (hidden), so screen readers hear "Saved" when it happens. */}
+      {/* Always there (hidden), so screen readers hear "Added to your journal." when it happens. */}
       <p className="sr-only" aria-live="polite">
         {status === 'saved' ? 'Added to your journal.' : ''}
       </p>

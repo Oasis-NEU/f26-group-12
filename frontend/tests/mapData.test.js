@@ -115,9 +115,9 @@ test('search composes with the selected cache filter', async () => {
   assert.deepEqual(filterCaches(caches, 'snell', 'all', ['found']), [caches[0]])
   assert.deepEqual(filterCaches(caches, '', 'to-find', ['found']), [caches[1]])
   assert.deepEqual(filterCaches(caches, 'quad', 'my-finds', ['found']), [])
-  // Saved: only the bookmarked ones, still narrowed by the search.
-  assert.deepEqual(filterCaches(caches, '', 'saved', ['found'], ['unfound']), [caches[1]])
-  assert.deepEqual(filterCaches(caches, 'snell', 'saved', ['found'], ['unfound']), [])
+  // Favorites: only the favorited ones, still narrowed by the search.
+  assert.deepEqual(filterCaches(caches, '', 'favorites', ['found'], ['unfound']), [caches[1]])
+  assert.deepEqual(filterCaches(caches, 'snell', 'favorites', ['found'], ['unfound']), [])
 })
 
 test('cache query errors are surfaced to the caller', async () => {
