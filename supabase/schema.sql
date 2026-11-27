@@ -9,6 +9,9 @@ CREATE TABLE public.profiles (
   avatar_url text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  -- Not blank, at most 30 characters (matches the sign-up form).
+  -- Added by supabase/changes/2026-11-26_username-length.sql.
+  CONSTRAINT username_length CHECK (btrim(username) <> '' AND char_length(username) <= 30),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
 CREATE TABLE public.caches (

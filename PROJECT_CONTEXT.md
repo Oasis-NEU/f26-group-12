@@ -85,7 +85,7 @@ The SQL copy of the schema lives at `supabase/schema.sql`. Update it whenever a 
 | column | type | notes |
 |---|---|---|
 | id | uuid | PK, FK → `auth.users.id` (on delete cascade), no default |
-| username | text | unique, required |
+| username | text | unique, required, not blank, at most 30 characters (`username_length` check) |
 | avatar_url | text | optional |
 
 A profile is created automatically on signup by the `on_auth_user_created` trigger (function `handle_new_user`). It uses the `username` passed in `signUp({ options: { data: { username } } })`, or a placeholder like `user_1a2b3c4d`. The frontend never inserts profiles itself.
