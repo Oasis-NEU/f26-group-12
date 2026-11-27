@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Link } from 'react-router'
 import checkIcon from '../assets/figma/check.svg'
 import DifficultyMeter from './DifficultyMeter.jsx'
-import { FOCUS_RING } from './focusRing.js'
 import RatingSummary from './RatingSummary.jsx'
 
 // A cache in a list, from the Figma "CacheCard" component (reworked
@@ -16,18 +15,18 @@ import RatingSummary from './RatingSummary.jsx'
 //
 // Props: title, location, difficulty, image (photo URL, optional), rating
 // ({ average, count } from loadCacheRatings; leave it out if ratings
-// couldn't load, and the rating isn't shown), found, selected, to / onClick.
+// couldn't load, and the rating isn't shown), found, selected, to / onClick,
+// corner (an extra control for the top-right corner, e.g. <FavoriteButton>).
 //
 // Figma variants -> props:
 //   Found: true        -> found      (shows the "Found by you" tag)
 //   State: Selected    -> selected   (matches the pin someone clicked on the map)
 //   State: Hover       -> hover: classes (automatic)
 //
-// It renders the right element for the job:
-//   <CacheCard to="/caches/abc" ... />     -> <Link>, an <a> (opens the cache page)
-//   <CacheCard onClick={select} ... />     -> <button> (e.g. selects it on the map)
-//   neither                                -> a plain box
-// Everything inside is a <span> because a <button> can't contain <p> or <div>.
+// The title is the right element for the job, stretched over the card:
+//   <CacheCard to="/caches/abc" ... />     -> a <Link> (opens the cache page)
+//   <CacheCard onClick={select} ... />     -> a <button> (e.g. selects it on the map)
+//   neither                                -> plain text in a box
 
 // The "Found by you" pill (Figma "FoundByYouTag"), on its own so other
 // places, like the map's cache card, can show the same tag.
@@ -97,63 +96,90 @@ function CacheCard({
   selected = false,
   to,
   onClick,
+  corner,
   className = '',
 }) {
+  const detailsId = useId()
   const isInteractive = Boolean(to || onClick)
-  // Motion: hover fills and the selected outline ease in (150ms), and a
-  // clickable card shrinks to 98% while pressed (a bit less than a button's
-  // 97%, since it's bigger), so a tap feels heard. The list itself doesn't
-  // animate when a search or filter changes it: that happens as you type.
+  // The card is a plain box; its title is the real link (or button), with an
+  // invisible layer (::after) stretched over the whole card, so clicking
+  // anywhere on it still opens it. That leaves room for a second control in
+  // the corner (the save button), which can't sit inside a link. The rest of
+  // the card describes the link (aria-describedby), so screen readers hear
+  // the name first and the details after.
+  //
+  // Hover, press and keyboard focus are drawn on the whole card while
+  // they're on that link (has-[...]), not while they're on the corner button.
+  //
+  // Motion: hover fills and the selected outline ease in (150ms), and the
+  // card shrinks to 98% while pressed (a bit less than a button's 97%, since
+  // it's bigger), so a tap feels heard. The list itself doesn't animate when
+  // a search or filter changes it: that happens as you type.
   const classes = [
-    'flex w-full items-start gap-3 rounded-2xl border bg-bg-surface p-3 text-left motion-safe:transition-[background-color,border-color,box-shadow,scale] motion-safe:duration-150 motion-safe:ease-out',
+    'relative flex w-full items-start gap-3 rounded-2xl border bg-bg-surface p-3 text-left motion-safe:transition-[background-color,border-color,box-shadow,scale] motion-safe:duration-150 motion-safe:ease-out',
     // Selected is a 2px dark border in Figma. The 1px border plus a 1px inset
     // ring looks the same, so the card doesn't grow. Otherwise the outline
     // is Border Subtle, darkened with Increase Contrast like every card.
     selected
       ? 'border-border-strong inset-ring-1 inset-ring-border-strong'
       : 'border-border-subtle contrast-more:border-border-input',
-    isInteractive && !selected ? 'hover:bg-bg-subtle' : '',
-    isInteractive ? `cursor-pointer active:scale-98 ${FOCUS_RING}` : '',
+    // Written out in full so Tailwind finds them (it can't see pieced-together names).
+    isInteractive && !selected ? 'has-[[data-card-action]:hover]:bg-bg-subtle' : '',
+    isInteractive
+      ? 'has-[[data-card-action]:active]:scale-98 has-[[data-card-action]:focus-visible]:ring-2 has-[[data-card-action]:focus-visible]:ring-focus has-[[data-card-action]:focus-visible]:ring-offset-2'
+      : '',
     className,
   ].join(' ')
 
-  const content = (
-    <>
-      <CardPhoto key={image} image={image} />
-      <span className="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
-        <span className="wrap-break-word text-body-strong text-text-primary">{title}</span>
-        {(location || found) && (
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {location && <span className="min-w-0 text-small text-text-secondary">{location}</span>}
-            {found && <FoundTag />}
-          </span>
-        )}
-        {/* Fits on one line in the 400px desktop list, even with "No ratings yet". */}
-        <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-          <DifficultyMeter level={difficulty} />
-          <RatingSummary rating={rating} />
-        </span>
-      </span>
-    </>
-  )
-
+  // The title, as the card's link or button when it has one.
+  const titleText = 'wrap-break-word text-body-strong text-text-primary'
+  const stretched = `cursor-pointer text-left focus-visible:outline-hidden after:absolute after:inset-0 after:rounded-2xl after:content-['']`
+  let titleElement = <span className={titleText}>{title}</span>
   if (to) {
-    return (
-      <Link to={to} className={classes}>
-        {content}
+    titleElement = (
+      <Link to={to} data-card-action aria-describedby={detailsId} className={`${titleText} ${stretched}`}>
+        {title}
       </Link>
     )
-  }
-
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} aria-pressed={selected} className={classes}>
-        {content}
+  } else if (onClick) {
+    titleElement = (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={selected}
+        aria-describedby={detailsId}
+        data-card-action
+        className={`${titleText} ${stretched}`}
+      >
+        {title}
       </button>
     )
   }
 
-  return <div className={classes}>{content}</div>
+  return (
+    <div className={classes}>
+      <CardPhoto key={image} image={image} />
+      <div className="flex min-w-0 flex-1 flex-col gap-1 pt-0.5">
+        {/* Room on the right for the corner button, on the title line only. */}
+        <div className={corner ? 'pr-9' : ''}>{titleElement}</div>
+        <div id={detailsId} className="flex flex-col gap-1">
+          {(location || found) && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {location && <span className="min-w-0 text-small text-text-secondary">{location}</span>}
+              {found && <FoundTag />}
+            </div>
+          )}
+          {/* Fits on one line in the 400px desktop list, even with "No ratings yet". */}
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <DifficultyMeter level={difficulty} />
+            <RatingSummary rating={rating} />
+          </div>
+        </div>
+      </div>
+      {/* Above the stretched link, so it gets its own clicks. */}
+      {corner && <div className="absolute right-1.5 top-1.5 z-10">{corner}</div>}
+    </div>
+  )
 }
 
 export default CacheCard

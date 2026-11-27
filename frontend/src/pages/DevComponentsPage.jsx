@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Button from '../components/Button.jsx'
 import CacheCard from '../components/CacheCard.jsx'
 import DifficultyMeter from '../components/DifficultyMeter.jsx'
+import FavoriteButton from '../components/FavoriteButton.jsx'
 import HintRow from '../components/HintRow.jsx'
 import MapPin from '../components/MapPin.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
@@ -46,6 +47,7 @@ function DevComponentsPage() {
   const [openHints, setOpenHints] = useState(1)
   const [selectedCard, setSelectedCard] = useState(null)
   const [selectedPin, setSelectedPin] = useState(false)
+  const [devFavorite, setDevFavorite] = useState(true)
   const [name, setName] = useState('')
 
   const hints = ['Look up near the old library.', 'Something on a building tells the time.', 'Check the base of the clock tower.']
@@ -236,6 +238,37 @@ function DevComponentsPage() {
               selected={selectedPin}
               label="Quad riddle"
               onClick={() => setSelectedPin((current) => !current)}
+            />
+          </State>
+        </Section>
+
+        <Section
+          title="FavoriteButton"
+          note="An ink heart (never red). The second, the labelled one and the card share one state: click any of them to toggle (nothing is saved here). The labelled one is for the cache page."
+        >
+          <State name="Not a favorite">
+            <FavoriteButton title="Quad riddle" signedIn saved={false} onToggle={() => {}} cacheId="dev-1" />
+          </State>
+          <State name="Favorite (click to toggle)">
+            <FavoriteButton title="Quad riddle" signedIn saved={devFavorite} onToggle={() => setDevFavorite((v) => !v)} cacheId="dev-2" />
+          </State>
+          <State name="Labelled (cache page)">
+            <FavoriteButton labelled title="Quad riddle" signedIn saved={devFavorite} onToggle={() => setDevFavorite((v) => !v)} cacheId="dev-3" />
+          </State>
+          <State name="Signed out (a link to Log in)">
+            <FavoriteButton title="Quad riddle" signedIn={false} cacheId="dev-4" />
+          </State>
+          <State name="Loading (not pressable)">
+            <FavoriteButton title="Quad riddle" signedIn ready={false} cacheId="dev-5" />
+          </State>
+          <State name="On a card (corner)" wide>
+            <CacheCard
+              title="Krentzman Corner"
+              location="Krentzman Quad"
+              difficulty={3}
+              rating={{ average: 4.6, count: 12 }}
+              to="/dev/components"
+              corner={<FavoriteButton title="Krentzman Corner" signedIn saved={devFavorite} onToggle={() => setDevFavorite((v) => !v)} cacheId="dev-6" />}
             />
           </State>
         </Section>

@@ -279,13 +279,13 @@ function JournalNotes({ cacheId, userId }) {
           aria-disabled={status === 'saving' || undefined}
           className="aria-disabled:cursor-wait"
         >
-          {status === 'saving' ? 'Saving…' : 'Save to journal'}
+          {status === 'saving' ? 'Adding…' : 'Add to journal'}
         </Button>
       )}
-      {status === 'saved' && <p className="text-small text-text-secondary">Saved to your journal.</p>}
-      {/* Always there (hidden), so screen readers hear "Saved" when it happens. */}
+      {status === 'saved' && <p className="text-small text-text-secondary">Added to your journal.</p>}
+      {/* Always there (hidden), so screen readers hear "Added to your journal." when it happens. */}
       <p className="sr-only" aria-live="polite">
-        {status === 'saved' ? 'Saved to your journal.' : ''}
+        {status === 'saved' ? 'Added to your journal.' : ''}
       </p>
       {status === 'error' && (
         <p role="alert" className="text-small text-error">

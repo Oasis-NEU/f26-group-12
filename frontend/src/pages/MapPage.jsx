@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router'
 import Button from '../components/Button.jsx'
 import CacheCard, { FoundTag } from '../components/CacheCard.jsx'
 import DifficultyMeter from '../components/DifficultyMeter.jsx'
+import FavoriteButton from '../components/FavoriteButton.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import MapPin from '../components/MapPin.jsx'
 import RatingSummary from '../components/RatingSummary.jsx'
@@ -13,6 +14,7 @@ import { placeName } from '../lib/cacheSearch.js'
 import { readSearch, withSearch } from '../lib/searchQuery.js'
 import { useMapData } from '../lib/useMapData.js'
 import { useMyLocation } from '../lib/useMyLocation.js'
+import { useSavedCaches } from '../lib/useSavedCaches.js'
 import { cacheCoordinates } from './cacheDetail/coords.js'
 import { filterCaches } from './mapData.js'
 
@@ -41,6 +43,7 @@ const FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'to-find', label: 'To find' },
   { id: 'my-finds', label: 'My finds' },
+  { id: 'favorites', label: 'Favorites' },
 ]
 // Every control on the map: white, a dark edge, 48px to tap on phones and
 // 40px on desktop (to match the zoom buttons).
@@ -51,6 +54,7 @@ function countText(count, filter, searching) {
   if (searching) return count === 1 ? '1 match' : `${count} matches`
   if (filter === 'to-find') return `${count} to find`
   if (filter === 'my-finds') return `${count} found by you`
+  if (filter === 'favorites') return count === 1 ? '1 favorite' : `${count} favorites`
   return count === 1 ? '1 cache' : `${count} caches`
 }
 
@@ -128,11 +132,40 @@ function chipClass(selected) {
   } ${FOCUS_RING}`
 }
 
-// All / To find / My finds. Only shown to logged-in people: the other two
-// need to know what you've found.
+// All / To find / My finds / Favorites. Only shown to logged-in people: the
+// others need to know what you've found or favorited.
 function FilterChips({ value, onChange }) {
+  const rowRef = useRef(null)
+  // Whether there's more to scroll to on the right, so the edge fades and
+  // the cut-off chip reads as "keep going", not as broken.
+  const [moreRight, setMoreRight] = useState(false)
+
+  useEffect(() => {
+    const row = rowRef.current
+    if (!row) return
+    const check = () => setMoreRight(row.scrollWidth - row.scrollLeft - row.clientWidth > 1)
+    const observer = new ResizeObserver(check)
+    observer.observe(row)
+    row.addEventListener('scroll', check, { passive: true })
+    return () => {
+      observer.disconnect()
+      row.removeEventListener('scroll', check)
+    }
+  }, [])
+
   return (
-    <div role="group" aria-label="Show caches" className="flex gap-2">
+    // On a phone with the List button they can be wider than the screen, so
+    // the chips scroll sideways (no scrollbar) instead of squeezing, and the
+    // right edge fades while there's more. The 4px padding keeps the
+    // keyboard focus ring from being cut off at the edges.
+    <div
+      ref={rowRef}
+      role="group"
+      aria-label="Show caches"
+      className={`-m-1 flex min-w-0 gap-2 overflow-x-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+        moreRight ? '[mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)]' : ''
+      }`}
+    >
       {FILTERS.map(({ id, label }) => (
         <button key={id} type="button" aria-pressed={value === id} onClick={() => onChange(id)} className={chipClass(value === id)}>
           {label}
@@ -208,7 +241,7 @@ function CloseButton({ onClose }) {
 // the right, clear of the 40px selected pin (as in Figma), and lets clicks
 // through so it never blocks the pin underneath. Its heading takes focus
 // when it opens (tabIndex -1), so keyboard and screen-reader users land in it.
-function PinPopup({ cache, rating, position, onClose }) {
+function PinPopup({ cache, rating, save, position, onClose }) {
   return (
     <AdvancedMarker position={position} zIndex={4} anchorPoint={AdvancedMarkerAnchorPoint.LEFT_BOTTOM}>
       <div className="pointer-events-none hidden pb-8 pl-[1.875rem] lg:block">
@@ -225,7 +258,10 @@ function PinPopup({ cache, rating, position, onClose }) {
             >
               {cache.title}
             </h2>
-            <CloseButton onClose={onClose} />
+            <div className="-my-1 flex shrink-0 items-center gap-2">
+              {save}
+              <CloseButton onClose={onClose} />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <DifficultyMeter level={cache.difficulty} />
@@ -243,7 +279,7 @@ function PinPopup({ cache, rating, position, onClose }) {
 // Phones: the card for the selected pin, under the map (the map shrinks to
 // make room, so Google's logo and terms stay visible above it). Its shadow is
 // the Overlay shadow turned upward, since it rises from below.
-function SelectedCacheCard({ cache, rating, found, signedIn, onClose }) {
+function SelectedCacheCard({ cache, rating, save, found, signedIn, onClose }) {
   return (
     <section
       data-selection
@@ -258,7 +294,10 @@ function SelectedCacheCard({ cache, rating, found, signedIn, onClose }) {
         >
           {cache.title}
         </h2>
-        <CloseButton onClose={onClose} />
+        <div className="-my-1 flex shrink-0 items-center gap-2">
+          {save}
+          <CloseButton onClose={onClose} />
+        </div>
       </div>
       <div className="flex items-center justify-between gap-4">
         {cache.location_name && (
@@ -338,14 +377,34 @@ function MapControls({ locationStatus, onLocate, onCampus, onZoom }) {
 }
 
 function MapPage() {
-  const { caches, foundIds, ratings, userId, cacheLoading, dataError, authError, realtimeStatus, retry } = useMapData()
+  const { caches, foundIds, ratings, userId, authChecked, cacheLoading, dataError, authError, realtimeStatus, retry } =
+    useMapData()
+  // Your favorite caches, for the heart buttons and the "Favorites" filter.
+  const saved = useSavedCaches(userId)
   const myLocation = useMyLocation()
   const isDesktop = useIsDesktop()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = readSearch(searchParams)
   // replace: typing doesn't add a history entry per letter.
   const setSearch = (text) => setSearchParams((current) => withSearch(current, text), { replace: true })
-  const [filter, setFilter] = useState('all')
+  // The filter is kept in the address (?show=), so coming back from a cache
+  // keeps it. Favorites shows a cache you just unfavorited until you change
+  // the filter (keptIds), so it doesn't vanish under your thumb and you can
+  // tap the heart again.
+  const filter = FILTERS.some(({ id }) => id === searchParams.get('show')) ? searchParams.get('show') : 'all'
+  const [keptIds, setKeptIds] = useState([])
+  function setFilter(id) {
+    setKeptIds(id === 'favorites' ? saved.savedIds : [])
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current)
+        if (id === 'all') next.delete('show')
+        else next.set('show', id)
+        return next
+      },
+      { replace: true },
+    )
+  }
   // Nothing is selected until someone picks a pin or a card.
   const [selectedId, setSelectedId] = useState(null)
   // Phones only: the map, or the list instead of it.
@@ -366,10 +425,32 @@ function MapPage() {
   const floating = mapReady && !phoneList
   // Filters are only for logged-in people, so everyone else sees every cache.
   const activeFilter = signedIn ? filter : 'all'
+  // Favorites view: your favorites, plus any you unfavorited since choosing it.
+  const favoriteIds = useMemo(() => [...new Set([...keptIds, ...saved.savedIds])], [keptIds, saved.savedIds])
   const visibleCaches = useMemo(
-    () => filterCaches(caches, search, activeFilter, foundIds),
-    [caches, search, activeFilter, foundIds],
+    () => filterCaches(caches, search, activeFilter, foundIds, favoriteIds),
+    [caches, search, activeFilter, foundIds, favoriteIds],
   )
+
+  // The favorite (heart) button for a cache's card, popup or phone card. It
+  // waits (not pressable) until we know who's signed in and their favorites
+  // have loaded.
+  function toggleFavorite(cacheId, source) {
+    if (activeFilter === 'favorites') setKeptIds((ids) => (ids.includes(cacheId) ? ids : [...ids, cacheId]))
+    saved.toggle(cacheId, source)
+  }
+  const favoriteButtonFor = (cache) => (
+    <FavoriteButton
+      title={cache.title}
+      saved={saved.isSaved(cache.id)}
+      signedIn={authChecked ? signedIn : undefined}
+      ready={saved.loaded}
+      onToggle={(source) => toggleFavorite(cache.id, source)}
+      error={saved.error}
+      cacheId={cache.id}
+    />
+  )
+
   // A cache's rating for its card, popup or phone card. A cache missing from
   // the ratings has none yet; no ratings at all (null) means they couldn't
   // load, and then they're left out (undefined).
@@ -491,6 +572,24 @@ function MapPage() {
   if (visibleCaches.length === 0 && !dataError) {
     if (cacheLoading) emptyNotice = 'Loading caches…'
     else if (caches.length === 0) emptyNotice = 'There are no caches on the map yet.'
+    else if (activeFilter === 'favorites' && !search.trim()) {
+      if (!saved.loaded) emptyNotice = 'Loading your favorites…'
+      else if (saved.loadError)
+        emptyNotice = (
+          <>
+            Your favorites couldn’t load.{' '}
+            <button
+              type="button"
+              onClick={saved.reload}
+              className={`cursor-pointer rounded-sm font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`}
+            >
+              Try again
+            </button>
+          </>
+        )
+      else if (favoriteIds.length > 0) emptyNotice = 'None of your favorites are on the map right now.'
+      else emptyNotice = 'You haven’t added any favorites yet. Tap the heart on a cache to add it.'
+    }
     // Filters are only for logged-in people, so don't suggest them otherwise.
     else emptyNotice = signedIn ? 'No caches match. Try a different search or filter.' : 'No caches match. Try a different search.'
   }
@@ -534,10 +633,15 @@ function MapPage() {
                 <button
                   type="button"
                   onClick={() => setPhoneView(phoneList ? 'map' : 'list')}
+                  // Under 400px wide it's just the icon (named for screen
+                  // readers), so all four chips fit beside it.
+                  aria-label={phoneList ? 'Show the map' : 'Show the list'}
                   className={`${chipClass(false)} ml-auto lg:hidden`}
                 >
                   {phoneList ? <MapIcon aria-hidden="true" size={16} /> : <List aria-hidden="true" size={16} />}
-                  {phoneList ? 'Map' : 'List'}
+                  <span aria-hidden="true" className="max-[25rem]:hidden">
+                    {phoneList ? 'Map' : 'List'}
+                  </span>
                 </button>
               )}
             </div>
@@ -589,6 +693,7 @@ function MapPage() {
                       difficulty={cache.difficulty}
                       image={cache.image}
                       rating={ratingFor(cache.id)}
+                      corner={favoriteButtonFor(cache)}
                       found={found}
                       selected={selects && cache.id === selectedCache?.id}
                       {...(selects ? { onClick: () => selectFromList(cache) } : { to: `/caches/${cache.id}` })}
@@ -640,6 +745,7 @@ function MapPage() {
                     <PinPopup
                       cache={selectedCache}
                       rating={ratingFor(selectedCache.id)}
+                      save={favoriteButtonFor(selectedCache)}
                       position={selectedPosition}
                       onClose={closeSelection}
                     />
@@ -676,6 +782,7 @@ function MapPage() {
             <SelectedCacheCard
               cache={selectedCache}
               rating={ratingFor(selectedCache.id)}
+              save={favoriteButtonFor(selectedCache)}
               found={foundIds.includes(selectedCache.id)}
               signedIn={signedIn}
               onClose={closeSelection}

@@ -302,6 +302,9 @@ export function useCacheDetail(cacheId) {
     // undefined while checking, then true or false. Logging a find needs an
     // account, so the page tells signed-out visitors before they try.
     signedIn: userId === undefined ? undefined : Boolean(userId),
+    // Who's signed in (undefined while checking, null when signed out),
+    // for the save button.
+    userId,
     hintCount: details.hintCount,
     hintCountError: details.hintCountError,
     revealed,

@@ -24,6 +24,7 @@ Core:
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
 - Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
+- Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
 
 Next:
 - Score and leaderboard (points based on cache difficulty)
@@ -136,6 +137,14 @@ Unique constraint `one_hint_per_order` on (`cache_id`, `hint_order`): each cache
 | photo | text | optional |
 
 Unique constraint `one_find_per_person` on (`cache_id`, `finder_id`): a person can only log each cache once, but many people can find the same cache.
+
+### `saved_caches` (favourites)
+| column | type | notes |
+|---|---|---|
+| user_id | uuid | FK → `profiles.id`, on delete cascade, default `auth.uid()` (the app never sends it) |
+| cache_id | uuid | FK → `caches.id`, on delete cascade |
+
+Unique constraint `one_save_per_person` on (`user_id`, `cache_id`). Each person sees, adds and removes only their own saves, and can only save caches they can see. Unsaving deletes the row.
 
 ### `messages`
 | column | type | notes |
