@@ -17,6 +17,11 @@ import { FOCUS_RING } from './focusRing.js'
 //
 // Signed out, it's a link to Log in that comes back to this page afterwards.
 // (A login dialog on the same page is planned on its own branch.)
+//
+// Motion: the fill eases in or out (150ms), and saving (not unsaving) pops
+// the bookmark in from 75% (150ms), a small "got it". The failure note fades
+// in and grows from 97% out of the button's corner; it goes instantly. With
+// reduced motion only the fill and the fade stay.
 
 const BUTTON = `flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-primary hover:bg-bg-subtle active:scale-97 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`
 
@@ -27,6 +32,9 @@ function SaveButton({ title, saved = false, signedIn, onToggle, error, cacheId, 
   const [hiddenError, setHiddenError] = useState(null)
   const myError = error && error.cacheId === cacheId ? error : null
   const shownError = myError && myError !== hiddenError ? myError.message : null
+  // Set by a tap, so only a change someone caused animates (bookmarks that
+  // are already saved when the list loads just appear).
+  const [tapped, setTapped] = useState(false)
 
   useEffect(() => {
     if (!myError) return
@@ -34,13 +42,29 @@ function SaveButton({ title, saved = false, signedIn, onToggle, error, cacheId, 
     return () => clearTimeout(timer)
   }, [myError])
 
+  // Keyed by saved, so the icon re-mounts when it changes. After a tap,
+  // saving pops it in from 75% and fades the fill in; unsaving fades the
+  // fill out (it starts from solid). Before any tap, nothing animates.
   const icon = (
-    <Bookmark
-      aria-hidden="true"
-      size={20}
-      strokeWidth={2}
-      className={saved ? 'fill-text-primary' : 'fill-transparent'}
-    />
+    <span
+      key={saved ? 'saved' : 'not-saved'}
+      className={`block ${
+        tapped && saved
+          ? 'motion-safe:transition-[scale] motion-safe:duration-150 motion-safe:ease-out motion-safe:starting:scale-75'
+          : ''
+      }`}
+    >
+      <Bookmark
+        aria-hidden="true"
+        size={20}
+        strokeWidth={2}
+        className={`${tapped ? 'transition-[fill] duration-150 ease-out' : ''} ${
+          saved
+            ? `fill-text-primary ${tapped ? 'starting:fill-transparent' : ''}`
+            : `fill-transparent ${tapped ? 'starting:fill-text-primary' : ''}`
+        }`}
+      />
+    </span>
   )
 
   // Still checking who's logged in: the same bookmark, not yet pressable.
@@ -70,7 +94,10 @@ function SaveButton({ title, saved = false, signedIn, onToggle, error, cacheId, 
     <span className={`relative ${className}`}>
       <button
         type="button"
-        onClick={onToggle}
+        onClick={() => {
+          setTapped(true)
+          onToggle()
+        }}
         aria-pressed={saved}
         aria-label={`Save ${title}`}
         title={saved ? 'Saved' : 'Save'}
@@ -85,7 +112,7 @@ function SaveButton({ title, saved = false, signedIn, onToggle, error, cacheId, 
       {shownError && (
         <span
           aria-hidden="true"
-          className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-lg bg-bg-inverse px-3 py-1.5 text-small text-text-on-accent shadow-overlay"
+          className="absolute right-0 top-full z-20 mt-1 origin-top-right whitespace-nowrap rounded-lg bg-bg-inverse px-3 py-1.5 text-small text-text-on-accent shadow-overlay transition-[opacity,scale] duration-150 ease-out starting:opacity-0 motion-safe:starting:scale-97"
         >
           {shownError}
         </span>
