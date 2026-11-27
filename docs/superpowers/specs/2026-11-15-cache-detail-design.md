@@ -1,3 +1,5 @@
+> **Replaced (2026-11-26):** the cache detail page was rebuilt from the Figma section and styled example, so this spec no longer matches it (for example, it reveals Hint 1 by default). For the current design see `DESIGN.md` (Hint Trail, Contour Backdrop, Cache Photo, Place Label and Find Action) and the code in `frontend/src/pages/CacheDetailPage.jsx` and `frontend/src/pages/cacheDetail/`. Kept as a record of the original plan.
+
 # Cache Detail Screen Design
 
 ## Intent
