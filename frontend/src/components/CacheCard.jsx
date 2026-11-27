@@ -17,6 +17,26 @@ import { FOCUS_RING } from './focusRing.js'
 //   neither                                -> a plain box
 // Everything inside is a <span> because a <button> can't contain <p> or <div>.
 
+// The "Found by you" pill (Figma "FoundByYouTag"), on its own so other
+// places, like the map's cache card, can show the same tag.
+export function FoundTag() {
+  return (
+    <span className="flex shrink-0 items-center gap-1 rounded-full bg-found-soft py-[3px] pl-2 pr-3">
+      {/* Figma's check is 11.75 x 8.75 and overflows its 10 x 7 box a little. */}
+      <span className="relative h-[7px] w-[10px] shrink-0" aria-hidden="true">
+        <img
+          src={checkIcon}
+          width={11.75}
+          height={8.75}
+          alt=""
+          className="absolute inset-[-12.5%_-8.75%] block max-w-none"
+        />
+      </span>
+      <span className="whitespace-nowrap text-tag text-found">Found by you</span>
+    </span>
+  )
+}
+
 function CacheCard({
   title,
   location,
@@ -42,21 +62,7 @@ function CacheCard({
     <>
       <span className="flex w-full items-start gap-3">
         <span className="min-w-0 flex-1 text-body-strong text-text-primary">{title}</span>
-        {found && (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-found-soft py-[3px] pl-2 pr-3">
-            {/* Figma's check is 11.75 x 8.75 and overflows its 10 x 7 box a little. */}
-            <span className="relative h-[7px] w-[10px] shrink-0" aria-hidden="true">
-              <img
-                src={checkIcon}
-                width={11.75}
-                height={8.75}
-                alt=""
-                className="absolute inset-[-12.5%_-8.75%] block max-w-none"
-              />
-            </span>
-            <span className="whitespace-nowrap text-tag text-found">Found by you</span>
-          </span>
-        )}
+        {found && <FoundTag />}
       </span>
       <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
         <span className="whitespace-nowrap text-small text-text-secondary">{location}</span>

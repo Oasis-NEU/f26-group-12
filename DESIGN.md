@@ -392,6 +392,15 @@ The one main action on a cache's page: beside the trail's end pin on desktop, in
 ### Taken-Down Cache
 A cache that's been taken down can't be hunted. The database only lets its own hider read it, so everyone else gets the not-found notice ("We couldn’t find that cache. It may have been taken down, or the link is wrong."). The hider sees "You took this cache down, so finders can’t see it or log it." with an "Edit cache" link, right under the title (anyone else who could ever see it gets "This cache has been taken down, so it can’t be logged anymore."); the hints, the find action, "Get directions" and the red pin are all left out; and an empty photo frame just says "No photo of this spot".
 
+### Map Page
+The home of hunting: phones get a full-screen map with search and the filters floating on top; desktop gets a 400px list panel on the left (on the Page colour, with white cache cards) and the map on the right. The panel is headed "Caches near campus" (Display on phones, Title on desktop; over the phone map it's for screen readers only).
+- **Filter chips:** All / To find / My finds, shown only to logged-in people. 32px tall, 8px corners, Label text; white with a Border Strong edge, or the Inverse fill with white text when selected.
+- **List / Map chip (phones):** the same chip look, at the end of the filter row. It swaps the map for the list of cache cards and back.
+- **Selecting a cache:** a pin or a card selects it. On phones a card opens under the map (the map shrinks, so Google's logo and terms stay visible): title in Heading, location, difficulty, find status for logged-in people, and the Primary "View cache". On desktop a small popup (Overlay shadow, 16px corners) opens beside the pin, and its card in the list gets the selected outline. Opening moves focus into the popup or card; × or Escape closes it and puts focus back. A pin click doesn't move the map; a list click pans to the cache and zooms in to 16 if needed.
+- **Map controls:** "Show my location", "Back to campus" and, on desktop, zoom: white, Border Strong edge, 8px corners, 48px on phones and 40px on desktop, stacked bottom-right above Google's terms line.
+- **Position dot:** a 16px Text (ink) dot with a 3px white ring and the Pin shadow, never Focus Blue (blue only ever means keyboard focus). It appears only after someone presses "Show my location", follows them as they walk, and stays in the browser: HuskyCache never saves or sends it.
+- **No map** (no key, a failed load, or a key Google rejects): phones show the list instead, and desktop says why the map is missing.
+
 ## Do's and Don'ts
 
 ### Do:
