@@ -22,7 +22,7 @@ function Layout() {
   // These pages draw their own <main> too, so their header can sit outside
   // it (screen readers only treat a header as the page header when it isn't
   // inside <main>). Add a page here once it has its own <main>.
-  const hasOwnMain = isCacheDetailPage
+  const hasOwnMain = isCacheDetailPage || isMapPage
 
   return (
     <>
