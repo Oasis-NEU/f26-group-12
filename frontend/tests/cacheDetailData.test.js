@@ -128,8 +128,8 @@ test('cache, find, and hint query errors are surfaced', async () => {
   await assert.rejects(loadHintCount(countClient.client, 'cache-1'), error)
 })
 
-test('found date reads like "Oct 30"', async () => {
+test('found date reads like "Oct 30, 2026"', async () => {
   const { formatFoundDate } = await getCacheDetailData()
   // Midday UTC so the date is the same in every US time zone.
-  assert.equal(formatFoundDate('2026-10-30T16:00:00Z'), 'Oct 30')
+  assert.equal(formatFoundDate('2026-10-30T16:00:00Z'), 'Oct 30, 2026')
 })

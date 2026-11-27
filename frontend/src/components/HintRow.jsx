@@ -41,7 +41,14 @@ function HintRow({ number, text, revealed = false, canReveal = true, revealing =
     }
   }, [revealed, revealing])
 
+  // A row that can't be opened yet (or is loading) stays focusable, so
+  // keyboard and screen-reader users still find it and hear why; it just
+  // doesn't do anything when pressed. (aria-disabled, not disabled: disabled
+  // buttons drop out of the Tab order.)
+  const unavailable = !canReveal || revealing
+
   function handleReveal() {
+    if (unavailable) return
     askedRef.current = true
     setTapped(true)
     onReveal?.()
@@ -88,14 +95,15 @@ function HintRow({ number, text, revealed = false, canReveal = true, revealing =
           ref={buttonRef}
           type="button"
           onClick={handleReveal}
-          disabled={!canReveal || revealing}
-          // Hover darkens it one step (enabled: so a row that can't be
-          // revealed yet doesn't react). Pressing shrinks it to 98% so a tap
-          // feels heard (98, not 97: the row is wide). With Increase Contrast
-          // on (contrast-more:) the row gets an outline, since its gray fill
-          // barely shows against the page in bright light.
-          className={`flex h-12 w-full items-center justify-between gap-4 rounded-lg bg-bg-subtle px-4 text-left enabled:hover:bg-border-subtle enabled:active:scale-98 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out contrast-more:border contrast-more:border-border-input ${
-            revealing ? 'cursor-wait' : 'enabled:cursor-pointer disabled:cursor-not-allowed'
+          aria-disabled={unavailable || undefined}
+          aria-busy={revealing || undefined}
+          // Hover darkens it one step (not-aria-disabled: so a row that can't
+          // be revealed yet doesn't react). Pressing shrinks it to 98% so a
+          // tap feels heard (98, not 97: the row is wide). With Increase
+          // Contrast on (contrast-more:) the row gets an outline, since its
+          // gray fill barely shows against the page in bright light.
+          className={`flex h-12 w-full items-center justify-between gap-4 rounded-lg bg-bg-subtle px-4 text-left not-aria-disabled:hover:bg-border-subtle not-aria-disabled:active:scale-98 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out contrast-more:border contrast-more:border-border-input ${
+            revealing ? 'cursor-wait' : 'not-aria-disabled:cursor-pointer aria-disabled:cursor-not-allowed'
           } ${FOCUS_RING}`}
         >
           <span className="whitespace-nowrap text-body-strong text-text-primary">Hint {number}</span>

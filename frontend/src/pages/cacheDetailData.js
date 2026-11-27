@@ -39,9 +39,10 @@ export async function loadUserFind(supabase, cacheId, userId) {
   return data
 }
 
-// "2026-10-30T15:00:00Z" -> "Oct 30" (in the viewer's time zone).
+// "2026-10-30T15:00:00Z" -> "Oct 30, 2026" (in the viewer's time zone). The
+// year keeps it clear once the app has been around for more than a year.
 export function formatFoundDate(timestamp) {
-  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 // How many hints the cache has, without downloading any hint text, so locked

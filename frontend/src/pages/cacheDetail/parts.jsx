@@ -95,7 +95,16 @@ export function HintsList({ detail, renderRows = defaultRows }) {
   return (
     <>
       {detail.hintCountError ? (
-        <p className="text-small text-text-secondary">Hints couldn’t load right now.</p>
+        <p className="text-small text-text-secondary">
+          Hints couldn’t load right now.{' '}
+          <button
+            type="button"
+            onClick={detail.retry}
+            className={`cursor-pointer rounded-sm font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`}
+          >
+            Try again
+          </button>
+        </p>
       ) : detail.hintCount === 0 ? (
         <p className="text-small text-text-secondary">This cache doesn’t have any hints.</p>
       ) : (

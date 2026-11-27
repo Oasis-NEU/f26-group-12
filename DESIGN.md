@@ -359,7 +359,7 @@ Five 28px gold stars with 8px gaps, using Figma's exported star images (filled s
 
 ### Hint Row
 Every hint starts locked, including Hint 1, so nothing is given away before someone asks. (Hint 1 is loaded early, so revealing it is instant.)
-- **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" on desktop). Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed. Pressing shrinks it to 98%.
+- **Locked:** a 48px Subtle row with "Hint N" in Body Strong and "Tap to reveal" in Small ("Click to reveal" on desktop). Hover darkens it to Border Subtle. While the hint loads it says "Revealing…" and can't be pressed. When an earlier hint is still locked, it says "Reveal hint N first" and can't be pressed, but it stays reachable by keyboard and screen readers (`aria-disabled`, not `disabled`). If a hint takes over 10 seconds to load, the row gives up with "That hint is taking too long. Check your signal and try again." and focus returns to it. Pressing shrinks it to 98%.
 - **Revealed:** a white box with a 1px Border Subtle outline: "Hint N" in Small, then the hint in Body. When revealed by a tap it fades in and rises 4px (200ms, the shared ease-out), and focus moves to it, so screen readers read it. With reduced motion on it only fades. Hints already open when the page loads just appear.
 
 ### Map Pin
@@ -384,7 +384,7 @@ On a cache's page, its name is set like a map label: Display on phones, Section 
 ### Find Action
 The one main action on a cache's page: beside the trail's end pin on desktop, in the bottom bar on phones. It's always 48px tall.
 - **Not found yet:** the Primary "I found it" button.
-- **Found:** a Found Green Soft line with a green check, "Found by you on Oct 30".
+- **Found:** a Found Green Soft line with a green check, "Found by you on Oct 30, 2026" (with the year, so it stays clear over time).
 - **Your own cache:** a Subtle line, "You hid this cache", with an "Edit cache" link. Hiders know the code, so the page doesn't offer to log their own cache.
 - **How-to line:** while someone can still log the cache (not found yet, not their own), Small Text Secondary text under the action explains the proof step: "Found it? Open it, find the 6-letter code on the slip, then tap “I found it”. Put it back where it was." ("click" on desktop). Signed-out visitors also see "Log in to log your find.", with "Log in" as a link.
 

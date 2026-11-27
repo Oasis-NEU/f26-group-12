@@ -10,6 +10,17 @@ import { supabase } from './supabaseClient.js'
 // A "hook" is a function starting with "use" that a component calls to get
 // state that updates over time (here: loading, then the cache).
 
+// Gives up on a request after `ms`, so a stalled request on a weak phone
+// signal can't leave a hint stuck on "Revealing…" forever.
+const HINT_TIMEOUT_MS = 10000
+function withTimeout(promise, ms) {
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('timeout')), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
 // Who is signed in. undefined = still checking, null = signed out.
 function useUserId() {
   const [userId, setUserId] = useState(undefined)
@@ -148,15 +159,20 @@ export function useCacheDetail(cacheId) {
     }
     setHints((current) => ({ ...current, cacheId, pendingOrder: order, error: '' }))
     try {
-      const hint = await loadHint(supabase, cacheId, order)
+      const hint = await withTimeout(loadHint(supabase, cacheId, order), HINT_TIMEOUT_MS)
       setHints((current) => ({
         cacheId,
         revealed: hint ? { ...current.revealed, [order]: hint.hint_text } : current.revealed,
         pendingOrder: null,
         error: hint ? '' : 'That hint isn’t available.',
       }))
-    } catch {
-      setHints((current) => ({ ...current, pendingOrder: null, error: 'That hint couldn’t load. Try again.' }))
+    } catch (error) {
+      // Focus goes back to the hint's button (HintRow), so trying again is one tap.
+      const message =
+        error?.message === 'timeout'
+          ? 'That hint is taking too long. Check your signal and try again.'
+          : 'That hint couldn’t load. Try again.'
+      setHints((current) => ({ ...current, pendingOrder: null, error: message }))
     }
   }
 
