@@ -16,7 +16,7 @@ function NotFoundPage() {
           The link might be old, or the page moved. Even our best hint can’t find this one.
         </p>
         <Link
-          to="/"
+          to="/map"
           className="flex h-12 w-full items-center justify-center bg-black px-5 text-[15px] font-bold leading-[21px] text-white transition-colors hover:bg-[#292929] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e] md:w-auto"
         >
           Back to the map

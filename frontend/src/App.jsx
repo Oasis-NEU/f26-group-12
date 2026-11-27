@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router'
+import { Navigate, Route, Routes } from 'react-router'
 import Layout from './components/Layout.jsx'
 import AddCachePage from './pages/AddCachePage.jsx'
 import CacheDetailPage from './pages/CacheDetailPage.jsx'
@@ -22,7 +22,9 @@ function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<MapPage />} />
+        {/* The landing page is the home page; the map lives at /map. */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/map" element={<MapPage />} />
         <Route path="/caches/new" element={<AddCachePage />} />
         <Route path="/caches/:cacheId" element={<CacheDetailPage />} />
         <Route path="/caches/:cacheId/log" element={<LogFindPage />} />
@@ -31,7 +33,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/my-caches" element={<MyCachesPage />} />
-        <Route path="/welcome" element={<LandingPage />} />
+        {/* The landing page used to live here; old links still work. */}
+        <Route path="/welcome" element={<Navigate to="/" replace />} />
       </Route>
       {/* TEMPORARY: component check page. import.meta.env.DEV is true only
           under `npm run dev`, so this route never ships to the real site. */}

@@ -9,8 +9,8 @@ function navLinkClass({ isActive }) {
 
 function Layout() {
   const pathname = useLocation().pathname
-  const isLandingPage = pathname === '/welcome'
-  const isMapPage = pathname === '/'
+  const isLandingPage = pathname === '/'
+  const isMapPage = pathname === '/map'
   const isCacheDetailPage = isCacheDetailPath(pathname)
   // These pages draw their own SiteHeader, so Layout skips its old header.
   const hasOwnHeader =
@@ -38,7 +38,7 @@ function Layout() {
 
             <ul className="flex flex-wrap items-center gap-2 sm:gap-3">
               <li>
-                <NavLink to="/" end className={navLinkClass}>
+                <NavLink to="/map" className={navLinkClass}>
                   Map
                 </NavLink>
               </li>
