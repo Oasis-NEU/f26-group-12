@@ -12,7 +12,7 @@ import { FOCUS_RING } from './focusRing.js'
 // the account menu (menus branch), pages can switch to it.
 
 const NAV_LINKS = [
-  { label: 'Map', to: '/' },
+  { label: 'Map', to: '/map' },
   { label: 'Hide a cache', to: '/caches/new' },
   { label: 'Journal', to: '/journal' },
   { label: 'Leaderboard', to: '/leaderboard' },

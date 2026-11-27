@@ -60,7 +60,8 @@ Defined in `frontend/src/App.jsx`. Every route sits inside `Layout` (`frontend/s
 
 | path | page component | notes |
 |---|---|---|
-| `/` | `MapPage` | home page |
+| `/` | `LandingPage` | home page |
+| `/map` | `MapPage` | the map of caches |
 | `/caches/new` | `AddCachePage` | shows the "Cache hidden!" success state after saving |
 | `/caches/:cacheId` | `CacheDetailPage` | |
 | `/caches/:cacheId/log` | `LogFindPage` | shows the "Find logged!" success state after saving |
@@ -69,7 +70,7 @@ Defined in `frontend/src/App.jsx`. Every route sits inside `Layout` (`frontend/s
 | `/login` | `LoginPage` | |
 | `/leaderboard` | `LeaderboardPage` | |
 | `/my-caches` | `MyCachesPage` | |
-| `/welcome` | `LandingPage` | landing page lives here for now |
+| `/welcome` | (redirect) | old landing page address; sends people to `/` |
 | `*` | `NotFoundPage` | any URL not listed above |
 
 There is no Messages page; messaging is on hold. Link between pages with `<Link>` / `<NavLink>` from `react-router`, not `<a>`.
@@ -165,7 +166,7 @@ All three need a logged-in user.
 - **Caches are never deleted.** If a creator deletes their account, their caches stay up (`created_by` becomes null). To take a cache down, set `is_active = false`.
 - **We don't store users' locations.** If we add a location check, it runs in the browser only and nothing gets saved (the "collect less" rule from the data ethics session).
 - **No real personal data until security is in place.** Use fake test accounts and test caches for now.
-- **The map is the home page** ("/"). The landing page is at /welcome for now.
+- **The landing page is the home page** ("/"). The map is at /map, and the old /welcome address redirects to "/".
 - **Secret codes are generated automatically:** 6 characters, uppercase, never
   0, O, 1, I, or L. The hider can swap it with "New code" before saving;
   after saving it's locked.

@@ -29,7 +29,7 @@ test('site header renders its brand, navigation, active link, and mobile menu co
   const markup = renderToStaticMarkup(
     createElement(
       MemoryRouter,
-      { initialEntries: ['/'] },
+      { initialEntries: ['/map'] },
       createElement(SiteHeader),
     ),
   )

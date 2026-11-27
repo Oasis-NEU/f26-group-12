@@ -42,8 +42,8 @@ const footerGroups = [
   {
     title: 'Explore',
     links: [
-      { label: 'Nearby search', to: '/' },
-      { label: 'Cache detail', to: '/' },
+      { label: 'Nearby search', to: '/map' },
+      { label: 'Cache detail', to: '/map' },
       { label: 'My journal', to: '/journal' },
     ],
   },
@@ -76,7 +76,7 @@ function LandingPage() {
     <div className="min-h-screen bg-white text-black">
       <header className="px-4 pb-6 pt-6 sm:px-8 lg:px-20">
         <nav className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-5">
-          <Link to="/welcome" className="flex items-center gap-3 text-black no-underline">
+          <Link to="/" className="flex items-center gap-3 text-black no-underline">
             <span className="flex h-10 w-10 items-center justify-center bg-[#c8102e] text-xl font-extrabold text-white">
               N
             </span>
@@ -88,7 +88,7 @@ function LandingPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              to="/"
+              to="/map"
               className="inline-flex min-h-11 items-center gap-2 border-2 border-black px-4 py-2 text-base font-bold text-black no-underline transition-colors hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]"
             >
               <Search aria-hidden="true" size={18} />
@@ -132,7 +132,7 @@ function LandingPage() {
 
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                to="/"
+                to="/map"
                 className="inline-flex min-h-[54px] items-center bg-black px-6 py-4 text-lg font-bold text-white no-underline transition-colors hover:bg-[#292929] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]"
               >
                 Search nearby caches
@@ -338,7 +338,7 @@ function LandingPage() {
       <footer className="border-t-2 border-black px-4 py-10 sm:px-8 lg:px-20">
         <div className="mx-auto flex max-w-[1280px] flex-col justify-between gap-10 md:flex-row">
           <div className="max-w-xs">
-            <Link to="/welcome" className="inline-flex items-center gap-3 text-black no-underline">
+            <Link to="/" className="inline-flex items-center gap-3 text-black no-underline">
               <span className="flex h-10 w-10 items-center justify-center bg-[#c8102e] text-xl font-extrabold text-white">
                 G
               </span>
