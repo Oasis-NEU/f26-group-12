@@ -87,20 +87,27 @@ function SecretCodeField({ value, onChange, error }) {
         maxLength={12}
         aria-invalid={error ? true : undefined}
         aria-describedby={messageId}
-        className={`h-14 w-full rounded-lg border border-border-input bg-bg-surface px-4 text-code uppercase text-text-primary placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-text-secondary ${FOCUS_RING} ${
+        // The outline eases to red (150ms) when a wrong code comes back.
+        className={`h-14 w-full rounded-lg border border-border-input bg-bg-surface px-4 text-code uppercase motion-safe:transition-[border-color,box-shadow] motion-safe:duration-150 motion-safe:ease-out text-text-primary placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-text-secondary ${FOCUS_RING} ${
           error ? 'border-error inset-ring-1 inset-ring-error' : ''
         }`}
       />
       <div id={messageId} className="flex items-start gap-2">
         {error && (
           <span
+            key={error}
             aria-hidden="true"
-            className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-error font-display text-[12px]/[14px] font-bold text-text-on-accent"
+            className="transition-opacity duration-150 ease-out starting:opacity-0 flex size-[18px] shrink-0 items-center justify-center rounded-full bg-error font-display text-[12px]/[14px] font-bold text-text-on-accent"
           >
             !
           </span>
         )}
-        <p className={`text-small ${error ? 'text-error' : 'text-text-secondary'}`}>
+        {/* A new error fades in (150ms). Keyed by its text, so each new
+            message gets the fade; the help text just sits there. */}
+        <p
+          key={error || 'help'}
+          className={`text-small ${error ? 'text-error transition-opacity duration-150 ease-out starting:opacity-0' : 'text-text-secondary'}`}
+        >
           {error || 'It’s written on the slip inside the cache.'}
         </p>
       </div>
@@ -131,6 +138,13 @@ function NoteField({ value, onChange }) {
 
 // "Find logged!": the check, the cache, the points earned, and where to go
 // next. Its heading takes focus when it appears, so screen readers say it.
+//
+// This is the one celebration DESIGN.md allows (the moment the find
+// happens), kept inside its motion rules: the green circle grows in from
+// 90% (250ms), the check draws itself left to right and the points box
+// rises 4px (200ms each, starting 100ms in), all done by about 300ms, on
+// the shared ease-out. starting: is the style each part animates from (CSS
+// @starting-style). With reduced motion on, they only fade in.
 function FindLogged({ cache, totalPoints }) {
   const headingRef = useRef(null)
   useEffect(() => {
@@ -141,15 +155,21 @@ function FindLogged({ cache, totalPoints }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       {/* Found Green, with a check: the system's mark for "found". */}
-      <span aria-hidden="true" className="flex size-16 items-center justify-center rounded-full bg-found text-text-on-accent">
-        <Check size={32} strokeWidth={3} />
+      <span
+        aria-hidden="true"
+        className="flex size-16 items-center justify-center rounded-full bg-found text-text-on-accent transition-[opacity,scale] duration-250 ease-out starting:scale-90 starting:opacity-0 motion-reduce:starting:scale-100"
+      >
+        {/* clip-path uncovers the check from the left, so it looks drawn. */}
+        <span className="block transition-[clip-path] delay-100 duration-200 ease-out [clip-path:inset(0)] starting:[clip-path:inset(0_100%_0_0)] motion-reduce:starting:[clip-path:inset(0)]">
+          <Check size={32} strokeWidth={3} className="block" />
+        </span>
       </span>
       <h1 ref={headingRef} tabIndex={-1} className="text-display text-text-primary outline-none">
         Find logged!
       </h1>
       <p className="wrap-break-word text-body text-text-secondary">{cache.title}</p>
       {/* Star Gold Soft: the background DESIGN.md keeps for points earned. */}
-      <div className="flex w-full flex-col items-center gap-1 rounded-2xl bg-highlight-soft p-5">
+      <div className="flex w-full flex-col items-center gap-1 rounded-2xl bg-highlight-soft p-5 transition-[opacity,translate] delay-100 duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0">
         <p className="text-display text-text-primary">{pointsText(earned)}</p>
         {totalPoints !== null && (
           <p className="text-small text-text-secondary">
