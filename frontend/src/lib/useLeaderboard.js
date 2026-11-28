@@ -11,8 +11,10 @@ import { supabase } from './supabaseClient.js'
 // A "hook" is a function starting with "use" that a component calls to get
 // state that updates over time.
 //
-// Returns { loading, error, rows, ownRowBelow, signedIn, limit, retry }.
-// signedIn is undefined while checking, then true or false.
+// Returns { loading, error, timedOut, rows, ownRowBelow, signedIn, retry }.
+// signedIn is undefined while checking, then true or false. timedOut is
+// true when the error was no answer within 15 seconds (a weak signal),
+// rather than the database saying no.
 
 export function useLeaderboard() {
   // undefined while checking, then the user's id, or null when signed out.
@@ -20,7 +22,7 @@ export function useLeaderboard() {
   const [retryCount, setRetryCount] = useState(0)
   // Tagged with who it was loaded for (and which try), so a board loaded
   // for someone else, or an earlier try, is never shown.
-  const [loaded, setLoaded] = useState({ key: null, rows: [], ownRowBelow: null, error: false })
+  const [loaded, setLoaded] = useState({ key: null, rows: [], ownRowBelow: null, error: null })
 
   useEffect(() => {
     let active = true
@@ -53,10 +55,12 @@ export function useLeaderboard() {
     let active = true
     loadLeaderboard(supabase, LEADERBOARD_LIMIT)
       .then(({ rows, ownRowBelow }) => {
-        if (active) setLoaded({ key, rows, ownRowBelow, error: false })
+        if (active) setLoaded({ key, rows, ownRowBelow, error: null })
       })
-      .catch(() => {
-        if (active) setLoaded({ key, rows: [], ownRowBelow: null, error: true })
+      // error: 'timeout' (no answer in time) or 'failed' (anything else).
+      .catch((error) => {
+        const kind = error?.message === 'timeout' ? 'timeout' : 'failed'
+        if (active) setLoaded({ key, rows: [], ownRowBelow: null, error: kind })
       })
     return () => {
       active = false
@@ -67,11 +71,11 @@ export function useLeaderboard() {
 
   return {
     loading: !current,
-    error: current?.error ?? false,
+    error: Boolean(current?.error),
+    timedOut: current?.error === 'timeout',
     rows: current?.rows ?? [],
     ownRowBelow: current?.ownRowBelow ?? null,
     signedIn: userId === undefined ? undefined : Boolean(userId),
-    limit: LEADERBOARD_LIMIT,
     retry: () => setRetryCount((count) => count + 1),
   }
 }

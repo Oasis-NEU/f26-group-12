@@ -42,7 +42,9 @@ const ARRIVE = 'transition-opacity duration-200 ease-out starting:opacity-0'
 // a 1px border plus a 1px inset ring so it doesn't grow) on the Subtle fill,
 // "(you)" after your name, so it never rests on colour alone, and your
 // points on Star Gold Soft. It also gets an id and tabIndex={-1}, so "Show
-// my row" can move focus to it.
+// my row" can move focus to it. Its focus ring is the site-wide outline
+// (index.css), 2px outside the row, so it doesn't replace the ink edge the
+// way the shared ring classes (box-shadow rings) would.
 function LeaderboardRow({ person }) {
   const you = person.isMe
   const unit = pointsUnit(person.points)
@@ -51,9 +53,7 @@ function LeaderboardRow({ person }) {
       id={you ? MY_ROW_ID : undefined}
       tabIndex={you ? -1 : undefined}
       className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
-        you
-          ? `border-border-strong bg-bg-subtle ring-1 ring-inset ring-border-strong ${FOCUS_RING}`
-          : `bg-bg-surface ${CARD_BORDER}`
+        you ? 'border-border-strong bg-bg-subtle ring-1 ring-inset ring-border-strong' : `bg-bg-surface ${CARD_BORDER}`
       }`}
     >
       {/* min-w-8 fits 3-digit ranks (yours, under "Your place"), and
@@ -201,7 +201,10 @@ function LeaderboardPage() {
   } else if (board.error) {
     content = (
       <Notice role="alert">
-        We couldn’t load the leaderboard.{' '}
+        {/* A timeout is most likely a weak signal outdoors, so it says so. */}
+        {board.timedOut
+          ? 'The leaderboard took too long to load. Check your signal.'
+          : 'We couldn’t load the leaderboard.'}{' '}
         <button type="button" onClick={retry} className={TEXT_LINK}>
           Try again
         </button>

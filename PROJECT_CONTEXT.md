@@ -25,7 +25,7 @@ Core:
 - Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
 - Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
-- Score and leaderboard: points are the difficulty of every cache you've found, added up. `/leaderboard` ranks everyone with a find (from the `leaderboard` database function; anyone can see it, logged in or not) and highlights your own row.
+- Score and leaderboard: points are the difficulty of every cache you've found, added up. `/leaderboard` ranks everyone with a find (from the `leaderboard` database function; anyone can see it, logged in or not), highlights your own row, and says where you are ("You're #23 with 9 points.") with a button that jumps to your row.
 
 Next:
 - "Found" tab in the UI separating caches you've found from ones you haven't
