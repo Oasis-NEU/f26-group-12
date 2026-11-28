@@ -263,7 +263,8 @@ Club sessions for reference: HS 4 AI Implementation (10/18), HS 5 API Developmen
   live as Tailwind tokens in `frontend/src/index.css` (`@theme`). Use the token
   classes (`bg-accent`, `text-text-secondary`, `text-title`), never raw hex or
   pixel font sizes. Husky red accent on soft greens and grays, green for found,
-  gold for the selected pin, blue for keyboard focus (ratings are ink stars); Bricolage
+  gold for the selected pin, pink for favorited hearts, blue for keyboard focus
+  (ratings are ink stars); Bricolage
   Grotesque for headings, Atkinson Hyperlegible Next for body text, JetBrains
   Mono for secret codes; 8px corners on controls, 16px on cards
   (`rounded-full` only for pins, avatars, pill tags and the header's search

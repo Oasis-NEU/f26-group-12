@@ -19,6 +19,7 @@ colors:
   found: "#2d6a4f"
   found-soft: "#e3f0e8"
   highlight: "#f2b33d"
+  favorite: "#d6336c"
   focus: "#1d5faf"
 typography:
   hero:
@@ -207,7 +208,7 @@ The look is confident but never official. HuskyCache is an unofficial student pr
 
 **Key Characteristics:**
 - Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.
-- Four meaning colors, each with one job: red (to find, the main action), green (found), gold (the selected map pin), blue (keyboard focus).
+- Five meaning colors, each with one job: red (to find, the main action), green (found), gold (the selected map pin), pink (a favorite), blue (keyboard focus).
 - Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars, pill tags and the header's search and pages.
 - Flat surfaces; only things that float above the page cast a shadow: map pins and overlays (popups, the map card, menus, the login dialog).
 - Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.
@@ -224,6 +225,7 @@ A quiet sage-gray field with four saturated marks, each reserved for one meaning
 - **Found Green** (`found`): anything you've found. Found pins, the checkmark and the "Found by you" text. **Found Green Soft** (`found-soft`) is the pill behind "Found by you".
 
 ### Tertiary
+- **Favorite Pink** (`favorite`, #d6336c): only a favorited heart, filled and outlined in it (4.6:1 on white). Not red, because red already means "to find" and the main action; an empty heart stays an ink outline.
 - **Pin Gold** (`highlight`): only the ring around the selected map pin. Gold is a fill, never text; on white it's too light to read. (Ratings used to be gold; since 2026-11-28 stars are solid ink, which reads better in sun and fits the ink heart, and points earned sit on a plain white card.)
 
 ### Neutral
@@ -253,7 +255,7 @@ Text, the meaning colors and the focus ring don't change; they already pass in s
 **The Bright Sun Rule.** Anything that carries meaning must stay readable with Increase Contrast on. Anything that's only mood is allowed to vanish.
 
 ### Named Rules
-**The One Meaning Rule.** Red, green, gold and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something "pop".
+**The One Meaning Rule.** Red, green, gold, pink and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something "pop".
 
 **The One Red Button Rule.** A page has at most one Husky Red button. Every other action is Secondary.
 
@@ -359,7 +361,7 @@ Five 7 × 14px bars, 3px apart: filled bars in Text, empty ones in Border Subtle
 Five 28px stars with 8px gaps, using Figma's exported star images recoloured (filled stars are solid ink; empty ones are Border Input outlines). When picking a rating, each star is a button, and hovering with a mouse previews that rating.
 
 ### Favorite Button
-A cache's heart, for adding it to your favorites (they stay favorites after you find them). The heart is ink, never red: red, green and gold each already mean something. Filled stars are ink too: ink is the app's neutral "yes" mark, not a meaning colour. Outline when it's not a favorite, solid ink when it is, 20px.
+A cache's heart, for adding it to your favorites (they stay favorites after you find them). The heart is never red, since red already means "to find": an ink outline when it's not a favorite, solid Favorite Pink when it is (the only place pink is used), 20px. Filled stars are ink: ink is the app's neutral "yes" mark, not a meaning colour.
 - **Icon (cards, the map's popup and phone card):** a 40px round button; hover fills it with Subtle and pressing shrinks it to 97%. Screen readers hear "Favorite Krentzman Corner" with pressed on or off. In a cache card it sits in the top-right corner (8px from the right; see Cache card); in the popup and phone card it sits beside ×, 8px apart, so their tap areas don't overlap.
 - **Labelled (the cache page):** a 40px outlined button (Border Strong, 8px corners) with an 18px heart and "Favorite" / "Favorited" in Label text, right after the cache's name (on a long name it drops to the next line). Not on a taken-down cache.
 - **States:** while we're checking who's logged in or loading their favorites, the heart shows but can't be pressed (no hover or press). Signed out, it's a button that opens the Login Dialog ("Log in to add Krentzman Corner to your favorites."); once they've logged in, that cache becomes a favorite by itself: the heart they tapped fills (with its pop) as soon as their favorites have loaded, and focus goes back to it (if that heart is gone, the first one for that cache that's on screen does it, never a hidden copy). If they close the dialog instead, nothing changes. Tapping flips the heart at once; quick taps are sent one at a time, newest last. If it fails, it flips back and a small Inverse note ("Couldn't add it to your favorites. Try again.") shows under the button that was tapped, for 4 seconds, and is read out.
@@ -449,7 +451,7 @@ Logging in without leaving the page: the Log in page's own screens (log in, log 
 `/caches/new`: the hider sets where the cache is, says what it is, adds hints and gets its secret code; `create_cache` saves it all together. Phones show one column with "Where is it?" first (hiders are often standing at the spot) and "Hide this cache" in a full-width bottom bar; desktop puts the form on the left and "Where is it?" on the right (352px, 480px from 1280px), with "Hide this cache" and "Cancel" under the form.
 - **Where is it?:** the map picker when Google Maps is set up; otherwise a dashed frame like the empty cache photo. Under it, a Secondary "Use my current location" sets the pin to where they're standing and says how accurate it was, warning past 30 m. Then "Location name (optional)": "The general area finders head for."
 - **What is it?:** "Cache name" ("A name for the cache, not a clue to where it is"), "Description (optional)" ("What to look for, not where it is"), and Difficulty: five 48px options, the picked one in the Inverse fill, with bars beside the label and its meaning underneath ("Difficulty 3: Takes some searching").
-- **Hints (optional):** up to 3, drawn like the hint trail: numbered 24px stops (an ink ring while empty, solid ink once the hint has text) joined by a 2px line, solid between hints and dashed Border Input to the next one. There are no labels above the fields ("Hint 1", "Hint 2"… are for screen readers), and the placeholders step up: "e.g. Sit on the steps and look down", "A little more specific", "Nearly gives it away". The next hint waits as a dashed "Add another hint" row with a dashed + stop, in the spot its field will take, so adding one moves nothing: the line to it draws itself solid (250ms) and the next row rises in (200ms). The row goes once there are 3; hints after the first have an × inside the field to remove them.
+- **Hints (optional):** up to 3, as plain 48px fields one under another, 12px apart, with nothing beside them and no labels above them ("Hint 1", "Hint 2"… are for screen readers). The placeholders step up: "e.g. Sit on the steps and look down", "A little more specific", "Nearly gives it away". The next hint waits as a dashed "Add another hint" box (with a +) in the spot its field will take, so adding one moves nothing; the next box rises in (200ms). The box goes once there are 3; hints after the first have an × inside the field to remove them.
 - **Secret code:** 56px box, Code style, made in the browser (6 characters, never 0, O, 1, I or L), with a 48px refresh icon button inside the box ("Make a new code"). Each press turns the icon half a turn (250ms) and the new code fades in from a slight blur (150ms). Codes are read letter by letter to screen readers.
 - **Keyboard:** Enter moves to the next field; only the button saves. Save errors sit by the button.
 - **Signed out:** "Log in to hide a cache" ("Hiding a cache needs an account, so it’s saved as yours and you can edit it later.") with the Login Dialog open over it; the form appears once they've logged in. If the login runs out while saving, "Log in again to hide your cache" keeps the form, and its "Log in" opens the dialog and brings the form back.
@@ -484,7 +486,7 @@ Logging in without leaving the page: the Log in page's own screens (log in, log 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep each meaning color to its one job: Husky Red for to-find and the main action, Found Green for found, Pin Gold for the selected pin, Focus Blue for keyboard focus.
+- **Do** keep each meaning color to its one job: Husky Red for to-find and the main action, Found Green for found, Pin Gold for the selected pin, Favorite Pink for favorited hearts, Focus Blue for keyboard focus.
 - **Do** show difficulty as bars plus "Difficulty N", and ratings as stars, so the two are never confused.
 - **Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.
 - **Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.

@@ -42,6 +42,7 @@
   --color-found: #2d6a4f; /* green: found status + checkmark */
   --color-found-soft: #e3f0e8; /* found-state supporting surface */
   --color-highlight: #f2b33d; /* gold: the selected pin ring only */
+  --color-favorite: #d6336c; /* rose pink: a favorited (filled) heart only */
   --color-focus: #1d5faf; /* blue: keyboard focus ring */
 
   /* Corners: gently rounded controls and cards; fully round only for pins,

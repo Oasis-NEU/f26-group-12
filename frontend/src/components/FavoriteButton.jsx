@@ -11,9 +11,10 @@ import {
 } from './login/pendingFavorite.js'
 
 // The favourite (heart) button for a cache: an ink outline heart that turns
-// solid ink when it's a favourite. Ink, not a meaning colour: red, green and
-// gold each already mean something (DESIGN.md's One Meaning Rule), so the
-// heart is never red. Favourites stay favourites after you find them.
+// solid rose pink (Favorite Pink) when it's a favourite. Pink, not red: red
+// already means "to find" and the main action (DESIGN.md's One Meaning
+// Rule), so favourites get their own colour, used for nothing else.
+// Favourites stay favourites after you find them.
 //
 // Two looks:
 //   (default)   a 40px round icon button, for cache cards, the map's popup
@@ -130,10 +131,10 @@ function FavoriteButton({
         aria-hidden="true"
         size={labelled ? 18 : 20}
         strokeWidth={2}
-        className={`${tapped ? 'transition-[fill] duration-150 ease-out' : ''} ${
+        className={`${tapped ? 'transition-[fill,color] duration-150 ease-out' : ''} ${
           saved
-            ? `fill-text-primary ${tapped ? 'starting:fill-transparent' : ''}`
-            : `fill-transparent ${tapped ? 'starting:fill-text-primary' : ''}`
+            ? `fill-favorite text-favorite ${tapped ? 'starting:fill-transparent starting:text-text-primary' : ''}`
+            : `fill-transparent text-text-primary ${tapped ? 'starting:fill-favorite starting:text-favorite' : ''}`
         }`}
       />
     </span>
