@@ -27,10 +27,34 @@ import { CheckEmail, CodeForm, ForgotForm, LoginForm, SCREEN_ENTER, SignUpForm, 
 // float above a dimmed page, so they're one of the few things with the
 // Overlay shadow.
 //
+// Motion: see OPEN_MOTION below. Switching screens inside reuses the Log in
+// page's fade-and-rise (SCREEN_ENTER).
+//
 // It's a native <dialog> opened with showModal(): the browser keeps focus
 // inside it, makes the page behind unreachable, and closes it on Escape.
 // Focus starts on its heading, and goes back to whatever opened it.
 // When someone logs in, it closes by itself and runs onLoggedIn.
+
+// Motion (DESIGN.md: on the shared ease-out, under 300ms, reduced motion
+// fades only). Opening is something someone did, so it shows where the
+// dialog came from: the phone sheet slides up from the bottom edge (250ms;
+// a full-height sheet needs a little longer to travel), and the desktop
+// card fades in and grows from 97% out of the middle (200ms), like the
+// account menu but centred, since it isn't attached to what opened it.
+// The dimmed backdrop fades in alongside. starting: is the style it
+// animates from (CSS @starting-style), so this plays each time showModal()
+// opens it. Closing is instant: once they've chosen to leave (or logged
+// in), the page should be back straight away, as with the menus.
+const OPEN_MOTION = [
+  // Phones: slide up from below the screen.
+  'transition-[translate,opacity,scale] duration-250 ease-out starting:open:translate-y-full',
+  'backdrop:transition-opacity backdrop:duration-250 backdrop:ease-out starting:open:backdrop:opacity-0',
+  // Desktop: fade in and grow from 97%, no slide.
+  'lg:duration-200 lg:starting:open:translate-y-0 lg:starting:open:scale-97 lg:starting:open:opacity-0 lg:backdrop:duration-200',
+  // Reduced motion: no slide or growth, only the fade.
+  // (lg:motion-reduce: too, so the desktop growth above doesn't win.)
+  'motion-reduce:starting:open:translate-y-0 motion-reduce:starting:open:opacity-0 lg:motion-reduce:starting:open:scale-100',
+].join(' ')
 
 const HEADING_ID = DIALOG_SCREEN.idFor('login-heading')
 const REASON_ID = 'login-dialog-reason'
@@ -268,7 +292,7 @@ function LoginDialogProvider({ children }) {
         onPointerDown={handlePointerDown}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        className="fixed inset-x-0 bottom-0 top-auto m-0 h-[calc(100dvh-3rem)] max-h-none w-full max-w-none overflow-hidden rounded-t-2xl border-0 bg-bg-surface p-0 text-text-primary shadow-overlay backdrop:bg-bg-inverse/40 open:flex open:flex-col lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[calc(100dvh-4rem)] lg:max-w-[28rem] lg:rounded-2xl lg:border lg:border-border-subtle lg:contrast-more:border-border-input"
+        className={`fixed inset-x-0 bottom-0 top-auto m-0 h-[calc(100dvh-3rem)] max-h-none w-full max-w-none overflow-hidden rounded-t-2xl border-0 bg-bg-surface p-0 text-text-primary shadow-overlay backdrop:bg-bg-inverse/40 open:flex open:flex-col lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[calc(100dvh-4rem)] lg:max-w-[28rem] lg:rounded-2xl lg:border lg:border-border-subtle lg:contrast-more:border-border-input ${OPEN_MOTION}`}
       >
         {request && (
           <LoginDialogContent key={request.key} initialMode={request.mode} reason={request.reason} onClose={closeLogin} />
