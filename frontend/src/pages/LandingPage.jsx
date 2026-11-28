@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import Button from '../components/Button.jsx'
 import CacheCard from '../components/CacheCard.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
@@ -25,6 +26,38 @@ import { contourRing } from './cacheDetail/contours.js'
 // contrast-more: classes apply when someone turns on Increase Contrast
 // (iPhone: Settings > Accessibility > Display & Text Size): the contour
 // rings hide and faint edges darken, so the page stays crisp in bright sun.
+
+// Motion (DESIGN.md), on the shared ease-out, under 300ms. starting: is
+// the style each one animates from (CSS @starting-style), which runs when
+// the element is put on the page.
+//   ENTRANCE  the page's one orchestrated moment: the first time someone
+//             opens the landing page in a tab, the hero's words and photo
+//             fade in and rise 8px together (300ms). No stagger (DESIGN.md:
+//             don't stagger page entrances) and nothing loops. The contour
+//             rings stay still (decoration never animates). With reduced
+//             motion only the fade stays.
+//   ARRIVE    the caches load a moment after the page, so when they arrive
+//             they fade in once, all together (200ms), like the Leaderboard.
+//             Opacity only, so reduced motion keeps it.
+// Card hover and press come from CacheCard, button presses from Button.
+const ENTRANCE =
+  'transition-[opacity,translate] duration-300 ease-out starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0'
+const ARRIVE = 'transition-opacity duration-200 ease-out starting:opacity-0'
+
+// Whether the hero has already played its entrance in this tab. Coming back
+// to the home page (the logo goes here) just shows it: an entrance seen
+// again and again starts to feel slow.
+let heroHasPlayed = false
+
+function useFirstVisitEntrance() {
+  // Worked out once, when the page first appears, so it doesn't change
+  // halfway through the animation.
+  const [playEntrance] = useState(() => !heroHasPlayed)
+  useEffect(() => {
+    heroHasPlayed = true
+  }, [])
+  return playEntrance ? ENTRANCE : ''
+}
 
 const STEPS = [
   { title: 'Find a cache', text: 'Pick one on the map of campus and use the hints if you need them.' },
@@ -59,14 +92,16 @@ function PhotoContours() {
 // to do and the campus photo. "Find a cache" is the page's one red button;
 // "Hide a cache" opens the login dialog by itself for signed-out people.
 function Hero() {
+  const entrance = useFirstVisitEntrance()
   return (
     <section
       aria-labelledby="landing-heading"
       className="grid gap-8 lg:grid-cols-[minmax(0,33fr)_minmax(0,35fr)] lg:items-center lg:gap-16"
     >
-      <div className="flex flex-col items-start gap-4 lg:gap-5">
+      <div className={`flex flex-col items-start gap-4 lg:gap-5 ${entrance}`}>
         {/* Display on phones, Section on small laptops (where 64px would
-            squeeze into a narrow column), Hero from 1280px. */}
+            squeeze into a narrow column), Hero from 1280px. The section
+            headings below stay a step smaller at each size. */}
         <h1 id="landing-heading" className="text-balance text-display text-text-primary lg:text-section xl:text-hero">
           Cache in and stay connected to the NU community!
         </h1>
@@ -90,6 +125,8 @@ function Hero() {
           Northeastern site. The photo is the page's largest element, so the
           browser fetches it first (fetchPriority) and width/height reserve its
           space before it arrives. It's 900 x 594 and about 125 KB already. */}
+      {/* The photo and its caption take the entrance, not the figure, so the
+          contour rings behind them stay still. */}
       <figure className="relative flex flex-col gap-2">
         <PhotoContours />
         <img
@@ -99,10 +136,10 @@ function Hero() {
           height={594}
           fetchPriority="high"
           decoding="async"
-          className="aspect-[3/2] w-full rounded-2xl bg-bg-subtle object-cover lg:aspect-[7/5]"
+          className={`aspect-[3/2] w-full rounded-2xl bg-bg-subtle object-cover lg:aspect-[7/5] ${entrance}`}
         />
         {/* Names the place, as a field guide would: newcomers may not know it yet. */}
-        <figcaption className="text-small text-text-secondary">Snell Library</figcaption>
+        <figcaption className={`text-small text-text-secondary ${entrance}`}>Snell Library</figcaption>
       </figure>
     </section>
   )
@@ -115,7 +152,7 @@ function Hero() {
 function HowItWorks() {
   return (
     <section aria-labelledby="how-it-works-heading" className="flex flex-col gap-5 lg:gap-6">
-      <h2 id="how-it-works-heading" className="text-title text-text-primary lg:text-section">
+      <h2 id="how-it-works-heading" className="text-title text-text-primary lg:text-display xl:text-section">
         How it works
       </h2>
       <ol className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:gap-6">
@@ -164,9 +201,9 @@ function FeaturedCaches() {
   const ratingFor = (id) => (ratings ? (ratings[id] ?? { average: null, count: 0 }) : undefined)
 
   return (
-    <section aria-labelledby="featured-heading" className="flex flex-col gap-5 lg:gap-6">
+    <section aria-labelledby="featured-heading" className={`flex flex-col gap-5 lg:gap-6 ${ARRIVE}`}>
       <div className="flex flex-col gap-1">
-        <h2 id="featured-heading" className="text-title text-text-primary lg:text-section">
+        <h2 id="featured-heading" className="text-title text-text-primary lg:text-display xl:text-section">
           Waiting to be found
         </h2>
         <p className="text-body text-text-secondary">Caches other students have hidden around campus.</p>
