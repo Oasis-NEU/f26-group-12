@@ -1,6 +1,8 @@
+import { NOTE_MAX_LENGTH } from './logFind.js'
+
 // Data for the Journal page (/journal): your finds, your favorites, and
-// saving a rating on a find you haven't rated yet. Each function takes the
-// Supabase client, so tests can pass in a fake one.
+// saving a rating or a journal note on one of your finds. Each function
+// takes the Supabase client, so tests can pass in a fake one.
 //
 // Nothing here selects secret_code (it lives in cache_secrets, which this
 // file never touches). Each query asks only for the columns the page shows.
@@ -49,19 +51,58 @@ export async function loadFavoriteCaches(supabase, userId) {
   return (data ?? []).map((row) => row.caches).filter((cache) => cache && cache.is_active)
 }
 
-// Saves a rating (1-5) on one of your finds. Finders may change rating,
-// journal_note and photo on their own finds (schema.sql), and only the
-// rating is sent, so the journal note is never touched. select() asks for
-// the updated row back: if nothing came back, nothing was saved (e.g. the
-// login ran out), so that counts as a failure rather than a silent no-op.
+// The error code for "the database saved nothing": the update ran but
+// changed no row. That happens when the login ran out (the rules, RLS, then
+// see nobody's finds), so the page asks them to log in again.
+export const NOT_SAVED = 'not-saved'
+
+// Changes one column on one of your finds and returns its new value.
+// Finders may change rating, journal_note and photo on their own finds
+// (schema.sql), and only the one column is sent, so the others are never
+// touched. select() asks for the updated row back: if nothing came back,
+// nothing was saved, so that's a failure rather than a silent no-op.
+async function updateOwnFind(supabase, findId, column, value) {
+  const { data, error } = await supabase
+    .from('finds')
+    .update({ [column]: value })
+    .eq('id', findId)
+    .select(`id,${column}`)
+  if (error) throw error
+  if (!data || data.length === 0) {
+    throw Object.assign(new Error('Nothing was saved.'), { code: NOT_SAVED })
+  }
+  return data[0][column]
+}
+
+// Saves a rating (1-5) on one of your finds; the note isn't touched.
 export async function saveFindRating(supabase, { findId, rating }) {
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     throw new Error('A rating is 1 to 5 stars.')
   }
-  const { data, error } = await supabase.from('finds').update({ rating }).eq('id', findId).select('id,rating')
-  if (error) throw error
-  if (!data || data.length === 0) throw new Error('That rating didn’t save.')
-  return data[0].rating
+  return updateOwnFind(supabase, findId, 'rating', rating)
+}
+
+// Saves the journal note on one of your finds; the rating isn't touched.
+// Spaces at the ends are trimmed, and an empty note is saved as no note.
+// Returns the saved note ('' for none). The limit is the same as on the
+// Log a find page (NOTE_MAX_LENGTH in logFind.js).
+export async function saveFindNote(supabase, { findId, note }) {
+  const text = note.trim()
+  if (text.length > NOTE_MAX_LENGTH) {
+    throw new Error(`Notes can be up to ${NOTE_MAX_LENGTH} characters.`)
+  }
+  return (await updateOwnFind(supabase, findId, 'journal_note', text || null)) ?? ''
+}
+
+// What to say when a rating or note (what: 'rating' or 'note') didn't save:
+//   needsLogin  the login ran out (nothing saved, or the database said so):
+//               the page links to Log in, which comes back to the journal
+//   otherwise   most likely the connection
+export function describeFindSaveError(error, what) {
+  const loggedOut =
+    error?.code === NOT_SAVED || error?.code === 'PGRST301' || error?.status === 401 || /jwt/i.test(String(error?.message ?? ''))
+  if (loggedOut) return { needsLogin: true, message: `Log in again to save your ${what}.` }
+  return { needsLogin: false, message: `Your ${what} didn’t save. Check your connection and try again.` }
 }
 
 // Points and caches found, worked out from your finds (they're calculated,

@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  NOT_SAVED,
+  describeFindSaveError,
   foundDateText,
   journalTotals,
   loadFavoriteCaches,
   loadJournalFinds,
+  saveFindNote,
   saveFindRating,
 } from '../src/lib/journal.js'
+import { NOTE_MAX_LENGTH } from '../src/lib/logFind.js'
 
 // A tiny stand-in for the Supabase client that records each call. Every
 // method returns the query again, and awaiting it gives `result`.
@@ -88,7 +92,10 @@ test('rating a find sends only the rating, for that find', async () => {
 })
 
 test('a rating that changed no row, errored, or is out of range counts as not saved', async () => {
-  await assert.rejects(saveFindRating(fakeClient({ data: [], error: null }).client, { findId: 7, rating: 4 }))
+  // No row came back: the login ran out, so it's tagged NOT_SAVED.
+  await assert.rejects(saveFindRating(fakeClient({ data: [], error: null }).client, { findId: 7, rating: 4 }), {
+    code: NOT_SAVED,
+  })
   await assert.rejects(saveFindRating(fakeClient({ data: null, error: { message: 'denied' } }).client, { findId: 7, rating: 4 }))
   const { calls, client } = fakeClient()
   await assert.rejects(saveFindRating(client, { findId: 7, rating: 6 }))
@@ -106,4 +113,45 @@ test('found dates show the year only once it is needed', () => {
   const now = new Date('2026-11-27T12:00:00')
   assert.equal(foundDateText('2026-10-30T12:00:00', now), 'Found Oct 30')
   assert.equal(foundDateText('2025-10-30T12:00:00', now), 'Found Oct 30, 2025')
+})
+
+test('saving a note sends only the trimmed note, for that find', async () => {
+  const { calls, client } = fakeClient({ data: [{ id: 7, journal_note: 'Loved it' }], error: null })
+  assert.equal(await saveFindNote(client, { findId: 7, note: '  Loved it \n' }), 'Loved it')
+  assert.deepEqual(calls, [
+    ['from', 'finds'],
+    ['update', { journal_note: 'Loved it' }],
+    ['eq', 'id', 7],
+    ['select', 'id,journal_note'],
+  ])
+})
+
+test('an empty note is saved as no note', async () => {
+  const { calls, client } = fakeClient({ data: [{ id: 7, journal_note: null }], error: null })
+  assert.equal(await saveFindNote(client, { findId: 7, note: '   ' }), '')
+  assert.deepEqual(calls[1], ['update', { journal_note: null }])
+})
+
+test('a note that changed no row, errored, or is too long counts as not saved', async () => {
+  await assert.rejects(saveFindNote(fakeClient({ data: [], error: null }).client, { findId: 7, note: 'Hi' }), {
+    code: NOT_SAVED,
+  })
+  await assert.rejects(saveFindNote(fakeClient({ data: null, error: { message: 'boom' } }).client, { findId: 7, note: 'Hi' }))
+  const { calls, client } = fakeClient()
+  await assert.rejects(saveFindNote(client, { findId: 7, note: 'x'.repeat(NOTE_MAX_LENGTH + 1) }))
+  assert.equal(calls.length, 0)
+})
+
+test('save errors: a lost login asks to log in again, anything else blames the connection', () => {
+  const notSaved = Object.assign(new Error('Nothing was saved.'), { code: NOT_SAVED })
+  assert.deepEqual(describeFindSaveError(notSaved, 'rating'), {
+    needsLogin: true,
+    message: 'Log in again to save your rating.',
+  })
+  assert.equal(describeFindSaveError({ code: 'PGRST301', message: 'JWT expired' }, 'note').needsLogin, true)
+  assert.equal(describeFindSaveError({ status: 401 }, 'note').needsLogin, true)
+  assert.deepEqual(describeFindSaveError(new TypeError('Failed to fetch'), 'note'), {
+    needsLogin: false,
+    message: 'Your note didn’t save. Check your connection and try again.',
+  })
 })

@@ -15,7 +15,7 @@ Core:
 - Map of campus/Boston showing existing caches
 - Find a cache and log it (confirmed with a secret code, see Decisions)
 - Hints per cache (up to 3, revealed in order)
-- Journal of each user's finds with difficulty and star rating (a find you haven't rated has a "Rate it" button that opens the stars in place), plus their points and caches found
+- Journal of each user's finds with difficulty and star rating, plus their points and caches found. Ratings ("Rate it" / "Change") and journal notes ("Add a note" / "Edit note") can be added or changed in place in the journal; only that one column is saved.
 - Rate caches after finding them
 - Log in and sign up with email (log in with a password, or with a 6-digit code emailed to you)
 - Forgot password (reset by an emailed link)

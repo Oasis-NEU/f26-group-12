@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { loadCacheRatings } from './cacheRatings.js'
-import { loadFavoriteCaches, loadJournalFinds, saveFindRating } from './journal.js'
+import { loadFavoriteCaches, loadJournalFinds, saveFindNote, saveFindRating } from './journal.js'
 import { supabase } from './supabaseClient.js'
 
 // Everything the Journal page loads, in one hook:
 //   - who's signed in (the page sends signed-out people to log in)
 //   - your finds, newest first, with each cache's public details
 //   - the caches you favorited, and their average ratings (for the cards)
-// plus rateFind(), which saves a rating on a find you haven't rated yet.
+// plus rateFind() and saveNote(), which save a rating or a journal note on
+// one of your finds.
 // The queries live in journal.js; none of them select secret_code.
 //
 // A "hook" is a function starting with "use" that a component calls to get
@@ -87,14 +88,21 @@ export function useJournal() {
   const finds = findsResult.key === findsKey ? findsResult : null
   const favorites = favoritesResult.key === favoritesKey ? favoritesResult : null
 
-  // Saves a rating on one of your finds, then shows it in the list. Throws
-  // if it didn't save, so the page can say so.
-  async function rateFind(findId, rating) {
-    const saved = await saveFindRating(supabase, { findId, rating })
+  // Shows a saved change to one find in the list.
+  function updateFind(findId, changes) {
     setFindsResult((current) => ({
       ...current,
-      items: current.items.map((find) => (find.id === findId ? { ...find, rating: saved } : find)),
+      items: current.items.map((find) => (find.id === findId ? { ...find, ...changes } : find)),
     }))
+  }
+
+  // Save a rating or a note on one of your finds, then show it in the list.
+  // They throw if it didn't save, so the page can say so.
+  async function rateFind(findId, rating) {
+    updateFind(findId, { rating: await saveFindRating(supabase, { findId, rating }) })
+  }
+  async function saveNote(findId, note) {
+    updateFind(findId, { note: await saveFindNote(supabase, { findId, note }) })
   }
 
 
@@ -115,5 +123,6 @@ export function useJournal() {
       retry: () => setFavoritesTry((count) => count + 1),
     },
     rateFind,
+    saveNote,
   }
 }
