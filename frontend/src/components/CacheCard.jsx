@@ -59,10 +59,15 @@ export function FoundTag() {
 //
 // While it downloads, a Subtle band holds its place (so nothing moves), and
 // the photo fades in over it when it arrives (200ms) instead of popping in.
-// A fade isn't movement, so it stays with reduced motion on. If it won't
+// A photo the browser already has (the card came back after a filter
+// change, or on returning to the map) just shows: re-fading those would
+// make the list shimmer, and lists don't animate when a filter changes. A
+// fade isn't movement, so it stays with reduced motion on. If it won't
 // load, onFail tells the card, which leaves the photo area out.
 function CardPhoto({ image, wide, onFail }) {
-  const [loaded, setLoaded] = useState(false)
+  // 'loading', 'fading' (arrived after the card appeared) or 'shown'
+  // (already there).
+  const [state, setState] = useState('loading')
   return (
     <span
       className={`block w-full overflow-hidden rounded-t-[15px] bg-bg-subtle ${
@@ -70,15 +75,19 @@ function CardPhoto({ image, wide, onFail }) {
       }`}
     >
       <img
+        // Already downloaded when the card appears: show it straight away.
+        ref={(img) => {
+          if (img?.complete && img.naturalWidth > 0 && state === 'loading') setState('shown')
+        }}
         src={image}
         alt=""
         loading="lazy"
         decoding="async"
-        onLoad={() => setLoaded(true)}
+        onLoad={() => setState((current) => (current === 'loading' ? 'fading' : current))}
         onError={onFail}
-        className={`size-full object-cover transition-opacity duration-200 ease-out ${
-          loaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`size-full object-cover ${
+          state === 'loading' ? 'opacity-0' : 'opacity-100'
+        } ${state === 'fading' ? 'transition-opacity duration-200 ease-out' : ''}`}
       />
     </span>
   )
