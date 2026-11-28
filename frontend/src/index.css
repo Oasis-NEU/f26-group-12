@@ -53,7 +53,7 @@
 
   /* Shadows: only things that float above the page have one. Names match
      the Figma effect styles "Shadow / Pin" and "Shadow / Overlay". */
-  --shadow-pin: 0 1px 3px 0 rgb(0 0 0 / 0.2); /* map pins */
+  --shadow-pin: 0 1px 3px 0 rgb(0 0 0 / 0.2); /* map pins, and the heart's circle on a photo */
   --shadow-overlay: 0 6px 20px 0 rgb(23 27 24 / 0.14); /* popups, the map card, menus */
 
   /* Motion: one strong ease-out for every UI animation (things appearing,

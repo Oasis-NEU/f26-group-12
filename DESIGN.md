@@ -164,6 +164,16 @@ components:
     padding: "12px"
   cache-card-hover:
     backgroundColor: "{colors.bg-subtle}"
+  cache-card-selected:
+    backgroundColor: "{colors.bg-subtle}"
+  favorite-button:
+    textColor: "{colors.text-primary}"
+    rounded: "{rounded.full}"
+    size: "40px"
+  favorite-button-favorited:
+    textColor: "{colors.favorite}"
+    rounded: "{rounded.full}"
+    size: "40px"
   found-tag:
     backgroundColor: "{colors.found-soft}"
     textColor: "{colors.found}"
@@ -192,6 +202,15 @@ components:
     backgroundColor: "{colors.bg-surface}"
     padding: "0 16px"
     height: "56px"
+  nav-pill:
+    textColor: "{colors.text-secondary}"
+    typography: "{typography.label}"
+    rounded: "{rounded.full}"
+    padding: "0 12px"
+    height: "40px"
+  nav-pill-active:
+    backgroundColor: "{colors.bg-subtle}"
+    textColor: "{colors.text-primary}"
 ---
 
 # Design System: HuskyCache
@@ -209,8 +228,8 @@ The look is confident but never official. HuskyCache is an unofficial student pr
 **Key Characteristics:**
 - Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.
 - Five meaning colors, each with one job: red (to find, the main action), green (found), gold (the selected map pin), pink (a favorite), blue (keyboard focus).
-- Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars, pill tags and the header's search and pages.
-- Flat surfaces; only things that float above the page cast a shadow: map pins and overlays (popups, the map card, menus, the login dialog).
+- Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars, pill tags, icon buttons (the heart) and the header's search and pages.
+- Flat surfaces; only things that float above the page cast a shadow: map pins, the heart's white circle on a photo, and overlays (popups, the map card, menus, the login dialog).
 - Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.
 - Mobile-first, built for one-handed, outdoor use; desktop is the same system with more room.
 
