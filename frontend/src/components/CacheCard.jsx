@@ -225,14 +225,21 @@ function CacheCard({
           </div>
         </div>
       </div>
-      {/* Above the stretched link, so it gets its own clicks, 8px in on
-          every card. On a photo it sits on a white circle with a faint ink
-          edge and the pin shadow, so it reads on any picture, even bright
-          sky or stone. */}
+      {/* Above the stretched link, so it gets its own clicks, 8px in from
+          the right on every card, so hearts line up down a list. On a photo
+          it sits 8px from the top too, on a white circle with a faint ink
+          edge (darker with Increase Contrast) and the pin shadow, so it reads
+          on any picture, even bright sky or stone. With no photo it's
+          centred on the title's first line instead (the card's padding less
+          8px), so the heart and the name sit level. */}
       {corner && (
         <div
-          className={`absolute right-2 top-2 z-10 ${
-            hasPhoto ? 'rounded-full bg-bg-surface shadow-pin ring-1 ring-text-primary/15' : ''
+          className={`absolute right-2 z-10 ${
+            hasPhoto
+              ? 'top-2 rounded-full bg-bg-surface shadow-pin ring-1 ring-text-primary/15 contrast-more:ring-border-input'
+              : roomy
+                ? 'top-2 lg:top-3'
+                : 'top-1'
           }`}
         >
           {corner}

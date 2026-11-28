@@ -177,6 +177,30 @@ function DevComponentsPage() {
               to="/dev/components"
             />
           </State>
+          <State name="Photo · Found · Selected, with a heart" wide>
+            <CacheCard
+              title="Snell Study Break"
+              location="Snell Library"
+              difficulty={1}
+              image="/assets/snell-library.jpeg"
+              rating={{ average: 4.6, count: 12 }}
+              found
+              selected
+              corner={<FavoriteButton title="Snell Study Break" signedIn saved={false} onToggle={() => {}} cacheId="dev-7" />}
+            />
+          </State>
+          <State name="Roomy (the Journal's Favorites, hover me)" wide>
+            <CacheCard
+              title="West Village Walk"
+              location="West Village"
+              difficulty={2}
+              image="/assets/west-village-residence.jpeg"
+              rating={{ average: 4.6, count: 12 }}
+              roomy
+              to="/dev/components"
+              corner={<FavoriteButton title="West Village Walk" signedIn saved onToggle={() => {}} cacheId="dev-8" />}
+            />
+          </State>
           <State name="No ratings yet" wide>
             <CacheCard
               title="Common Ground"
