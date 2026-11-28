@@ -94,10 +94,11 @@ function RetryButton({ onClick }) {
 }
 
 // Your points and caches found, in one quiet row on Star Gold Soft (the
-// points background; the text stays ink, never gold). A <dl> pairs each
-// number with its words for screen readers ("points: 4"); flex-row-reverse
-// shows the number first. While the finds load it holds its space (an
-// invisible copy), so nothing jumps when they arrive.
+// points background; the text stays ink, never gold), with a line saying
+// where points come from. A <dl> pairs each number with its words for
+// screen readers ("points: 4"); flex-row-reverse shows the number first.
+// While the finds load it holds its space (an invisible copy), so nothing
+// jumps when they arrive.
 function Summary({ finds, loading }) {
   const { points, found } = journalTotals(finds)
   const stats = [
@@ -105,17 +106,23 @@ function Summary({ finds, loading }) {
     { value: found, label: foundLabel(found) },
   ]
   return (
-    <dl
+    <div
       aria-hidden={loading || undefined}
       className="flex flex-wrap items-baseline gap-x-6 gap-y-1 rounded-2xl bg-highlight-soft px-4 py-3 lg:px-5"
     >
-      {stats.map((stat) => (
-        <div key={stat.label} className={`flex flex-row-reverse items-baseline justify-end gap-1.5 ${loading ? 'invisible' : ''}`}>
-          <dt className="text-small text-text-secondary">{stat.label}</dt>
-          <dd className="text-title text-text-primary tabular-nums">{stat.value}</dd>
-        </div>
-      ))}
-    </dl>
+      <dl className={`flex flex-wrap items-baseline gap-x-6 gap-y-1 ${loading ? 'invisible' : ''}`}>
+        {stats.map((stat) => (
+          <div key={stat.label} className="flex flex-row-reverse items-baseline justify-end gap-1.5">
+            <dt className="text-small text-text-secondary">{stat.label}</dt>
+            <dd className="text-title text-text-primary tabular-nums">{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
+      {/* At the far end on desktop; under the numbers on phones. */}
+      <p className={`text-small text-text-secondary lg:ml-auto ${loading ? 'invisible' : ''}`}>
+        Each find earns its difficulty in points.
+      </p>
+    </div>
   )
 }
 
@@ -370,7 +377,7 @@ function YourRating({ find, title, canRate, onRate }) {
     controls = (
       <button type="button" ref={openButtonRef} onClick={open} className={QUIET_BUTTON}>
         <Star aria-hidden="true" size={16} strokeWidth={2} />
-        Rate it<span className="sr-only"> ({title})</span>
+        Rate it<span className="sr-only"> for {title}</span>
       </button>
     )
   }
@@ -530,7 +537,7 @@ function JournalNote({ find, title, onSave }) {
           </div>
         </div>
       ) : (
-        <div key="closed" className="flex flex-col items-start gap-3">
+        <div key="closed" className="flex flex-col items-start gap-2">
           {find.note && (
             <p className="w-full whitespace-pre-line wrap-break-word border-l-2 border-border-subtle pl-3 text-body text-text-primary contrast-more:border-border-input">
               {find.note}
@@ -600,11 +607,13 @@ function JournalEntry({ find, onRate, onSaveNote }) {
         {!open && <p className="text-small text-text-primary">Its hider took it down, so its page can’t be opened.</p>}
       </div>
       {/* Above the stretched link, so its buttons get their own clicks. */}
-      <div className="relative z-10 col-span-2 flex min-w-0 flex-col gap-3 lg:col-span-1 lg:col-start-2">
+      {/* Two groups: your note (with its button), then the cache's
+          difficulty and your rating, 16px apart. */}
+      <div className="relative z-10 col-span-2 flex min-w-0 flex-col gap-4 lg:col-span-1 lg:col-start-2">
         <JournalNote find={find} title={title} onSave={(note) => onSaveNote(find.id, note)} />
         {/* Phones: difficulty above the rating. Desktop: side by side. */}
         {hasDetails && (
-          <div className="flex flex-col items-start gap-2 lg:flex-row lg:flex-wrap lg:items-start lg:gap-x-6">
+          <div className="flex flex-col items-start gap-1 lg:flex-row lg:flex-wrap lg:items-start lg:gap-x-6">
             {cache && (
               <span id={difficultyId} className="flex min-h-7 items-center">
                 <DifficultyMeter level={cache.difficulty} />
@@ -640,7 +649,7 @@ function FindsPanel({ finds, onRate, onSaveNote }) {
     )
   }
   return (
-    <div className="flex flex-col items-start gap-4">
+    <div className="flex flex-col items-start gap-6">
       <ul className="flex w-full flex-col gap-4">
         {finds.items.map((find) => (
           <JournalEntry key={find.id} find={find} onRate={onRate} onSaveNote={onSaveNote} />
