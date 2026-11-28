@@ -1,25 +1,31 @@
+import { ArrowDown } from 'lucide-react'
+import { useRef } from 'react'
 import { Link } from 'react-router'
 import { getInitials } from '../components/accountData.js'
 import Button from '../components/Button.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import SiteHeader from '../components/SiteHeader.jsx'
-import { findsLabel, pointsUnit } from '../lib/leaderboard.js'
+import { findsLabel, pointsUnit, yourRankLine } from '../lib/leaderboard.js'
 import { useLeaderboard } from '../lib/useLeaderboard.js'
 
 // The leaderboard: /leaderboard
 //
 // Everyone who has found a cache, ranked by points (the difficulty of every
 // cache they've found, added up). Anyone can see it, logged in or not; the
-// logged-in person's own row is highlighted. The data comes from
-// useLeaderboard (src/lib), which calls the leaderboard database function:
-// totals only, never which caches anyone found, never secret codes.
+// logged-in person's own row is highlighted, and a line at the top says
+// where they are, with a button that takes them to their row. The data comes
+// from useLeaderboard (src/lib), which calls the leaderboard database
+// function: totals only, never which caches anyone found, never secret codes.
 //
 // contrast-more: classes apply when someone turns on Increase Contrast
 // (iPhone: Settings > Accessibility > Display & Text Size): faint row edges
 // darken, so the list stays crisp in bright sun.
 
 const HEADING_ID = 'leaderboard-heading'
-const TEXT_LINK = `-my-1 rounded-sm py-1 font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
+const MY_ROW_ID = 'my-leaderboard-row'
+// Inline links and the inline Try again button: bold, underlined, with a
+// 28px tap area (the -my-1 py-1) that doesn't change the line's height.
+const TEXT_LINK = `-my-1 cursor-pointer rounded-sm py-1 font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
 const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 
 // Motion: the board arrives a moment after the page (it's loaded from the
@@ -31,29 +37,37 @@ const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 // wrapper below is put on the page.
 const ARRIVE = 'transition-opacity duration-200 ease-out starting:opacity-0'
 
-// One person on the board: rank, avatar initials, name and finds, points.
-// Your own row gets the selected-card look (a 2px ink edge, drawn as a 1px
-// border plus a 1px inset ring so it doesn't grow) on the Subtle fill, and
-// "(you)" after your name, so it never rests on colour alone.
+// One person on the board: rank, avatar initials (desktop), name and finds,
+// points. Your own row gets the selected-card look (a 2px ink edge, drawn as
+// a 1px border plus a 1px inset ring so it doesn't grow) on the Subtle fill,
+// "(you)" after your name, so it never rests on colour alone, and your
+// points on Star Gold Soft. It also gets an id and tabIndex={-1}, so "Show
+// my row" can move focus to it.
 function LeaderboardRow({ person }) {
   const you = person.isMe
   const unit = pointsUnit(person.points)
   return (
     <li
+      id={you ? MY_ROW_ID : undefined}
+      tabIndex={you ? -1 : undefined}
       className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
-        you ? 'border-border-strong bg-bg-subtle ring-1 ring-inset ring-border-strong' : `bg-bg-surface ${CARD_BORDER}`
+        you
+          ? `border-border-strong bg-bg-subtle ring-1 ring-inset ring-border-strong ${FOCUS_RING}`
+          : `bg-bg-surface ${CARD_BORDER}`
       }`}
     >
-      {/* min-w-6 fits the list's 1- and 2-digit ranks, so names stay lined up. */}
-      <p className="min-w-6 shrink-0 text-body-strong tabular-nums">
+      {/* min-w-8 fits 3-digit ranks (yours, under "Your place"), and
+          tabular-nums gives every digit the same width, so names line up. */}
+      <p className="min-w-8 shrink-0 text-body-strong tabular-nums">
         <span className="sr-only">Rank </span>
         {person.rank}
       </p>
-      {/* Decoration only (the name is right beside it), so screen readers skip it.
-          On your row it's white, so it still shows on the Subtle fill. */}
+      {/* Desktop only: on phones the name gets the room. Decoration (the name
+          is right beside it), so screen readers skip it. On your row it's
+          white, so it still shows on the Subtle fill. */}
       <span
         aria-hidden="true"
-        className={`flex size-9 shrink-0 items-center justify-center rounded-full text-tag lg:size-10 lg:text-label ${
+        className={`hidden size-10 shrink-0 items-center justify-center rounded-full text-label lg:flex ${
           you ? 'bg-bg-surface' : 'bg-bg-subtle'
         }`}
       >
@@ -70,8 +84,14 @@ function LeaderboardRow({ person }) {
         </p>
         <p className="text-small text-text-secondary">{findsLabel(person.finds)}</p>
       </div>
-      {/* Star Gold Soft: the background DESIGN.md keeps for points earned. */}
-      <p className="shrink-0 rounded-full bg-highlight-soft px-3 py-1 text-body-strong tabular-nums">
+      {/* Plain numbers for everyone else; yours sits on Star Gold Soft, the
+          background DESIGN.md keeps for points earned. -mr-2 pulls the pill
+          out a little, so its number sits nearly in line with the others. */}
+      <p
+        className={`shrink-0 text-right text-body-strong tabular-nums ${
+          you ? '-mr-2 rounded-full bg-highlight-soft px-3 py-1' : ''
+        }`}
+      >
         {person.points}
         <span aria-hidden="true"> {unit.short}</span>
         <span className="sr-only"> {unit.spoken}</span>
@@ -80,8 +100,9 @@ function LeaderboardRow({ person }) {
   )
 }
 
-// Loading and errors: a plain white box, like the cache page's.
-function Notice({ children, role = 'status' }) {
+// Loading and errors: a plain white box, like the cache page's. The loading
+// one has no role: the page's live region (below) says it instead.
+function Notice({ children, role }) {
   return (
     <div role={role} className={`rounded-2xl border bg-bg-surface p-4 text-body text-text-secondary ${CARD_BORDER}`}>
       {children}
@@ -104,9 +125,36 @@ function EmptyBoard() {
   )
 }
 
-// The quiet line above the list for anyone who isn't on it, so they don't
-// have to scroll past 50 rows to learn how to join.
-function JoinPrompt({ signedIn, onBoard }) {
+// Moves focus to your row and scrolls it into view at once. Never smooth
+// scrolling: DESIGN.md keeps scrolling instant when focus moves.
+function showMyRow() {
+  const row = document.getElementById(MY_ROW_ID)
+  if (!row) return
+  row.scrollIntoView({ block: 'center' })
+  row.focus({ preventScroll: true })
+}
+
+// The line above the list. On the board: where you are, and a quiet button
+// to your row. Signed out, or not on the board yet: how to join, so nobody
+// has to scroll past 50 rows to find out.
+function TopLine({ signedIn, myRow }) {
+  if (myRow) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="text-body-strong">{yourRankLine(myRow)}</p>
+        {/* A quiet button (no outline; fills Subtle on hover): it does
+            something on this page, so it's a button, not a link. */}
+        <button
+          type="button"
+          onClick={showMyRow}
+          className={`-mx-3 flex h-10 cursor-pointer items-center gap-2 rounded-lg px-3 text-label text-text-primary hover:bg-bg-subtle active:scale-97 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
+        >
+          <ArrowDown aria-hidden="true" size={16} />
+          Show my row
+        </button>
+      </div>
+    )
+  }
   if (signedIn === false) {
     return (
       <p className="text-small text-text-secondary">
@@ -117,7 +165,7 @@ function JoinPrompt({ signedIn, onBoard }) {
       </p>
     )
   }
-  if (signedIn && !onBoard) {
+  if (signedIn) {
     return (
       <p className="text-small text-text-secondary">
         You’re not on the board yet.{' '}
@@ -133,7 +181,17 @@ function JoinPrompt({ signedIn, onBoard }) {
 
 function LeaderboardPage() {
   const board = useLeaderboard()
-  const onBoard = board.rows.some((person) => person.isMe) || Boolean(board.ownRowBelow)
+  const headingRef = useRef(null)
+  // Your row, wherever it is: in the list, or under it.
+  const myRow = board.rows.find((person) => person.isMe) ?? board.ownRowBelow
+
+  // Try again: the button goes away while the board reloads, so focus moves
+  // to the page heading instead of being lost (the live region then says
+  // how it went). Only after this press, never on a normal load.
+  function retry() {
+    board.retry()
+    headingRef.current?.focus({ preventScroll: true })
+  }
 
   // What fills the page under the intro: the loading notice (no fade; it's
   // there from the start), then whatever loaded, which fades in.
@@ -144,11 +202,7 @@ function LeaderboardPage() {
     content = (
       <Notice role="alert">
         We couldn’t load the leaderboard.{' '}
-        <button
-          type="button"
-          onClick={board.retry}
-          className={`cursor-pointer rounded-lg font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`}
-        >
+        <button type="button" onClick={retry} className={TEXT_LINK}>
           Try again
         </button>
       </Notice>
@@ -158,7 +212,7 @@ function LeaderboardPage() {
   } else {
     content = (
       <>
-        <JoinPrompt signedIn={board.signedIn} onBoard={onBoard} />
+        <TopLine signedIn={board.signedIn} myRow={myRow} />
         <ol aria-labelledby={HEADING_ID} className="flex flex-col gap-2">
           {board.rows.map((person) => (
             <LeaderboardRow key={person.username} person={person} />
@@ -176,9 +230,23 @@ function LeaderboardPage() {
             </ol>
           </section>
         )}
+        {/* The board ends by pointing back outside. Only for people on it:
+            everyone else already has their prompt (log in, or find a first
+            cache) at the top, and two map buttons would be one too many. */}
+        {myRow && (
+          <Button variant="secondary" to="/map" fullWidth className="mt-2 lg:w-auto lg:self-start">
+            Find your next cache
+          </Button>
+        )}
       </>
     )
   }
+
+  // Said once to screen readers (politely): while loading, then once it's
+  // loaded. An error is announced by its own alert instead.
+  let announcement = ''
+  if (board.loading) announcement = 'Loading the leaderboard…'
+  else if (!board.error) announcement = 'Leaderboard loaded.'
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg-page text-text-primary">
@@ -200,20 +268,23 @@ function LeaderboardPage() {
             across. */}
         <div className="w-full p-4 lg:px-[10%] lg:pb-12 lg:pt-8">
           <div className="flex flex-col gap-4 lg:max-w-3xl">
-            <h1 id={HEADING_ID} className="text-display">
+            {/* tabIndex={-1}: Try again moves focus here. */}
+            <h1 id={HEADING_ID} ref={headingRef} tabIndex={-1} className="text-display outline-none">
               Leaderboard
             </h1>
             <p className="text-small text-text-secondary lg:text-body">
               Points are the difficulty of every cache you’ve found, added up.
+            </p>
+            {/* Always on the page, so screen readers hear each change in it. */}
+            <p role="status" className="sr-only">
+              {announcement}
             </p>
             {board.loading ? (
               content
             ) : (
               // Try again goes back through loading, so the board (or the error)
               // fades in afresh each time.
-              <div className={`flex flex-col gap-4 ${ARRIVE}`}>
-                {content}
-              </div>
+              <div className={`flex flex-col gap-4 ${ARRIVE}`}>{content}</div>
             )}
           </div>
         </div>
