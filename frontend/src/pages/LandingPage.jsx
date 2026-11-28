@@ -130,12 +130,20 @@ function PhotoContours() {
 // two things to do and the campus photo. "Find a cache" is the page's one red
 // button; "Hide a cache" opens the login dialog by itself for signed-out
 // people.
+//
+// On desktop the text and photo share the row about evenly (33 to 35), but
+// the text column never gets narrower than the headline's longest line,
+// "Cache in and stay": 25rem at Section size, 33rem at Hero size from
+// 1280px. Without that, on 1024–1439px screens the headline broke into four
+// lines with a short "to the" line; now it's three, and the photo takes the
+// rest of the row. (In rem, so the minimum grows if someone makes text
+// bigger. At 1440px the even share is already wide enough.)
 function Hero() {
   const entrance = useFirstVisitEntrance()
   return (
     <section
       aria-labelledby="landing-heading"
-      className="grid gap-8 lg:grid-cols-[minmax(0,33fr)_minmax(0,35fr)] lg:items-center lg:gap-16"
+      className="grid gap-8 lg:grid-cols-[minmax(25rem,33fr)_minmax(0,35fr)] lg:items-center lg:gap-16 xl:grid-cols-[minmax(33rem,33fr)_minmax(0,35fr)]"
     >
       {/* max-w-2xl: on tablets the column stops at a readable width
           instead of stretching across the screen. */}
