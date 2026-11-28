@@ -4,7 +4,7 @@ import { loadFavoriteCaches, loadJournalFinds, saveFindNote, saveFindRating } fr
 import { supabase } from './supabaseClient.js'
 
 // Everything the Journal page loads, in one hook:
-//   - who's signed in (the page sends signed-out people to log in)
+//   - who’s signed in (signed out, the page opens the login dialog)
 //   - your finds, newest first, with each cache's public details
 //   - the caches you favorited, and their average ratings (for the cards)
 // plus rateFind() and saveNote(), which save a rating or a journal note on

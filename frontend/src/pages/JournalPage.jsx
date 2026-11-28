@@ -1,10 +1,12 @@
 import { Pencil, Plus, Star } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import Button from '../components/Button.jsx'
 import CacheCard from '../components/CacheCard.jsx'
 import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import FavoriteButton from '../components/FavoriteButton.jsx'
+import { useLoginDialog } from '../components/login/loginDialogContext.js'
+import LoginRequired from '../components/login/LoginRequired.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { placeName } from '../lib/cacheSearch.js'
@@ -29,8 +31,8 @@ import { useSavedCaches } from '../lib/useSavedCaches.js'
 // found (points = each found cache's difficulty, added up).
 //
 // The tab is kept in the address (/journal?tab=favorites), so coming back
-// from a cache's page opens the same tab. Signed-out visitors go to Log in
-// and come back here. The data comes from useJournal (src/lib), which never
+// from a cache's page opens the same tab. Signed-out visitors get the login
+// dialog over the page, and the journal appears once they've logged in. The data comes from useJournal (src/lib), which never
 // loads secret_code.
 //
 // Phones (the base styles): one column with 16px margins; the photo is 2:1
@@ -42,9 +44,6 @@ const TABS = [
   { id: 'finds', label: 'Finds' },
   { id: 'favorites', label: 'Favorites' },
 ]
-// Where "Log in again" goes when a save finds the login has run out; it
-// comes back to the journal afterwards.
-const LOG_IN_AGAIN = `/login?next=${encodeURIComponent('/journal')}`
 // A click that lands within this long of the stars opening is ignored, so a
 // double-click on "Rate it" (the first star appears where it was) can't
 // save 1 star by accident.
@@ -71,7 +70,7 @@ const QUIET_BUTTON = `-my-2.5 inline-flex h-10 shrink-0 cursor-pointer items-cen
 // The same button while a save is under way: it stays put (so nothing
 // moves) but does nothing, with no hover or press.
 const QUIET_BUTTON_LOCKED = '-my-2.5 inline-flex h-10 shrink-0 cursor-default items-center gap-1.5 rounded-lg px-2.5 text-label text-text-secondary'
-const TEXT_LINK = `rounded-sm font-bold underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
+const TEXT_LINK = `-my-1 rounded-sm py-1 font-bold underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
 
 // Loading, errors and empty lists: a short message in a white box.
 function Notice({ children, role = 'status' }) {
@@ -216,10 +215,11 @@ function useHeldKeyGuard() {
 }
 
 // A rating or note that didn't save, under the controls, with the "!" icon
-// (as in TextField). When the login ran out, it links to Log in, which
-// comes back here. Keyed by the message where it's used, so a repeated
+// (as in TextField). When the login ran out, "Log in again" opens the login
+// dialog; once they're back in, they pick the stars or save the note again. Keyed by the message where it's used, so a repeated
 // failure fades in again.
 function SaveProblem({ problem, what }) {
+  const { openLogin } = useLoginDialog()
   return (
     <div role="alert" className={`mt-1 flex items-start gap-2 ${FADE_IN}`}>
       <span
@@ -231,9 +231,14 @@ function SaveProblem({ problem, what }) {
       <p className="text-small text-error">
         {problem.needsLogin ? (
           <>
-            <Link to={LOG_IN_AGAIN} className={TEXT_LINK}>
+            <button
+              type="button"
+              onClick={() => openLogin({ task: `save your ${what}`, expired: true })}
+              aria-haspopup="dialog"
+              className={`cursor-pointer ${TEXT_LINK}`}
+            >
               Log in again
-            </Link>{' '}
+            </button>{' '}
             to save your {what}.
           </>
         ) : (
@@ -726,8 +731,6 @@ function FavoritesPanel({ favorites, saved, foundIds, keptIds, onToggle }) {
 }
 
 function JournalPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
   const journal = useJournal()
   const saved = useSavedCaches(journal.userId ?? null)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -736,11 +739,6 @@ function JournalPage() {
   const baseId = useId()
   const idFor = (tabId, part) => `${baseId}-${tabId}-${part}`
 
-  // Signed out: log in first, then come back to this tab.
-  const loginLink = `/login?next=${encodeURIComponent(`/journal${location.search}`)}`
-  useEffect(() => {
-    if (journal.userId === null) navigate(loginLink, { replace: true })
-  }, [journal.userId, loginLink, navigate])
 
   // replace: switching tabs doesn't add a history entry, so Back leaves the page.
   function setTab(id) {
@@ -786,8 +784,14 @@ function JournalPage() {
       <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
         <div className="flex w-full flex-col gap-4 p-4 lg:mx-auto lg:max-w-[768px] lg:gap-5 lg:px-0 lg:pb-12 lg:pt-10">
           <h1 className="text-display text-text-primary">Your journal</h1>
-          {!signedIn ? (
-            // Checking who's signed in (or on the way to Log in).
+          {journal.userId === null ? (
+            // Signed out: the login dialog opens over the page, and the
+            // journal appears once they've logged in (useJournal notices).
+            <LoginRequired task="see your journal">
+              Your journal keeps the caches you’ve found, your ratings and notes, and your favorites. Log in to see it.
+            </LoginRequired>
+          ) : !signedIn ? (
+            // Checking who's signed in.
             <Notice>Loading your journal…</Notice>
           ) : (
             <>

@@ -1,7 +1,14 @@
 import { Heart } from 'lucide-react'
-import { useId, useState } from 'react'
-import { Link, useLocation } from 'react-router'
+import { useEffect, useId, useRef, useState } from 'react'
 import { FOCUS_RING } from './focusRing.js'
+import { useLoginDialog } from './login/loginDialogContext.js'
+import {
+  isPendingHeart,
+  requestFavorite,
+  restartPendingClock,
+  subscribePendingFavorite,
+  takePendingFavorite,
+} from './login/pendingFavorite.js'
 
 // The favourite (heart) button for a cache: an ink outline heart that turns
 // solid ink when it's a favourite. Ink, not a meaning colour: red, green and
@@ -25,8 +32,11 @@ import { FOCUS_RING } from './focusRing.js'
 //   error     useSavedCaches' error; shown here if this button caused it
 //   cacheId   which cache this is
 //
-// Signed out, it's a link to Log in that comes back to this page afterwards.
-// (A login dialog on the same page is planned on its own branch.)
+// Signed out, it opens the login dialog over the page ("Log in to add
+// Krentzman Corner to your favorites."). Once they've logged in, this cache
+// becomes a favourite by itself (pendingFavorite.js): the heart they tapped
+// fills as soon as their favourites have loaded, and focus comes back to
+// it.
 //
 // Motion, only after a tap: the fill eases in or out (150ms), and adding a
 // favourite pops the heart in from 75% (150ms). The failure note fades in
@@ -52,13 +62,57 @@ function FavoriteButton({
   labelled = false,
   className = '',
 }) {
-  const location = useLocation()
+  const { openLogin } = useLoginDialog()
   const buttonId = useId()
+  const buttonRef = useRef(null)
   // Set by a tap, so only a change someone caused animates (favourites that
   // are already there when the page loads just appear).
   const [tapped, setTapped] = useState(false)
   const note = error && error.cacheId === cacheId && error.source === buttonId ? error.message : null
   const shape = SHAPE[labelled ? 'labelled' : 'icon']
+
+  // The favourite someone asked for before logging in (see the top of the
+  // file). Once they're logged in and their favourites have loaded, add it
+  // (unless it already is one) and put focus back on the heart. The heart
+  // they tapped takes it straight away; if that one's gone, the other
+  // hearts for this cache wait a frame (so the tapped one can go first),
+  // then the first one that's on screen takes it (not a hidden copy, e.g.
+  // the list's card under the phone map). It checks now and whenever the
+  // pending favourite changes (it can be asked for just after this heart
+  // appears).
+  useEffect(() => {
+    if (!signedIn || !ready) return
+    let frame = 0
+    function finish() {
+      if (!takePendingFavorite(cacheId)) return
+      buttonRef.current?.focus({ preventScroll: true })
+      if (!saved) {
+        setTapped(true)
+        onToggle?.(buttonId)
+      }
+    }
+    function check() {
+      cancelAnimationFrame(frame)
+      if (isPendingHeart(cacheId, buttonId)) return finish()
+      frame = requestAnimationFrame(() => {
+        if (buttonRef.current?.getClientRects().length) finish()
+      })
+    }
+    check()
+    const unsubscribe = subscribePendingFavorite(check)
+    return () => {
+      cancelAnimationFrame(frame)
+      unsubscribe()
+    }
+  }, [signedIn, ready, cacheId, saved, onToggle, buttonId])
+
+  // While their favourites are still loading after logging in (slow signal),
+  // the pending favourite's 15 seconds don't run out: they start once the
+  // list is here (or this heart goes away).
+  useEffect(() => {
+    if (!signedIn || ready) return
+    return () => restartPendingClock(cacheId)
+  }, [signedIn, ready, cacheId])
 
   // Keyed by saved, so the icon re-mounts when it changes. After a tap,
   // adding pops it in from 75% and fades the fill in; removing fades the
@@ -97,24 +151,34 @@ function FavoriteButton({
     )
   }
 
+  // Signed out: open the login dialog; logging in finishes the favourite.
   if (!signedIn) {
-    const next = encodeURIComponent(`${location.pathname}${location.search}`)
     return (
-      <Link
-        to={`/login?next=${next}`}
+      <button
+        type="button"
+        onClick={() =>
+          openLogin({
+            task: `add ${title} to your favorites`,
+            onLoggedIn: () => requestFavorite(cacheId, buttonId),
+          })
+        }
+        aria-haspopup="dialog"
+        // The same words for the name and the hover tip, so a screen reader
+        // doesn't read two versions.
         aria-label={labelled ? undefined : `Log in to favorite ${title}`}
-        title="Log in to add it to your favorites"
+        title={labelled ? 'Log in to add it to your favorites' : `Log in to favorite ${title}`}
         className={`${shape} ${PRESSABLE} ${className}`}
       >
         {heart}
         {words}
-      </Link>
+      </button>
     )
   }
 
   return (
     <span className={`relative inline-flex ${className}`}>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => {
           setTapped(true)

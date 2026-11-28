@@ -1,7 +1,5 @@
 -- Leaderboard: everyone's points, ranked, for the /leaderboard page.
--- NOT APPLIED YET. Run ONCE: Supabase dashboard -> SQL Editor -> New query ->
--- paste this whole file -> Run. When it's done, change the line above to
--- "ALREADY APPLIED to the live database on <date>. Don't run it again."
+-- ALREADY APPLIED to the live database on 2026-11-27. Don't run it again.
 -- (Running it twice is harmless: it drops and recreates the same function.)
 --
 -- Why a function: each person can only read their OWN finds (RLS), so the

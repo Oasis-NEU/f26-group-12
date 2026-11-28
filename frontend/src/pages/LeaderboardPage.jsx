@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { getInitials } from '../components/accountData.js'
 import Button from '../components/Button.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
+import { useLoginDialog } from '../components/login/loginDialogContext.js'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { findsLabel, pointsUnit, yourRankLine } from '../lib/leaderboard.js'
 import { useLeaderboard } from '../lib/useLeaderboard.js'
@@ -133,6 +134,7 @@ function showMyRow() {
 // to your row. Signed out, or not on the board yet: how to join, so nobody
 // has to scroll past 50 rows to find out.
 function TopLine({ signedIn, myRow }) {
+  const { openLogin } = useLoginDialog()
   if (myRow) {
     return (
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
@@ -153,9 +155,12 @@ function TopLine({ signedIn, myRow }) {
   if (signedIn === false) {
     return (
       <p className="text-small text-text-secondary">
-        <Link to="/login" className={TEXT_LINK}>
+        {/* Opens the login dialog over the board (an action, so a button
+            dressed as the sentence's link); after logging in, this line
+            becomes their rank. */}
+        <button type="button" onClick={() => openLogin({ task: 'see where you rank' })} aria-haspopup="dialog" className={TEXT_LINK}>
           Log in
-        </Link>{' '}
+        </button>{' '}
         to see where you rank.
       </p>
     )

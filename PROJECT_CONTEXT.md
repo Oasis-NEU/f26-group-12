@@ -17,7 +17,7 @@ Core:
 - Hints per cache (up to 3, revealed in order)
 - Journal of each user's finds with difficulty and star rating, plus their points and caches found. Ratings ("Rate it" / "Change rating") and journal notes ("Add a note" / "Edit note") can be added or changed in place in the journal; only that one column is saved.
 - Rate caches after finding them
-- Log in and sign up with email (log in with a password, or with a 6-digit code emailed to you)
+- Log in and sign up with email (log in with a password, or with a 6-digit code emailed to you), on the Log in page or in a login dialog over the page you're on
 - Forgot password (reset by an emailed link)
 - Account menu, and people need a way to log out.
 - Automatic secret codes for every cache before it's saved.
@@ -72,7 +72,7 @@ Defined in `frontend/src/App.jsx`. Every route sits inside `Layout` (`frontend/s
 | `/caches/:cacheId/log` | `LogFindPage` | shows the "Find logged!" success state after saving |
 | `/caches/:cacheId/edit` | `EditCachePage` | |
 | `/journal` | `JournalPage` | tabs: Finds, and Favorites (`?tab=favorites`) |
-| `/login` | `LoginPage` | |
+| `/login` | `LoginPage` | the header's "Log in" and every emailed link (confirm, reset) come here; elsewhere, logging in opens the login dialog over the page |
 | `/leaderboard` | `LeaderboardPage` | |
 | `/my-caches` | `MyCachesPage` | |
 | `/welcome` | (redirect) | old landing page address; sends people to `/` |
@@ -197,6 +197,21 @@ The first three need a logged-in user; `cache_ratings` and `leaderboard` work fo
   them on the map). Street addresses aren't searched yet; when added (with
   the map work), picking one should open the map with the nearest caches. The logo is a red map pin with
   a cache box (not the old red "N" square).
+- **Logging in happens in a dialog on the page you're on** (2026-11-27). The
+  heart when logged out (then that cache is favorited once they've logged
+  in), the in-page "Log in" buttons ("Log in to log your find", "Log in to
+  see where you rank", "Log in again") and the pages that need an account
+  (Hide a cache, Log a find, Journal) open one login dialog
+  (`components/login/LoginDialogProvider.jsx`, mounted once in `App.jsx`)
+  instead of sending people to `/login`. Those pages show a calm signed-out
+  message with the dialog open over it, and carry on once they've logged in.
+  The dialog and the Log in page share the same screens
+  (`components/login/LoginScreens.jsx`). `/login` stays a full page: the
+  header's "Log in" goes there, and the emailed links (confirm, reset, the
+  code email's link) land there, then go back to the page they started on
+  (`?next=`). Setting a new password is only on the page. After sign-up,
+  confirming the email in another tab of the same browser logs the dialog's
+  tab in too (Supabase tells every tab), so it finishes what they were doing.
 - **Links go places; buttons do things.** Underlined links only inside a
   sentence, to another page. Actions, and anything on its own line, are
   buttons: Primary (one per page), Secondary, then a quiet button with no

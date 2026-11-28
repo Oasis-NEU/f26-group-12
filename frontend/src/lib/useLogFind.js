@@ -6,7 +6,7 @@ import { supabase } from './supabaseClient.js'
 // Everything the "Log a find" page loads, in one hook, reusing the queries
 // the cache page and the account menu already use (none of them select
 // secret_code):
-//   - who's signed in (the page sends signed-out people to log in)
+//   - who’s signed in (signed out, the page opens the login dialog)
 //   - the cache (its name, difficulty, whether it's still active, its hider)
 //   - whether this person has already logged it
 // plus loadPoints(), their points total after a find (for "You now have N

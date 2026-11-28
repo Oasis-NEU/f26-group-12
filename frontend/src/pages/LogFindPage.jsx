@@ -1,8 +1,10 @@
 import { useEffect, useId, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import chevronLeft from '../assets/figma/chevron-left.svg'
 import Button from '../components/Button.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
+import { useLoginDialog } from '../components/login/loginDialogContext.js'
+import LoginRequired from '../components/login/LoginRequired.jsx'
 import MapPin from '../components/MapPin.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import StarRating from '../components/StarRating.jsx'
@@ -30,9 +32,9 @@ import { formatFoundDate } from './cacheDetailData.js'
 // log_find checks it in the database; a wrong code shows under the code box
 // (and keeps what they typed), a right one shows "Find logged!": the
 // cache's found pin, the points earned, and then, optionally, a rating and
-// a journal note to add to the find. Signed-out visitors are sent to log
-// in, and come back here afterwards. If their login runs out mid-form, the
-// code they typed is kept for this tab.
+// a journal note to add to the find. Signed-out visitors get the login
+// dialog over the page, and the form appears once they've logged in. If
+// their login runs out mid-form, the code they typed is kept for this tab.
 //
 // Phones (the base styles): the form fills the page and "Log find" sits in
 // a bar along the bottom of the screen. Desktop (lg:): the same form in a
@@ -489,22 +491,17 @@ function LogFindForm({ cache, cacheId, onResult }) {
 
 function LogFindPage() {
   const { cacheId } = useParams()
-  const navigate = useNavigate()
   const detail = useLogFind(cacheId)
+  const { openLogin } = useLoginDialog()
   // What happened when they pressed "Log find": { kind: 'logged' }, or the
   // reason log_find gave ({ kind: 'already-found' | 'hider' | 'inactive' |
   // 'signed-out' }). null before then.
   const [outcome, setOutcome] = useState(null)
   const [totalPoints, setTotalPoints] = useState(null)
-  const loginLink = `/login?next=${encodeURIComponent(`/caches/${cacheId}/log`)}`
 
-  // Signed out when the page opens: log in first, then come back here (the
-  // login page follows ?next=). replace, so "back" from the login page
-  // skips this page.
+  // Signed out: the login dialog opens over the page (see below), and the
+  // form appears once they've logged in (useLogFind notices by itself).
   const signedOut = detail.userId === null
-  useEffect(() => {
-    if (signedOut) navigate(loginLink, { replace: true })
-  }, [signedOut, loginLink, navigate])
 
   // When the page changes state after "Log find", move focus to its heading.
   useEffect(() => {
@@ -529,7 +526,19 @@ function LogFindPage() {
   let title = 'Log your find'
   let content
   if (signedOut) {
-    content = null
+    title = 'Log in to log your find'
+    content = (
+      <div className={COLUMN}>
+        <LoginRequired
+          heading="Log in to log your find"
+          headingId={HEADING_ID}
+          task="log your find"
+          onLoggedIn={() => setOutcome(null)}
+        >
+          Your finds and points are saved to your account. Log in, then enter the code from the slip.
+        </LoginRequired>
+      </div>
+    )
   } else if (detail.loading) {
     content = (
       <div className={COLUMN}>
@@ -565,12 +574,21 @@ function LogFindPage() {
       <StateScreen
         heading="Log in again to save your find"
         actions={
-          <Button to={loginLink} fullWidth className="lg:w-fit">
+          // Opens the login dialog; once they're back in, the form returns
+          // with the code they typed.
+          <Button
+            onClick={() =>
+              openLogin({ task: 'save your find', expired: true, onLoggedIn: () => setOutcome(null) })
+            }
+            aria-haspopup="dialog"
+            fullWidth
+            className="lg:w-fit"
+          >
             Log in
           </Button>
         }
       >
-        Your login ran out. We kept the code you typed, so it’ll be here when you come back.
+        Your login ran out. We kept the code you typed, so it’ll be here once you’ve logged in.
       </StateScreen>
     )
   } else if (!cache) {
@@ -642,7 +660,7 @@ function LogFindPage() {
     content = <LogFindForm cache={cache} cacheId={cacheId} onResult={handleResult} />
   }
 
-  const showBack = kind !== 'logged' && !signedOut
+  const showBack = kind !== 'logged'
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg-page text-text-primary">

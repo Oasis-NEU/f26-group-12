@@ -1,10 +1,12 @@
 import { Check, Copy, LocateFixed, Plus, RefreshCw, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import Button from '../components/Button.jsx'
 import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import LocationPicker from '../components/LocationPicker.jsx'
+import { useLoginDialog } from '../components/login/loginDialogContext.js'
+import LoginRequired from '../components/login/LoginRequired.jsx'
 import MapPin from '../components/MapPin.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import TextField from '../components/TextField.jsx'
@@ -43,7 +45,8 @@ import { contourRing } from './cacheDetail/contours.js'
 //
 // The form is kept for this tab as they type, and so is "Cache hidden!"
 // after saving, so a reload or a dropped tab never loses the code or makes
-// it look as if nothing saved. Signed-out visitors log in and come back.
+// it look as if nothing saved. Signed-out visitors get the login dialog
+// over the page, and the form appears once they've logged in.
 // Enter moves to the next field rather than saving, so the keyboard's Go
 // can't save half a cache.
 //
@@ -664,8 +667,8 @@ function moveToNextField(event) {
 }
 
 function AddCachePage() {
-  const navigate = useNavigate()
   const { userId } = useHideCache()
+  const { openLogin } = useLoginDialog()
   // Starts from the draft kept for this tab, if any (with a new code only
   // if it had none).
   const [form, setForm] = useState(() => {
@@ -684,12 +687,6 @@ function AddCachePage() {
   // Bumped by "Hide another cache", so the form starts fresh (new hint keys).
   const [formVersion, setFormVersion] = useState(0)
   const firstRender = useRef(true)
-  const loginLink = `/login?next=${encodeURIComponent('/caches/new')}`
-
-  // Signed out when the page opens: log in first, then come back here.
-  useEffect(() => {
-    if (userId === null) navigate(loginLink, { replace: true })
-  }, [userId, loginLink, navigate])
 
   // Keep the form for this tab as they go (not before they've touched it).
   useEffect(() => {
@@ -802,6 +799,22 @@ function AddCachePage() {
   } else if (hidden) {
     title = 'Cache hidden!'
     content = <CacheHidden cache={hidden} onHideAnother={hideAnother} />
+  } else if (userId === null) {
+    // Signed out: the login dialog opens over this, and the form appears
+    // once they've logged in (useHideCache notices by itself).
+    title = 'Log in to hide a cache'
+    content = (
+      <div className="pb-8 lg:pt-4">
+        <LoginRequired
+          heading="Log in to hide a cache"
+          headingId={HEADING_ID}
+          task="hide a cache"
+          onLoggedIn={() => setNeedsLogin(false)}
+        >
+          Hiding a cache needs an account, so it’s saved as yours and you can edit it later.
+        </LoginRequired>
+      </div>
+    )
   } else if (needsLogin) {
     title = 'Log in again'
     content = (
@@ -810,9 +823,18 @@ function AddCachePage() {
           Log in again to hide your cache
         </h1>
         <p className="text-body text-text-primary">
-          Your login ran out. Everything you filled in is kept, so it’ll be here when you come back.
+          Your login ran out. Everything you filled in is kept, so it’ll be here once you’ve logged in.
         </p>
-        <Button to={loginLink} fullWidth className="lg:w-fit">
+        {/* Opens the login dialog; once they're back in, the form returns
+            as they left it. */}
+        <Button
+          onClick={() =>
+            openLogin({ task: 'hide your cache', expired: true, onLoggedIn: () => setNeedsLogin(false) })
+          }
+          aria-haspopup="dialog"
+          fullWidth
+          className="lg:w-fit"
+        >
           Log in
         </Button>
       </div>

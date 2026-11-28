@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient.js'
 
 // What the "Hide a cache" page needs to know before showing the form: who
-// is signed in. (Hiding a cache needs an account, so the page sends
-// signed-out visitors to log in.) Saving goes through createCache in
+// is signed in. (Hiding a cache needs an account, so signed-out visitors
+// get the login dialog over the page.) Saving goes through createCache in
 // hideCache.js.
 //
 // userId is undefined while checking, then the user's id, or null when
