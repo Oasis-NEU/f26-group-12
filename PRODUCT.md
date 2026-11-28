@@ -49,8 +49,9 @@ HuskyCache is campus-first geocaching made by students, for students. Other stud
 
 - **Name:** HuskyCache.
 - **Unofficial student project.** It's built by students through the Oasis Project Series and not endorsed by Northeastern. It can nod to campus life and Husky culture, but must not look like an official Northeastern site or imply university approval.
+- **No "geocaching" in what students see.** "Geocaching" is a registered trademark of Groundspeak (geocaching.com), so screens and the printed slip say "cache", "hide a cache" and "find" instead, and the app is never named after it or uses its logo. Internal docs may still describe the activity as geocaching.
 - **Logo:** a red map pin with a cache box inside (2026-11-27). It replaced the red square with an "N", which read too close to Northeastern's own mark. The team may revisit the drawing, but not toward anything that looks official.
-- **Voice in existing copy:** plain and friendly, student to student, e.g. "Cache in and stay connected to the NU community!" and "HuskyCache is a student led website that allows new Boston admits to explore the campus, find secret hidden treasures along the way, and leave their mark for other students to find."
+- **Voice in existing copy:** plain and friendly, student to student, e.g. "Cache in and stay connected to the NU community!" and "HuskyCache is a student-led website that allows new Boston admits to explore the campus, find secret hidden treasures along the way, and leave their mark for other students to find."
 - **Design source:** the Figma file "Husky Design" (Foundations, Components and Sketches pages) is the team's design authority.
 
 ## Evidence on Hand

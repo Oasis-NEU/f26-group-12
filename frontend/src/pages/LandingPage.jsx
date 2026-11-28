@@ -1,386 +1,353 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router'
-import { MapPin, Plus, Search } from 'lucide-react'
+import Button from '../components/Button.jsx'
+import { FOCUS_RING } from '../components/focusRing.js'
+import { LogoMark } from '../components/Logo.jsx'
+import MapPin from '../components/MapPin.jsx'
+import SiteHeader from '../components/SiteHeader.jsx'
+import { contourRing } from './cacheDetail/contours.js'
 
-const caches = [
-  {
-    name: 'Krentzman Quad',
-    difficulty: 2,
-    description:
-      'Beginner spot location, simple cache, not directly in plain sight- but worth the search!',
-    distance: '0.2 mi',
-    image: '/assets/krentzman-quad.jpeg',
-    alt: 'Krentzman Quadrangle on Northeastern campus',
-  },
-  {
-    name: 'Library Quad',
-    difficulty: 3,
-    description:
-      'A medium challenge for a new cache finder, search library quad for a prize!',
-    distance: '0.4 mi',
-    image: '/assets/snell-library.jpeg',
-    alt: 'Students walking toward Snell Library',
-  },
-  {
-    name: 'West Village Quad',
-    difficulty: 4,
-    description:
-      'A quick stop from your location, nearby with a lot of space for hiding a difficult cache.',
-    distance: '0.8 mi',
-    image: '/assets/west-village-residence.jpeg',
-    alt: 'West Village buildings and lawn',
-  },
+// The landing page, the home page: /
+// From the Figma section "Landing · /welcome" (the sketch decides what's
+// on the page; the look comes from DESIGN.md).
+//
+// It's the first thing a newcomer sees, so it has more presence than the
+// app's own screens: a short line saying what HuskyCache is, a big headline,
+// a campus photo, and the two things you can do (find a cache, hide one).
+// Then "How it works" in three steps, and a small footer. It loads no data:
+// everything on it is written here, so it never waits on Supabase.
+//
+// Phones (the base styles): one column, the photo under the buttons, and
+// the steps as a list joined by a dashed trail that ends at a red pin, like
+// the hint trail on a cache's page. Tablets (md:, 768px): still one column,
+// but the text and photo stop growing at a readable width and the buttons
+// sit side by side. Desktop (lg:, 1024px): the photo beside the headline,
+// and the steps across the page as the same trail, sideways.
+//
+// contrast-more: classes apply when someone turns on Increase Contrast
+// (iPhone: Settings > Accessibility > Display & Text Size): the contour
+// rings hide and faint edges darken, so the page stays crisp in bright sun.
+
+// Motion (DESIGN.md), on the shared ease-out, under 300ms. starting: is
+// the style each one animates from (CSS @starting-style), which runs when
+// the element is put on the page.
+//   ENTRANCE  the page's one orchestrated moment: the first time someone
+//             opens the landing page in a tab, the hero's words and photo
+//             fade in and rise 8px together (300ms). No stagger (DESIGN.md:
+//             don't stagger page entrances) and nothing loops. The contour
+//             rings and the steps' trail stay still (decoration never
+//             animates). With reduced motion only the fade stays.
+// Button presses come from Button.
+const ENTRANCE =
+  'transition-[opacity,translate] duration-300 ease-out starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0'
+
+// Whether the hero has already played its entrance in this tab. Coming back
+// to the home page (the logo goes here) just shows it: an entrance seen
+// again and again starts to feel slow.
+let heroHasPlayed = false
+
+function useFirstVisitEntrance() {
+  // Worked out once, when the page first appears, so it doesn't change
+  // halfway through the animation.
+  const [playEntrance] = useState(() => !heroHasPlayed)
+  useEffect(() => {
+    heroHasPlayed = true
+  }, [])
+  return playEntrance ? ENTRANCE : ''
+}
+
+const STEPS = [
+  { title: 'Find a cache', text: 'Pick one on the map of campus and use the hints if you need them.' },
+  { title: 'Open it', text: 'Enter the secret code from the slip inside to log your find.' },
+  { title: 'Earn points', text: 'Harder caches are worth more. Climb the leaderboard.' },
 ]
 
-const stats = [
-  { value: '10', label: 'nearby caches' },
-  { value: '0', label: 'logged finds' },
-  { value: '3', label: 'active spots' },
-]
-
-const footerGroups = [
+// The footer's two groups of pages. Only pages that exist today; About and
+// Contact will join when they're built.
+const FOOTER_GROUPS = [
   {
-    title: 'Explore',
+    id: 'footer-caches',
+    label: 'Caches',
     links: [
-      { label: 'Nearby search', to: '/map' },
-      { label: 'Cache detail', to: '/map' },
-      { label: 'My journal', to: '/journal' },
+      { label: 'Map', to: '/map' },
+      { label: 'Hide a cache', to: '/caches/new' },
     ],
   },
   {
-    title: 'Create',
+    id: 'footer-progress',
+    label: 'Progress',
     links: [
-      { label: 'Create a cache', to: '/caches/new' },
-      { label: 'Difficulty guide', to: '/caches/new' },
-      { label: 'Hints', to: '/caches/new' },
-    ],
-  },
-  {
-    title: 'Account',
-    links: [
-      { label: 'My finds', to: '/journal' },
-      { label: 'My hides', to: '/my-caches' },
-      { label: 'Settings', to: '/login' },
+      { label: 'Journal', to: '/journal' },
+      { label: 'Leaderboard', to: '/leaderboard' },
     ],
   },
 ]
 
-function LandingPage() {
-  const [difficulty, setDifficulty] = useState('all')
-  const visibleCaches =
-    difficulty === 'all'
-      ? caches
-      : caches.filter((cache) => cache.difficulty === Number(difficulty))
+const GITHUB_URL = 'https://github.com/Oasis-NEU/f26-group-12'
 
+// A footer link: quiet Small text that darkens on hover (150ms), with the
+// shared focus ring. min-h-7 makes the tap area at least 28px tall.
+const FOOTER_LINK = `inline-flex min-h-7 items-center gap-1 rounded-sm text-small text-text-secondary underline-offset-4 hover:text-text-primary hover:underline motion-safe:transition-colors motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`
+
+// Contour rings around the hero photo, like the rings around a cache's photo
+// on its page: the photo reads as a marked spot on a trail map. They start
+// near the photo's edge (the inner ones are hidden behind it), are worked
+// out once, and the SVG is centred on the photo, so (0, 0) is its middle.
+const PHOTO_RINGS = Array.from({ length: 12 }, (_, i) => contourRing(0, 0, 150 + i * 34, 2.2 + i * 0.13))
+
+// Decoration only (DESIGN.md: no information lives in the contour
+// backdrop). They sit behind the photo (-z-10) and hide with Increase
+// Contrast.
+//
+// They show only in a thin oval around the photo, so the headline, the
+// buttons and the steps all sit on plain page. The wrapper reaches a little
+// past the photo (on phones, 28px above and below it, which stops short of
+// the buttons 32px above; on desktop, 56px to the sides, inside the 64px gap
+// before the text), and its mask is an oval that touches the wrapper's edges
+// ("ellipse closest-side"): rings are fully drawn near the photo and fade to
+// nothing at the wrapper's edge. Because the wrapper is sized from the photo,
+// the oval fits the photo at every screen width.
+function PhotoContours() {
   return (
-    <div className="min-h-screen bg-white text-black">
-      <header className="px-4 pb-6 pt-6 sm:px-8 lg:px-20">
-        <nav className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-5">
-          <Link to="/" className="flex items-center gap-3 text-black no-underline">
-            <span className="flex h-10 w-10 items-center justify-center bg-[#c8102e] text-xl font-extrabold text-white">
-              N
-            </span>
-            <span>
-              <span className="block text-2xl font-extrabold leading-none">HuskyCache</span>
-              <span className="mt-1 block text-sm text-[#828282]">Geocaching in Boston</span>
-            </span>
-          </Link>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              to="/map"
-              className="inline-flex min-h-11 items-center gap-2 border-2 border-black px-4 py-2 text-base font-bold text-black no-underline transition-colors hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]"
-            >
-              <Search aria-hidden="true" size={18} />
-              Search nearby
-            </Link>
-            <Link
-              to="/caches/new"
-              className="inline-flex min-h-11 items-center gap-2 bg-[#c8102e] px-4 py-2 text-base font-bold text-white no-underline transition-colors hover:bg-[#a80d26] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-            >
-              <Plus aria-hidden="true" size={18} />
-              Create cache
-            </Link>
-          </div>
-        </nav>
-      </header>
-
-      <section className="px-4 pb-14 sm:px-8 lg:px-20" aria-labelledby="welcome-heading">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-8 lg:flex-row">
-          <div className="flex w-full flex-col items-start gap-6 lg:w-[560px] lg:shrink-0">
-            <p className="bg-[#c8102e] px-3 py-2 text-sm font-bold text-white">
-              At Northeastern University
-            </p>
-
-            <h1
-              id="welcome-heading"
-              className="text-[clamp(2.75rem,5vw,4rem)] font-extrabold leading-[1.05] tracking-[-0.02em]"
-            >
-              <span className="font-bold italic underline decoration-2 underline-offset-4">
-                Cache in
-              </span>{' '}
-              <span className="font-normal">
-                and stay connected to the NU community!
-              </span>
-            </h1>
-
-            <p className="max-w-[560px] text-xl leading-[1.5] text-black/75">
-              HuskyCache is a student led website that allows new Boston admits to
-              explore the campus, find secret hidden treasures along the way, and
-              leave their mark for other students to find.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                to="/map"
-                className="inline-flex min-h-[54px] items-center bg-black px-6 py-4 text-lg font-bold text-white no-underline transition-colors hover:bg-[#292929] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]"
-              >
-                Search nearby caches
-              </Link>
-              <Link
-                to="/caches/new"
-                className="inline-flex min-h-[54px] items-center border-2 border-black px-6 py-[14px] text-lg font-bold text-black no-underline transition-colors hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]"
-              >
-                Create a cache
-              </Link>
-            </div>
-
-            <div className="grid w-full grid-cols-3 gap-3 sm:gap-4">
-              {stats.map((stat) => (
-                <div key={stat.label} className="border-2 border-black p-3 sm:p-4">
-                  <p className="text-2xl font-extrabold sm:text-[28px]">{stat.value}</p>
-                  <p className="mt-1 text-xs text-[#828282] sm:text-sm">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex min-w-0 flex-1 flex-col gap-4">
-            <div className="relative h-[260px] overflow-hidden sm:h-[360px] lg:h-[420px]">
-              <img
-                src="/assets/krentzman-quad.jpeg"
-                alt="Krentzman Quadrangle and Northeastern University buildings"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute left-4 top-4 flex items-center gap-2 bg-black px-3 py-2 text-sm font-bold text-white">
-                <MapPin aria-hidden="true" size={16} />
-                Krentzman Quad
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="border-2 border-black p-4">
-                <h2 className="text-lg font-bold">What to expect</h2>
-                <p className="mt-2 text-base leading-6 text-black/75">
-                  Search by location, filter by difficulty, and open a cache page
-                  with hints and recent logs.
-                </p>
-              </div>
-              <div className="border-2 border-black p-4">
-                <h2 className="text-lg font-bold">Create a cache</h2>
-                <p className="mt-2 text-base leading-6 text-black/75">
-                  Add a new hide with photos, difficulty, size, and a hint that
-                  helps people find it without giving it away.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-2 border-black px-4 py-10 sm:px-8 lg:px-16 lg:py-12" aria-labelledby="nearby-heading">
-        <div className="mx-auto flex max-w-[1312px] flex-col gap-6">
-          <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
-            <div className="max-w-[720px]">
-              <h2 id="nearby-heading" className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-                Nearby caches
-              </h2>
-              <p className="mt-2 text-lg leading-[1.5] text-black/75">
-                From locations around Northeastern campus, to local off campus must
-                hit spots, find caches and explore Boston along the way.
-              </p>
-            </div>
-            <label className="inline-flex min-h-11 items-center border-2 border-black px-4 text-sm font-bold">
-              <span className="sr-only">Filter caches by difficulty</span>
-              <select
-                value={difficulty}
-                onChange={(event) => setDifficulty(event.target.value)}
-                className="min-h-10 cursor-pointer bg-white text-black outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c8102e]"
-              >
-                <option value="all">Filter by difficulty</option>
-                <option value="2">Difficulty 2</option>
-                <option value="3">Difficulty 3</option>
-                <option value="4">Difficulty 4</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {visibleCaches.map((cache) => (
-              <article key={cache.name} className="border-2 border-black p-4">
-                <img
-                  src={cache.image}
-                  alt={cache.alt}
-                  className="h-[220px] w-full object-cover"
-                />
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <h3 className="text-xl font-extrabold">{cache.name}</h3>
-                  <span className="shrink-0 border-2 border-black bg-[#c8102e] px-2.5 py-1 text-sm font-bold text-white">
-                    {cache.difficulty}/5
-                  </span>
-                </div>
-                <p className="mt-2 text-base leading-6 text-black/75">
-                  {cache.description}
-                </p>
-                <p className="mt-2 text-sm text-[#828282]">
-                  {cache.distance} <span aria-hidden="true">•</span> Recommended
-                </p>
-              </article>
-            ))}
-            {visibleCaches.length === 0 && (
-              <p className="text-base text-black/75">
-                No nearby caches match this difficulty yet.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-8 lg:px-20 lg:py-14" aria-labelledby="create-heading">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-8 lg:flex-row">
-          <div className="flex w-full flex-col items-start gap-6 lg:w-[560px] lg:shrink-0">
-            <h2 id="create-heading" className="text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
-              Build a new hide with clear details.
-            </h2>
-            <p className="text-lg leading-[1.5] text-black/75">
-              Add a map pin, a photo, a general location, and a hint that helps
-              people find the cache without spoiling the spot.
-            </p>
-            <div className="flex w-full justify-center">
-              <Link
-                to="/caches/new"
-                className="inline-flex min-h-[54px] w-full max-w-[310px] items-center justify-center bg-black px-6 py-4 text-lg font-bold text-white no-underline transition-colors hover:bg-[#292929] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]"
-              >
-                Create a cache
-              </Link>
-            </div>
-            <div className="grid w-full gap-4 sm:grid-cols-2">
-              <div className="border-2 border-black p-4">
-                <h3 className="text-lg font-bold">Difficulty</h3>
-                <p className="mt-2 text-base leading-6 text-black/75">
-                  Rate the hide from easy plain sight caches to solving riddles
-                  and puzzles for location finds.
-                </p>
-              </div>
-              <div className="border-2 border-black p-4">
-                <h3 className="text-lg font-bold">Hints</h3>
-                <p className="mt-2 text-base leading-6 text-black/75">
-                  Add a short nudge that helps people close in without revealing
-                  the exact spot.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="min-w-0 flex-1 border-2 border-black p-6">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-2xl font-extrabold">Cache details</h3>
-              <span className="bg-[#c8102e] px-3 py-2 text-sm font-bold text-white">Draft</span>
-            </div>
-            <div className="mt-4 space-y-4">
-              <PreviewField label="Cache name" text="e.g. Krentzman Quadrangle" />
-              <PreviewField label="Difficulty" text="e.g. 2 / 5" />
-              <PreviewField label="Hint" text="e.g. In the greenery where the sign lies." />
-              <div>
-                <p className="mb-2 text-base font-bold">Description</p>
-                <div className="min-h-[120px] border-2 border-black px-4 py-3 text-base leading-6 text-[#828282]">
-                  Add notes about possible items the cache may contain, any
-                  general location types, etc.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-12 sm:px-8 lg:px-20 lg:py-14" aria-labelledby="journal-heading">
-        <div className="mx-auto flex max-w-[1280px] flex-col items-center gap-6">
-          <div className="max-w-[854px] text-center">
-            <h2 id="journal-heading" className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-              My Journal
-            </h2>
-            <p className="mt-2 text-lg leading-[1.5] text-black/75">
-              Keep track of the caches you have found at Northeastern, rate them,
-              view all the log of all the caches you have found, and any notes you
-              want to leave about them!
-            </p>
-          </div>
-
-          <Link
-            to="/journal"
-            className="w-full max-w-[479px] border-2 border-black p-4 text-black no-underline transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]"
-          >
-            <img
-              src="/assets/cache-journal.png"
-              alt="A geocache logbook open on a wooden table"
-              className="h-[220px] w-full object-cover"
-            />
-            <h3 className="mt-3 text-2xl font-extrabold">View Cache History</h3>
-            <p className="mt-2 text-base leading-6 text-black/75">
-              View caches you have found, write any notes you had about the cache
-              and its contents!
-            </p>
-            <p className="mt-2 text-sm text-[#828282]">Image made with Figma AI.</p>
-          </Link>
-        </div>
-      </section>
-
-      <footer className="border-t-2 border-black px-4 py-10 sm:px-8 lg:px-20">
-        <div className="mx-auto flex max-w-[1280px] flex-col justify-between gap-10 md:flex-row">
-          <div className="max-w-xs">
-            <Link to="/" className="inline-flex items-center gap-3 text-black no-underline">
-              <span className="flex h-10 w-10 items-center justify-center bg-[#c8102e] text-xl font-extrabold text-white">
-                G
-              </span>
-              <span className="text-2xl font-extrabold">HuskyCache</span>
-            </Link>
-            <p className="mt-3 text-base leading-6 text-black/75">
-              Made by Northeastern freshmen for Northeastern freshman.
-            </p>
-          </div>
-
-          <div className="grid flex-1 gap-8 sm:grid-cols-3 md:max-w-[576px]">
-            {footerGroups.map((group) => (
-              <div key={group.title}>
-                <h2 className="font-bold">{group.title}</h2>
-                <ul className="mt-3 space-y-3">
-                  {group.links.map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        to={link.to}
-                        className="text-black/75 underline-offset-4 hover:text-[#c8102e] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c8102e]"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </footer>
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -inset-x-4 -inset-y-7 -z-10 [mask-image:radial-gradient(ellipse_closest-side,black_70%,transparent_100%)] contrast-more:hidden lg:-inset-x-14 lg:-inset-y-16"
+    >
+      <svg
+        viewBox="-1000 -1000 2000 2000"
+        className="absolute left-1/2 top-1/2 size-[2000px] max-w-none -translate-1/2 text-border-subtle"
+      >
+        {PHOTO_RINGS.map((d) => (
+          <path key={d} d={d} fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+        ))}
+      </svg>
     </div>
   )
 }
 
-function PreviewField({ label, text }) {
+// What HuskyCache is, the headline, the student-written line about it, the
+// two things to do and the campus photo. "Find a cache" is the page's one red
+// button; "Hide a cache" opens the login dialog by itself for signed-out
+// people.
+//
+// On desktop the text and photo share the row about evenly (33 to 35), but
+// the text column never gets narrower than the headline's longest line,
+// "Cache in and stay": 25rem at Section size, 33rem at Hero size from
+// 1280px. Without that, on 1024–1439px screens the headline broke into four
+// lines with a short "to the" line; now it's three, and the photo takes the
+// rest of the row. (In rem, so the minimum grows if someone makes text
+// bigger. At 1440px the even share is already wide enough.)
+function Hero() {
+  const entrance = useFirstVisitEntrance()
   return (
-    <div>
-      <p className="mb-2 text-base font-bold">{label}</p>
-      <div className="flex min-h-[47px] items-center border-2 border-black px-3 py-2 text-base text-[#828282]">
-        {text}
+    <section
+      aria-labelledby="landing-heading"
+      className="grid gap-8 lg:grid-cols-[minmax(25rem,33fr)_minmax(0,35fr)] lg:items-center lg:gap-16 xl:grid-cols-[minmax(33rem,33fr)_minmax(0,35fr)]"
+    >
+      {/* max-w-2xl: on tablets the column stops at a readable width
+          instead of stretching across the screen. */}
+      <div className={`flex max-w-2xl flex-col items-start gap-4 lg:max-w-none lg:gap-5 ${entrance}`}>
+        {/* The kicker says plainly what this is before the playful headline.
+            It's a plain line, not a heading, read just before the headline. */}
+        <div className="flex flex-col gap-2">
+          <p className="text-label text-text-secondary">Hide and find caches around campus</p>
+          {/* Display on phones, Section on tablets (the column is wide) and
+              small laptops (where 64px would squeeze into a narrow column),
+              Hero from 1280px. text-balance evens out the lines, and the
+              no-break space keeps "NU community!" together, so the last line
+              is never one lonely word. */}
+          <h1
+            id="landing-heading"
+            className="text-balance text-display text-text-primary md:text-section xl:text-hero"
+          >
+            Cache in and stay connected to the NU&nbsp;community!
+          </h1>
+        </div>
+        <p className="max-w-xl text-body text-text-secondary lg:text-body-large">
+          HuskyCache is a student-led website that allows new Boston admits to explore the campus, find secret hidden
+          treasures along the way, and leave their mark for other students to find.
+        </p>
+        {/* Full width and stacked on phones; side by side, hugging their
+            labels, from tablets up. */}
+        <div className="flex w-full flex-col gap-3 pt-2 md:w-auto md:flex-row lg:pt-3">
+          <Button to="/map" fullWidth className="md:w-auto">
+            Find a cache
+          </Button>
+          <Button to="/caches/new" variant="secondary" fullWidth className="md:w-auto">
+            Hide a cache
+          </Button>
+        </div>
       </div>
+
+      {/* Snell Library, not Krentzman Quad: Krentzman's photo shows the
+          university's seal, and HuskyCache must never look like an official
+          Northeastern site. The photo is the page's largest element, so the
+          browser fetches it first (fetchPriority) and width/height reserve its
+          space before it arrives. It's 900 x 594 and about 125 KB already. */}
+      {/* The photo and its caption take the entrance, not the figure, so the
+          contour rings behind them stay still. */}
+      <figure className="relative flex max-w-2xl flex-col gap-2 lg:max-w-none">
+        <PhotoContours />
+        <img
+          src="/assets/snell-library.jpeg"
+          alt="Students with backpacks walking across the brick plaza to the entrance of Snell Library"
+          width={900}
+          height={594}
+          fetchPriority="high"
+          decoding="async"
+          className={`aspect-[3/2] w-full rounded-2xl bg-bg-subtle object-cover lg:aspect-[7/5] ${entrance}`}
+        />
+        {/* Names the place, as a field guide would: newcomers may not know it yet. */}
+        <figcaption className={`text-small text-text-secondary ${entrance}`}>Snell Library</figcaption>
+      </figure>
+    </section>
+  )
+}
+
+// The three steps, drawn as a trail like the hint trail on a cache's page:
+// 32px ink numbers joined by a dashed line (dashed means "not walked yet"),
+// ending at a small red pin, the cache. Down the page on phones and tablets,
+// across it on desktop. The trail and pin are decoration and never move.
+//
+// They really are a sequence, so they're a numbered list. The visible
+// numbers are hidden from screen readers; instead each step's name starts
+// with "Step 1:" (for screen readers only), so the order is always heard.
+function HowItWorks() {
+  return (
+    <section aria-labelledby="how-it-works-heading" className="flex flex-col gap-5 lg:gap-8">
+      {/* Title on phones and tablets, Display on desktop: always well under
+          the headline, which stays the page's one big voice. */}
+      <h2 id="how-it-works-heading" className="text-title text-text-primary lg:text-display">
+        How it works
+      </h2>
+      {/* role="list" looks redundant on an <ol>, but Safari (WebKit) stops
+          treating a list as a list once its bullets are turned off (Tailwind
+          does that for every list), so screen readers would lose "list, 3
+          items". Saying it again keeps it. */}
+      <ol role="list" className="flex max-w-2xl flex-col gap-5 lg:grid lg:max-w-none lg:grid-cols-3 lg:gap-8">
+        {STEPS.map((step, index) => {
+          const isLast = index === STEPS.length - 1
+          return (
+            <li
+              key={step.title}
+              className={`relative flex gap-3 lg:flex-col lg:gap-4 lg:pb-0 ${isLast ? 'pb-12' : ''}`}
+            >
+              {/* Phones and tablets: the trail runs down from under this number
+                  to the next one (the list's 20px gap, less 8px), or, after the
+                  last step, down to the pin (8px above it). */}
+              <span
+                aria-hidden="true"
+                className={`absolute left-4 top-10 -ml-px border-l border-dashed border-border-input contrast-more:border-text-secondary lg:hidden ${
+                  isLast ? 'bottom-9' : '-bottom-3'
+                }`}
+              />
+              {/* Desktop: the trail runs across from beside this number to the
+                  next one (the 32px column gap, less 8px), or, after the last
+                  step, to the pin at the row's end (8px short of it). */}
+              <span
+                aria-hidden="true"
+                className={`absolute left-10 top-4 hidden border-t border-dashed border-border-input contrast-more:border-text-secondary lg:block ${
+                  isLast ? 'right-9' : '-right-6'
+                }`}
+              />
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-bg-inverse text-label text-text-on-accent"
+              >
+                {index + 1}
+              </span>
+              <div className="flex min-w-0 flex-col gap-1 lg:pr-4">
+                <h3 className="text-body-strong text-text-primary lg:text-heading">
+                  <span className="sr-only">{`Step ${index + 1}: `}</span>
+                  {step.title}
+                </h3>
+                <p className="text-small text-text-secondary md:text-body">{step.text}</p>
+              </div>
+              {/* The trail's end: the cache, a still red pin (decorative pins
+                  don't react to hover). Under the last step on phones, at the
+                  row's right end on desktop, level with the numbers. */}
+              {isLast && <MapPin className="absolute bottom-0 left-0.5 lg:bottom-auto lg:left-auto lg:right-0 lg:top-0.5" />}
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
+
+// A quiet footer, for this page only: the logo, what HuskyCache is (and
+// isn't), and links to the app's pages and its code. It's navigation (a
+// <nav> inside the <footer> landmark), like the header's page pills, so
+// these standalone lines are links (The Links Go Places Rule).
+function LandingFooter() {
+  return (
+    <footer className="border-t border-border-subtle contrast-more:border-border-input">
+      <div className="flex flex-col gap-8 px-4 pb-12 pt-10 md:flex-row md:justify-between md:gap-12 md:px-8 lg:gap-16 lg:px-[10%] lg:pb-16 lg:pt-12">
+        <div className="flex max-w-sm flex-col items-start gap-3">
+          {/* The mark is decorative; the name beside it is read out. Not a
+              link: this page is already home. */}
+          <p className="flex items-center gap-2 text-heading font-extrabold text-text-primary">
+            <LogoMark className="size-7" />
+            HuskyCache
+          </p>
+          <p className="text-small text-text-secondary">
+            An unofficial student project, built through the Oasis Project Series. Not affiliated with Northeastern.
+          </p>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={FOOTER_LINK}>
+            GitHub
+            <ArrowUpRight aria-hidden="true" className="size-4" strokeWidth={2} />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </div>
+        <nav aria-label="Footer" className="flex gap-12 lg:gap-16">
+          {FOOTER_GROUPS.map((group) => (
+            <div key={group.id} className="flex flex-col gap-2">
+              <p id={group.id} className="text-label text-text-primary">
+                {group.label}
+              </p>
+              {/* role="list": the same Safari fix as the steps' list above. */}
+              <ul role="list" aria-labelledby={group.id} className="flex flex-col gap-1">
+                {group.links.map((link) => (
+                  <li key={link.to}>
+                    <Link to={link.to} className={FOOTER_LINK}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </div>
+    </footer>
+  )
+}
+
+function LandingPage() {
+  return (
+    <div className="flex min-h-dvh flex-col bg-bg-page text-text-primary">
+      <title>HuskyCache</title>
+
+      {/* Hidden until someone presses Tab, so keyboard users can jump past the header. */}
+      <a
+        href="#main-content"
+        className={`sr-only rounded-lg bg-bg-surface px-4 py-2 text-label text-text-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 ${FOCUS_RING}`}
+      >
+        Skip to content
+      </a>
+      <SiteHeader />
+      {/* The page's own <main> (Layout leaves it out here), with the header outside it.
+          tabIndex={-1} lets the skip link move focus here. isolate keeps the
+          contour rings above the page background but behind the content;
+          overflow-clip trims them, so the page never scrolls sideways. */}
+      <main id="main-content" tabIndex={-1} className="relative isolate flex flex-1 flex-col overflow-clip outline-none">
+        <div className="flex w-full flex-col gap-12 px-4 pb-16 pt-8 md:gap-16 md:px-8 md:pt-12 lg:gap-18 lg:px-[10%] lg:pb-24 lg:pt-18">
+          <Hero />
+          <HowItWorks />
+        </div>
+      </main>
+      <LandingFooter />
     </div>
   )
 }

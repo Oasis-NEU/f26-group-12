@@ -27,6 +27,7 @@ function Layout() {
   // it (screen readers only treat a header as the page header when it isn't
   // inside <main>). Add a page here once it has its own <main>.
   const hasOwnMain =
+    isLandingPage ||
     isCacheDetailPage ||
     isMapPage ||
     isLoginPage ||

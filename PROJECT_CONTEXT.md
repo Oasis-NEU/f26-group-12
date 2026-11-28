@@ -27,13 +27,13 @@ Core:
 - My caches page (`/my-caches`): the caches you've hidden, active first, each with its place, "Edit", and "Print slip" (active caches only), which prints the same slip as "Cache hidden!". The code is loaded from `cache_secrets` only when "Print slip" is pressed; the list never selects it. Find counts and ratings are hidden for now (see decisions).
 - Edit cache (`/caches/:cacheId/edit`), using the same form pieces as Hide a cache (`components/cacheForm/`). The secret code is shown locked, with "Print slip" (the shared slip). "Take down cache" asks first, in the page ("Take it down?"), then sets `is_active = false`; a taken-down cache has "Put it back on the map" (`is_active = true`). Caches are never deleted. With unsaved changes, closing the tab and "Cancel" ask first (header links don't yet; see decisions).
 - Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
+- Landing page (`/`, the home page): a "Hide and find caches around campus" kicker, the headline and student-written intro with "Find a cache" and "Hide a cache", the Snell Library photo, "How it works" in three steps (a trail down the page on phones, across it on desktop), and a small footer for this page only (what HuskyCache is, links to Map, Hide a cache, Journal and Leaderboard, and the GitHub repo). It loads no data. No made-up stats, sample caches or cache row; no About or Contact links until those pages exist.
 - Score and leaderboard: points are the difficulty of every cache you've found, added up. `/leaderboard` ranks everyone with a find (from the `leaderboard` database function; anyone can see it, logged in or not), highlights your own row, and says where you are ("You're #23 with 9 points.") with a button that jumps to your row.
 
 Next:
 - "Found" tab in the UI separating caches you've found from ones you haven't
 - Log in with Google, plus the “Choose a username”
 - Map filters (All / To find / My finds): this replaces the “Found” tab already listed under Next.
-- Landing page
 - Street addresses and named places in the header search (with the map
   work): picking one opens the map there, nearest caches first; picking a
   cache still opens its page. Needs a geocoding service (Photon is the free
