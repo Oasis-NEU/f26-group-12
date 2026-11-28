@@ -1,184 +1,310 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
-import { useLoginDialog } from '../components/login/loginDialogContext.js'
-import { TEXT_LINK } from '../components/login/LoginScreens.jsx'
+import { Check } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
+import Button from '../components/Button.jsx'
+import CacheSlip from '../components/CacheSlip.jsx'
+import FieldMessage from '../components/cacheForm/FieldMessage.jsx'
+import { RISE_IN } from '../components/cacheForm/formStyles.js'
+import { FOCUS_RING } from '../components/focusRing.js'
+import LoginRequired from '../components/login/LoginRequired.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
-import { supabase } from '../lib/supabaseClient.js'
-import { describeCacheStats, loadMyCaches } from './myCachesData.js'
+import StatusTag from '../components/StatusTag.jsx'
+import { useMyCaches } from '../lib/useMyCaches.js'
+import { describeCacheStats } from './myCachesData.js'
 
-// Outlined black button used for every action on this page.
-const SECONDARY_BUTTON =
-  'flex h-10 items-center justify-center border border-black bg-white px-4 text-[14px] font-bold leading-5 text-black whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8102e]'
+// My caches: /my-caches. From the Figma section "My caches · /my-caches".
+//
+// The caches you've hidden, active ones first, as plain white rows for
+// managing them (no photos: it's a list to work through, not to browse).
+// Each row has the cache's name with whether it's Active or Taken down
+// right after it, a line with its place, then its actions: "Edit", and
+// "Print slip" for an active cache, which prints the same slip as "Cache
+// hidden!" (CacheSlip). The secret code is loaded only when "Print slip" is
+// pressed, from cache_secrets (only the hider can read it); the list itself
+// never selects it. "Hide a new cache" sits at the top.
+//
+// Finds and ratings aren't shown yet: the database only lets people read
+// their own finds, so they always came back empty (see myCachesData.js).
+//
+// After "Save changes" on Edit cache, people land back here with a line
+// saying it saved; after taking a cache down or putting it back there and
+// pressing "Back to My caches", a line saying that. Signed-out visitors get
+// the login dialog over the page, and the list appears once they've logged
+// in. The data comes from useMyCaches (src/lib).
+//
+// Phones (the base styles): each row stacks, with its buttons sharing a
+// full-width line underneath in two equal halves. "Hide a new cache" drops
+// under the heading when the line is too narrow for both. Desktop (lg:): a
+// centred 768px column, and each row lays out across: name and details on
+// the left, buttons on the right.
 
-function StatusBadge({ active }) {
-  return active ? (
-    <span className="shrink-0 border border-black bg-white px-2.5 py-0.5 text-[12px] font-bold leading-[17px] text-black">
-      Active
-    </span>
-  ) : (
-    <span className="shrink-0 bg-[#f5f5f5] px-2.5 py-0.5 text-[12px] font-bold leading-[17px] text-[#444]">
-      Taken down
-    </span>
-  )
+const CARD = 'rounded-2xl border border-border-subtle bg-bg-surface contrast-more:border-border-input'
+
+// Motion (DESIGN.md): only for changes, on the shared ease-out, under
+// 300ms. starting: is the style each one animates from (CSS
+// @starting-style), which runs when the element is put on the page.
+//   ARRIVE  the list loads a moment after the page, so when it (or the
+//           empty card, or the error) arrives it fades in once, all
+//           together (200ms), replacing the loading notice, like the
+//           Leaderboard. No rise and no row-by-row stagger: it's a list to
+//           work through. Opacity only, so reduced motion keeps it.
+//   RISE_IN "Saved your changes…" (and "Took … down.") is the result of a
+//           press on Edit cache, so it fades in and rises 4px (200ms); with
+//           reduced motion it only fades.
+// The print error line fades in by itself (FieldMessage), and "Print slip"
+// presses like every Button.
+const ARRIVE = 'transition-opacity duration-200 ease-out starting:opacity-0'
+
+// The line at the top after coming back from Edit cache, by what was done
+// there (passed along with the page change as { kind, title }).
+const NOTICE_WORDS = {
+  saved: (title) => `Saved your changes to “${title}”.`,
+  down: (title) => `Took “${title}” down.`,
+  up: (title) => `Put “${title}” back on the map.`,
 }
 
-// One cache. Phone: info on top, buttons share a full-width row below.
-// Desktop (md+): info on the left, buttons on the right.
-function MyCacheCard({ cache }) {
+// One cache. Taken-down caches have no slip to print (nobody can log them),
+// so they only get "Edit", which is also where they're put back on the map.
+//
+// slip: this row's "Print slip" state: 'idle' | 'loading' | 'error'.
+function MyCacheRow({ cache, slip, onPrint }) {
+  const active = cache.is_active
+  const errorId = `print-error-${cache.id}`
+  const place = describeCacheStats(cache)
   return (
-    <li className="flex flex-col gap-3 border border-black bg-white p-4 md:flex-row md:items-center md:gap-4">
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-center gap-2.5">
-          <h2
-            className={`min-w-0 flex-1 text-[16px] font-bold leading-[22px] ${
-              cache.is_active ? 'text-black' : 'text-[#444]'
-            }`}
-          >
+    <li className={`${CARD} flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:gap-6`}>
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* The status pill sits right after the name, and drops under it
+            when the name is long. */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h2 className={`min-w-0 wrap-break-word text-body-strong ${active ? 'text-text-primary' : 'text-text-secondary'}`}>
             {cache.title}
           </h2>
-          <StatusBadge active={cache.is_active} />
+          <StatusTag active={active} />
         </div>
-        <p className="text-[13px] font-medium leading-[18px] text-[#444]">
-          {describeCacheStats(cache)}
-        </p>
+        {place && <p className="mt-1 text-small text-text-secondary">{place}</p>}
+        {/* Always on the page (empty until it fails), so screen readers
+            read the problem out the moment it appears. */}
+        <div role="alert">
+          {slip === 'error' && (
+            <div className="pt-2">
+              <FieldMessage
+                id={errorId}
+                error="Couldn’t get the code to print. Check your connection and try again."
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex gap-2">
-        <Link
-          to={`/caches/${cache.id}/edit`}
-          className={`${SECONDARY_BUTTON} flex-1 hover:bg-[#f5f5f5] md:flex-none`}
-        >
-          Edit
-        </Link>
-        {/* Taken-down caches have no slip to print. */}
-        {cache.is_active && (
-          // The printable slip page isn't built yet, so this stays disabled for now.
-          <button
-            type="button"
-            disabled
-            title="Printing slips is coming soon"
-            className={`${SECONDARY_BUTTON} flex-1 cursor-not-allowed md:flex-none`}
+      {/* Phones: two equal halves (one full-width "Edit" when taken down),
+          so "Getting the code…" can't push "Edit" around. Desktop: fixed
+          widths at the right of the row, for the same reason. */}
+      <div className={`grid gap-2 lg:flex lg:shrink-0 ${active ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {/* The cache's name follows each button's word for screen readers,
+            so a list of "Edit" buttons still says which is which. */}
+        <Button to={`/caches/${cache.id}/edit`} variant="secondary" className="lg:w-24">
+          Edit<span className="sr-only"> {cache.title}</span>
+        </Button>
+        {active && (
+          // While the code loads it says so and ignores more presses
+          // (aria-disabled, so it stays focusable and readable). On a narrow
+          // phone its words wrap onto two lines inside the 48px button.
+          <Button
+            variant="secondary"
+            onClick={() => onPrint(cache)}
+            aria-disabled={slip === 'loading' || undefined}
+            aria-describedby={slip === 'error' ? errorId : undefined}
+            className="min-w-0 aria-disabled:cursor-wait max-lg:whitespace-normal max-lg:px-3 max-lg:text-center lg:w-44"
           >
-            Print slip
-          </button>
+            {slip === 'loading' ? 'Getting the code…' : 'Print slip'}
+            <span className="sr-only"> for {cache.title}</span>
+          </Button>
         )}
       </div>
     </li>
   )
 }
 
-// A plain message box used for loading, signed-out, empty and error states.
+// Loading and errors: a short message in a white box, like the Journal's.
 function Notice({ children, role = 'status' }) {
   return (
-    <div role={role} className="border border-black bg-white p-4 text-[14px] font-medium leading-5 text-[#444] md:text-[16px] md:leading-[22px]">
+    <div role={role} className={`${CARD} p-4 text-body text-text-secondary`}>
       {children}
     </div>
   )
 }
 
+// No caches yet: say what this page is for, and offer the way to hide one
+// (the page's one red button; the top "Hide a new cache" steps aside).
+function EmptyList() {
+  return (
+    <div className={`${CARD} flex flex-col items-start gap-4 p-4 lg:p-6`}>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-body-strong text-text-primary">You haven’t hidden any caches yet</h2>
+        <p className="text-small text-text-secondary">
+          Hide one and it shows up here, ready to edit, with a slip to print.
+        </p>
+      </div>
+      <Button to="/caches/new" className="max-lg:w-full">
+        Hide a cache
+      </Button>
+    </div>
+  )
+}
+
 function MyCachesPage() {
-  const { openLogin } = useLoginDialog()
-  // undefined = still checking who is signed in; null = signed out.
-  const [userId, setUserId] = useState(undefined)
-  // The last finished load, tagged with whose caches it holds. If that isn't
-  // the current user yet, we're still loading.
-  const [result, setResult] = useState({ userId: undefined, caches: [], error: '' })
-  const loading = result.userId !== userId
-  const { caches, error } = result
+  const mine = useMyCaches()
+  const location = useLocation()
+  const navigate = useNavigate()
+  // "Print slip": which cache's code is loading or failed, and the slip
+  // that's ready to print ({ title, secretCode }, with a fresh id each press
+  // so printing the same slip twice still prints).
+  const [printing, setPrinting] = useState({ cacheId: null, status: 'idle' })
+  const [slip, setSlip] = useState(null)
+  // Counts "Print slip" presses, so only the latest one prints: pressing
+  // another cache's button while a code loads switches to that cache.
+  const printRequest = useRef(0)
+  // What was just done on Edit cache ({ kind, title }), passed along with
+  // the page change. Kept here, then cleared from the history entry, so a
+  // reload or coming Back doesn't show it again.
+  const [arrivedNotice] = useState(() => location.state?.notice ?? null)
+  // The line that's showing. It's filled in a moment after the page
+  // appears, into a live region that's already there (an empty one), so
+  // screen readers announce it.
+  const [notice, setNotice] = useState(null)
 
-  // Find out who is signed in, and keep listening in case that changes.
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? null)
-    })
+    if (location.state?.notice) navigate('.', { replace: true, state: null })
+  }, [location.state, navigate])
 
-    supabase.auth
-      .getSession()
-      .then(({ data }) => setUserId(data.session?.user?.id ?? null))
-      // If the session check fails, treat them as signed out instead of loading forever.
-      .catch(() => setUserId(null))
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  // Load this user's caches whenever the signed-in user changes.
   useEffect(() => {
-    if (userId === undefined) {
-      return
+    if (!arrivedNotice) return
+    const timer = setTimeout(() => setNotice(arrivedNotice), 100)
+    return () => clearTimeout(timer)
+  }, [arrivedNotice])
+
+  // Print once the slip is on the page (it's drawn below, hidden on screen).
+  useEffect(() => {
+    if (slip) window.print()
+  }, [slip])
+
+  async function printSlip(cache) {
+    // The same cache again while its code loads: already on it.
+    if (printing.status === 'loading' && printing.cacheId === cache.id) return
+    const request = ++printRequest.current
+    setPrinting({ cacheId: cache.id, status: 'loading' })
+    try {
+      const secretCode = await mine.secretCode(cache.id)
+      // Another "Print slip" was pressed meanwhile: that one wins.
+      if (request !== printRequest.current) return
+      setPrinting({ cacheId: null, status: 'idle' })
+      setSlip({ id: Date.now(), title: cache.title, secretCode })
+    } catch {
+      if (request !== printRequest.current) return
+      setPrinting({ cacheId: cache.id, status: 'error' })
     }
+  }
 
-    // "active" stops a slow, out-of-date request from overwriting newer data.
-    let active = true
-
-    loadMyCaches(supabase, userId)
-      .then((caches) => {
-        if (active) setResult({ userId, caches, error: '' })
-      })
-      .catch(() => {
-        if (active) {
-          setResult({
-            userId,
-            caches: [],
-            error: 'We couldn’t load your caches. Refresh the page to try again.',
-          })
-        }
-      })
-
-    return () => {
-      active = false
-    }
-  }, [userId])
+  const noticeText = notice ? NOTICE_WORDS[notice.kind]?.(notice.title) : null
+  const signedIn = Boolean(mine.userId)
+  const empty = signedIn && !mine.loading && !mine.error && mine.caches.length === 0
 
   let content
-  if (userId === undefined || loading) {
-    content = <Notice>Loading your caches…</Notice>
-  } else if (userId === null) {
+  if (mine.userId === null) {
+    // Signed out: the login dialog opens over the page, and the list
+    // appears once they've logged in (useMyCaches notices).
     content = (
-      <Notice>
-        {/* Opens the login dialog over this page; it loads by itself after. */}
-        <button type="button" onClick={() => openLogin({ task: 'see the caches you’ve hidden' })} aria-haspopup="dialog" className={TEXT_LINK}>
-          Log in
-        </button>{' '}
-        to see the caches you’ve hidden.
+      <LoginRequired task="see the caches you’ve hidden">
+        This page keeps the caches you’ve hidden, so you can edit them and print their slips. Log in to see them.
+      </LoginRequired>
+    )
+  } else if (!signedIn || mine.loading) {
+    content = <Notice>Loading your caches…</Notice>
+  } else if (mine.error) {
+    content = (
+      <Notice role="alert">
+        Your caches couldn’t load. Check your connection and{' '}
+        <button
+          type="button"
+          onClick={mine.retry}
+          className={`-my-1 cursor-pointer rounded-lg py-1 font-bold text-text-primary underline ${FOCUS_RING}`}
+        >
+          try again
+        </button>
+        .
       </Notice>
     )
-  } else if (error) {
-    content = <Notice role="alert">{error}</Notice>
-  } else if (caches.length === 0) {
-    content = <Notice>You haven’t hidden any caches yet.</Notice>
+  } else if (empty) {
+    content = <EmptyList />
   } else {
     content = (
-      <ul className="flex flex-col gap-4">
-        {caches.map((cache) => (
-          <MyCacheCard key={cache.id} cache={cache} />
+      <ul className="flex flex-col gap-3">
+        {mine.caches.map((cache) => (
+          <MyCacheRow
+            key={cache.id}
+            cache={cache}
+            slip={printing.cacheId === cache.id ? printing.status : 'idle'}
+            onPrint={printSlip}
+          />
         ))}
       </ul>
     )
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white text-black">
-      <SiteHeader />
-
-      <div className="flex w-full flex-col gap-4 p-4 md:mx-auto md:max-w-[800px] md:pb-12 md:pt-10">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="whitespace-nowrap text-[24px] font-extrabold leading-8 tracking-[-0.25px] md:text-[36px] md:leading-[44px] md:tracking-normal">
-            My caches
-          </h1>
-          <Link to="/caches/new" className={`${SECONDARY_BUTTON} hover:bg-[#f5f5f5]`}>
-            Hide a new cache
-          </Link>
-        </div>
-
-        <p className="text-[14px] font-medium leading-5 text-[#444] md:text-[16px] md:leading-[22px]">
-          Caches you’ve hidden. Edit them, print a new slip, or take them down.
-        </p>
-
-        {content}
+    <>
+      <div className="flex min-h-dvh flex-col bg-bg-page text-text-primary print:hidden">
+        <title>My caches · HuskyCache</title>
+        {/* Hidden until someone presses Tab, so keyboard users can jump past the header. */}
+        <a
+          href="#main-content"
+          className={`sr-only rounded-lg bg-bg-surface px-4 py-2 text-label text-text-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 ${FOCUS_RING}`}
+        >
+          Skip to content
+        </a>
+        <SiteHeader />
+        {/* The page's own <main> (Layout leaves it out here), with the header outside it.
+            tabIndex={-1} lets the skip link move focus here. */}
+        <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
+          <div className="flex w-full flex-col gap-4 p-4 lg:mx-auto lg:max-w-3xl lg:px-0 lg:pb-12 lg:pt-10">
+            {/* min-h-12 keeps the row the same height whether or not the
+                button is there. On a narrow phone the button wraps under
+                the heading, so "My caches" stays on one line. */}
+            <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <h1 className="text-display text-text-primary">My caches</h1>
+              {/* Signed out it would only lead to another login, and with
+                  no caches the empty card offers it instead. */}
+              {mine.userId !== null && !empty && (
+                <Button to="/caches/new" variant="secondary" className="shrink-0">
+                  Hide a new cache
+                </Button>
+              )}
+            </div>
+            <p className="text-small text-text-secondary lg:text-body">
+              Caches you’ve hidden. Edit them, print a new slip, or take them down.
+            </p>
+            <div>
+              {/* The live region is always here (empty, taking no room)
+                  and the line is put inside it, so it's read out. */}
+              <div role="status">
+                {noticeText && (
+                  <p className={`${CARD} mb-4 flex items-start gap-2 px-4 py-3 text-body text-text-primary ${RISE_IN}`}>
+                    {/* Ink, not green: green only ever means "found". */}
+                    <Check aria-hidden="true" size={20} strokeWidth={2.5} className="mt-0.5 shrink-0" />
+                    <span className="min-w-0 wrap-break-word">{noticeText}</span>
+                  </p>
+                )}
+              </div>
+              {/* Try again goes back through loading, so whatever loads fades
+                  in afresh each time. */}
+              {mine.loading || !signedIn ? content : <div className={`flex flex-col gap-4 ${ARRIVE}`}>{content}</div>}
+            </div>
+          </div>
+        </main>
       </div>
-    </div>
+      {slip && <CacheSlip key={slip.id} cache={slip} />}
+    </>
   )
 }
 
