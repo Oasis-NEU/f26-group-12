@@ -1,15 +1,13 @@
 // Which caches the landing page shows under "Waiting to be found".
 //
 // It gets the same list as the map (loadActiveCaches in mapData.js: active
-// caches only, newest first, never secret_code) and picks a few of them.
-// Caches with a photo come first, since a photo shows a newcomer what a
-// cache spot looks like; within each group the newest stay first.
+// caches only, newest first, never secret_code) and takes the newest few,
+// whether or not they have a photo. (Photos don't jump the queue: a cache's
+// photo comes from whoever hid it, so it isn't picked out for the landing
+// page.)
 
 export const FEATURED_COUNT = 3
 
 export function pickFeaturedCaches(caches, count = FEATURED_COUNT) {
-  const list = caches ?? []
-  const withPhoto = list.filter((cache) => Boolean(cache.image))
-  const withoutPhoto = list.filter((cache) => !cache.image)
-  return [...withPhoto, ...withoutPhoto].slice(0, count)
+  return (caches ?? []).slice(0, count)
 }

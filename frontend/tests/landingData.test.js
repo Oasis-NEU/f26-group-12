@@ -13,11 +13,11 @@ test('picks three caches by default', () => {
   )
 })
 
-test('caches with a photo come first, each group keeping its order', () => {
+test('takes the newest caches in order, photo or not', () => {
   const picked = pickFeaturedCaches([cache('a'), cache('b', 'b.jpg'), cache('c'), cache('d', 'd.jpg')])
   assert.deepEqual(
     picked.map((c) => c.id),
-    ['b', 'd', 'a'],
+    ['a', 'b', 'c'],
   )
 })
 
