@@ -24,10 +24,10 @@ Core:
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
 - Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
-- Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. The Journal has a Favorites tab beside Finds.
+- Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
+- Score and leaderboard: points are the difficulty of every cache you've found, added up. `/leaderboard` ranks everyone with a find (from the `leaderboard` database function; anyone can see it, logged in or not), highlights your own row, and says where you are ("You're #23 with 9 points.") with a button that jumps to your row.
 
 Next:
-- Score and leaderboard (points based on cache difficulty)
 - "Found" tab in the UI separating caches you've found from ones you haven't
 - Log in with Google, plus the “Choose a username”
 - Map filters (All / To find / My finds): this replaces the “Found” tab already listed under Next.
@@ -157,7 +157,7 @@ Unique constraint `one_save_per_person` on (`user_id`, `cache_id`). Each person 
 Realtime is enabled on `messages` only.
 
 ### Database functions (call with `supabase.rpc(...)`)
-The first three need a logged-in user; `cache_ratings` works for everyone.
+The first three need a logged-in user; `cache_ratings` and `leaderboard` work for everyone.
 
 | function | what it does | returns |
 |---|---|---|
@@ -165,13 +165,14 @@ The first three need a logged-in user; `cache_ratings` works for everyone.
 | `create_cache(p_title, p_latitude, p_longitude, p_difficulty, p_description, p_location_name, p_image, p_hints, p_secret_code)` | saves the cache, up to 3 hints (array of text, blanks skipped), and its code in one step. `p_secret_code` is optional (random if left out). | `{ cache_id, secret_code }` |
 | `log_find(p_cache_id, p_secret_code, p_rating, p_journal_note, p_photo)` | checks the code, then saves the find. Codes are case-insensitive. | the new find's `id` |
 | `cache_ratings(p_cache_ids)` | each active cache's average rating (one decimal, `null` if unrated) and number of ratings. Totals only, never who rated what or how many found it. Leave `p_cache_ids` out for every cache. | rows of `{ cache_id, average_rating, rating_count }` |
+| `leaderboard(p_limit)` | everyone with at least one find, ranked by points (the difficulty of every cache they've found, added up; taken-down caches still count). Ties share a rank (1, 2, 2, 4). The top `p_limit` people (default 50, at most 100; on equal points, whoever reached that score first makes the list, then username), with `in_top` true, plus your own row last (`in_top` false) if you're logged in and outside the top. No user ids: `is_me` marks your row. Never says which caches anyone found, or when. Added in `supabase/changes/2026-11-27_leaderboard.sql` (**not run in Supabase yet**; until it is, the Leaderboard page says it couldn't load). | rows of `{ rank, username, points, finds, is_me, in_top }` |
 
 `log_find` errors have friendly messages you can show directly with `error.message`: wrong code, already logged ("You've already logged this cache!"), inactive cache, or trying to log a cache you hid yourself.
 
 ### Calculated, not stored
 - **Number of caches:** count rows in `caches`
 - **A user's journal / found list:** rows in `finds` for that user
-- **Score / leaderboard:** sum of `difficulty` for each cache a user has found
+- **Score / leaderboard:** sum of `difficulty` for each cache a user has found (the `leaderboard` function adds it up for everyone)
 
 ## Key decisions
 
@@ -215,7 +216,7 @@ The first three need a logged-in user; `cache_ratings` works for everyone.
 | `messages` | nobody yet (locked) | nobody yet |
 
 Still to do:
-- Leaderboard function (step 5), since users can't read other people's finds directly.
+- Run `supabase/changes/2026-11-27_leaderboard.sql` (the leaderboard function, written 11/27), since users can't read other people's finds directly.
 - Messages policies, once messaging is built.
 
 ## Timeline (subject to change)
