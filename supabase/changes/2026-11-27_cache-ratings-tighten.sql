@@ -1,8 +1,6 @@
 -- Tightens cache_ratings (from 2026-11-27_cache-ratings.sql) after the
 -- cache-cards review.
--- NOT APPLIED YET. Run ONCE: Supabase dashboard -> SQL Editor -> New query ->
--- paste this whole file -> Run. When it's done, change the line above to
--- "ALREADY APPLIED to the live database on <date>. Don't run it again."
+-- ALREADY APPLIED to the live database on 2026-11-27. Don't run it again.
 -- (Running it twice is harmless: it drops and recreates the same function.)
 --
 -- What changes, in plain language:
