@@ -1,7 +1,7 @@
 // The printed slip that goes inside a cache: its name, its secret code and
 // one line telling whoever opens the container what to do, inside a dashed
 // cut line, black on white. Used by "Cache hidden!" (Hide a cache) and
-// "Print slip" (My caches), so every slip looks the same.
+// "Print slip" (My caches and Edit cache), so every slip looks the same.
 //
 // It's hidden on screen and is the only thing on the page when printing:
 // the page around it puts print:hidden on everything else. No link or QR

@@ -1,8 +1,8 @@
+import { MAX_HINTS } from '../lib/hideCache.js'
+
 // Data helpers for the Edit cache page. Kept separate from the page so they
 // can be tested without React. useEditCache (src/lib) decides when to run
 // them.
-
-export const MAX_HINTS = 3
 
 const EDIT_CACHE_COLUMNS =
   'id,title,description,location_name,difficulty,image,latitude,longitude,is_active,created_by'
@@ -102,10 +102,6 @@ export function formSnapshot(form) {
   ])
 }
 
-// Give up waiting for a save after this long (weak signal), as Hide a cache
-// does.
-export const SAVE_TIMEOUT_MS = 20000
-
 // Thrown when an update comes back with no rows changed. The database (RLS)
 // doesn't send an error when it blocks an update: it just changes nothing,
 // so without this the page would say "saved" when nothing was.
@@ -156,7 +152,7 @@ async function updateCacheRow(supabase, cacheId, values, signal) {
 // writes the same thing and finishes the rest.
 //
 // signal (optional, from an AbortController) lets the page stop waiting
-// after SAVE_TIMEOUT_MS.
+// after SAVE_TIMEOUT_MS (shared with Hide a cache, in lib/hideCache.js).
 export async function saveCacheEdits(supabase, cacheId, values, hints, signal) {
   await updateCacheRow(supabase, cacheId, values, signal)
 

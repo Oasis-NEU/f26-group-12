@@ -28,9 +28,9 @@ import { describeCacheStats } from './myCachesData.js'
 //
 // After "Save changes" on Edit cache, people land back here with a line
 // saying it saved; after taking a cache down or putting it back there and
-// pressing "Back to My caches", a line saying that. Signed-out visitors get the login dialog over the page,
-// and the list appears once they've logged in. The data comes from
-// useMyCaches (src/lib).
+// pressing "Back to My caches", a line saying that. Signed-out visitors get
+// the login dialog over the page, and the list appears once they've logged
+// in. The data comes from useMyCaches (src/lib).
 //
 // Phones (the base styles): each row stacks, with its buttons sharing a
 // full-width line underneath in two equal halves. "Hide a new cache" drops

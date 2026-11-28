@@ -22,9 +22,9 @@ import LoginRequired from '../components/login/LoginRequired.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import StatusTag from '../components/StatusTag.jsx'
 import TextField from '../components/TextField.jsx'
-import { TITLE_MAX_LENGTH } from '../lib/hideCache.js'
+import { SAVE_TIMEOUT_MS, TITLE_MAX_LENGTH } from '../lib/hideCache.js'
 import { useEditCache } from '../lib/useEditCache.js'
-import { describeSaveError, formSnapshot, prepareCacheEdits, SAVE_TIMEOUT_MS } from './editCacheData.js'
+import { describeSaveError, formSnapshot, prepareCacheEdits } from './editCacheData.js'
 
 // Edit cache: /caches/:cacheId/edit. From the Figma section "Edit cache ·
 // /caches/:cacheId/edit".
@@ -531,9 +531,13 @@ function EditCacheForm({ cache, initialHints, edit, onPrintSlip }) {
     <>
       <form id={FORM_ID} noValidate onSubmit={handleSubmit} onKeyDown={moveToNextField} className="flex flex-col gap-7">
         <div className="flex flex-col gap-3">
-          {/* The cache's saved name, with the same pill as on My caches. */}
+          {/* The cache's saved name, with the same pill as on My caches. A
+              long name wraps into even lines (text-balance), not one word
+              left alone on the last line. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <h1 className="min-w-0 wrap-break-word text-title text-text-primary lg:text-section">Edit {cache.title}</h1>
+            <h1 className="min-w-0 text-balance wrap-break-word text-title text-text-primary lg:text-section">
+              Edit {cache.title}
+            </h1>
             <StatusTag active={active} />
           </div>
           {active ? (
