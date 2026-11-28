@@ -43,6 +43,17 @@ const TABS = [
 // A quiet button: no outline, Subtle fill on hover (The Links Go Places
 // Rule: an action that isn't Primary or Secondary). 40px tall to tap, with
 // negative margins so it sits in a text line without making it taller.
+// Motion (DESIGN.md): only for changes someone causes, on the shared
+// ease-out, under 300ms. The stars "Rate it" opens fade in and grow from
+// 97% out of their top-left corner, where the button was (150ms); with
+// reduced motion they only fade. New lines ("Saving…", "Rating saved.",
+// an error) fade in (150ms). Closing is instant, and switching tabs
+// doesn't animate (arrow keys can do it, and lists don't animate when a
+// filter changes). starting: is the style it animates from (CSS
+// @starting-style), so this only plays when the element appears.
+const OPEN_IN =
+  'origin-top-left transition-[opacity,scale] duration-150 ease-out starting:opacity-0 motion-safe:starting:scale-97'
+const FADE_IN = 'transition-opacity duration-150 ease-out starting:opacity-0'
 const QUIET_BUTTON = `-my-2.5 inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 text-label text-text-primary hover:bg-bg-subtle active:scale-97 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`
 
 // Loading, errors and empty lists: a short message in a white box.
@@ -118,7 +129,8 @@ function Tabs({ value, onChange, idFor }) {
             aria-controls={idFor(tab.id, 'panel')}
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(tab.id)}
-            className={`flex h-10 cursor-pointer items-center rounded-lg border px-4 text-label ${
+            // Pressing shrinks it to 97%, like a button; the fill eases (150ms).
+            className={`flex h-10 cursor-pointer items-center rounded-lg border px-4 text-label active:scale-97 motion-safe:transition-[background-color,border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${
               selected
                 ? 'border-bg-inverse bg-bg-inverse text-text-on-accent'
                 : 'border-border-strong bg-bg-surface text-text-primary hover:bg-bg-subtle'
@@ -226,7 +238,7 @@ function YourRating({ find, title, canRate, onRate }) {
           <StarRating value={find.rating} label="Your rating" />
         </div>
         {justSaved && (
-          <p ref={savedRef} tabIndex={-1} className="text-small text-text-secondary outline-none">
+          <p ref={savedRef} tabIndex={-1} className={`text-small text-text-secondary outline-none ${FADE_IN}`}>
             Rating saved.
           </p>
         )}
@@ -252,7 +264,7 @@ function YourRating({ find, title, canRate, onRate }) {
   return (
     <div
       ref={pickerRef}
-      className="flex flex-col gap-2"
+      className={`flex flex-col gap-2 ${OPEN_IN}`}
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
           event.stopPropagation()
@@ -269,7 +281,7 @@ function YourRating({ find, title, canRate, onRate }) {
           label={`Your rating for ${title}`}
         />
         {mode === 'saving' ? (
-          <span role="status" className="text-small text-text-secondary">
+          <span role="status" className={`text-small text-text-secondary ${FADE_IN}`}>
             Saving…
           </span>
         ) : (
@@ -279,7 +291,8 @@ function YourRating({ find, title, canRate, onRate }) {
         )}
       </div>
       {error && (
-        <div role="alert" className="flex items-start gap-2">
+        // Keyed by the message, so a repeated failure fades in again.
+        <div key={error} role="alert" className={`flex items-start gap-2 ${FADE_IN}`}>
           <span
             aria-hidden="true"
             className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-error font-display text-tag text-text-on-accent"
