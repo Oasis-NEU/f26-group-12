@@ -163,7 +163,7 @@ function DevComponentsPage() {
           </State>
         </Section>
 
-        <Section title="CacheCard" note="Cards with to= or onClick are hoverable. No photo shows the empty dashed box; no rating prop hides the rating. The last two are clickable: click one to select it.">
+        <Section title="CacheCard" note="Cards with to= or onClick are hoverable. With a photo it runs across the top; with none there is no photo area; no rating prop hides the rating. The last two are clickable: click one to select it.">
           <State name="Default (hover me)" wide>
             <CacheCard title="Quad riddle" location="Krentzman Quad" difficulty={4} to="/dev/components" />
           </State>
@@ -175,6 +175,30 @@ function DevComponentsPage() {
               image="/assets/krentzman-quad.jpeg"
               rating={{ average: 4.6, count: 12 }}
               to="/dev/components"
+            />
+          </State>
+          <State name="Photo · Found · Selected, with a heart" wide>
+            <CacheCard
+              title="Snell Study Break"
+              location="Snell Library"
+              difficulty={1}
+              image="/assets/snell-library.jpeg"
+              rating={{ average: 4.6, count: 12 }}
+              found
+              selected
+              corner={<FavoriteButton title="Snell Study Break" signedIn saved={false} onToggle={() => {}} cacheId="dev-7" />}
+            />
+          </State>
+          <State name="Roomy (the Journal's Favorites, hover me)" wide>
+            <CacheCard
+              title="West Village Walk"
+              location="West Village"
+              difficulty={2}
+              image="/assets/west-village-residence.jpeg"
+              rating={{ average: 4.6, count: 12 }}
+              roomy
+              to="/dev/components"
+              corner={<FavoriteButton title="West Village Walk" signedIn saved onToggle={() => {}} cacheId="dev-8" />}
             />
           </State>
           <State name="No ratings yet" wide>
