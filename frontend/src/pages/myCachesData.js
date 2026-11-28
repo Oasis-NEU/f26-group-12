@@ -3,9 +3,13 @@
 // them.
 
 // Never select secret_code here: this list doesn't need it.
-// "finds(rating)" asks Supabase to also return each cache's finds (just the
-// rating column), using the finds.cache_id foreign key.
-const MY_CACHE_COLUMNS = 'id,title,location_name,is_active,created_at,finds(rating)'
+//
+// No finds or ratings for now: the finds table only lets people read their
+// own finds (RLS), so embedding a cache's finds here always came back empty
+// and every row said "No finds yet". A database function that returns just
+// the totals (find count and average rating) is planned on its own branch;
+// once it's in, the counts and stars can come back.
+const MY_CACHE_COLUMNS = 'id,title,location_name,is_active,created_at'
 
 export async function loadMyCaches(supabase, userId) {
   if (!userId) {
@@ -27,32 +31,11 @@ export async function loadMyCaches(supabase, userId) {
   return [...(data ?? [])].sort((a, b) => Number(b.is_active) - Number(a.is_active))
 }
 
-// Builds the grey line under a cache title, e.g.
-// "Back Bay Fens · 2 finds · Rated 4.0 on average".
-// Find count and average are calculated from finds, not stored.
+// The grey line under a cache title: just its place for now (e.g. "Back
+// Bay Fens"), or "" when it has none. Finds and ratings come back once the
+// totals function exists (see MY_CACHE_COLUMNS above).
 export function describeCacheStats(cache) {
-  const finds = cache.finds ?? []
-  const parts = []
-
-  if (cache.location_name) {
-    parts.push(cache.location_name)
-  }
-
-  if (finds.length === 0) {
-    parts.push('No finds yet')
-    return parts.join(' · ')
-  }
-
-  parts.push(finds.length === 1 ? '1 find' : `${finds.length} finds`)
-
-  // Rating is optional on a find, so only average the ones that have one.
-  const ratings = finds.map((find) => find.rating).filter((rating) => rating != null)
-  if (ratings.length > 0) {
-    const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
-    parts.push(`Rated ${average.toFixed(1)} on average`)
-  }
-
-  return parts.join(' · ')
+  return cache.location_name?.trim() || ''
 }
 
 // The secret code for one cache, for printing its slip. Only loaded when the

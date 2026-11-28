@@ -57,7 +57,11 @@ export function useEditCache(cacheId) {
   }, [cacheId, userId, key])
 
   const retry = useCallback(() => setAttempt((count) => count + 1), [])
-  const save = useCallback((values, hints) => saveCacheEdits(supabase, cacheId, values, hints), [cacheId])
+  // signal (optional): lets the page stop waiting (see SAVE_TIMEOUT_MS).
+  const save = useCallback(
+    (values, hints, signal) => saveCacheEdits(supabase, cacheId, values, hints, signal),
+    [cacheId],
+  )
   const takeDown = useCallback(() => takeDownCache(supabase, cacheId), [cacheId])
   const bringBack = useCallback(() => bringBackCache(supabase, cacheId), [cacheId])
 

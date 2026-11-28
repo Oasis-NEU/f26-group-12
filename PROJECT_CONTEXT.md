@@ -24,8 +24,8 @@ Core:
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
 - Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
-- My caches page (`/my-caches`): the caches you've hidden, active first, each with its finds and average rating, "Edit", and "Print slip" (active caches only), which prints the same slip as "Cache hidden!". The code is loaded from `cache_secrets` only when "Print slip" is pressed; the list never selects it.
-- Edit cache (`/caches/:cacheId/edit`), using the same form pieces as Hide a cache (`components/cacheForm/`). The secret code is shown locked. "Take down cache" asks first, in the page ("Take it down?"), then sets `is_active = false`; a taken-down cache has "Put it back on the map" (`is_active = true`). Caches are never deleted.
+- My caches page (`/my-caches`): the caches you've hidden, active first, each with its place, "Edit", and "Print slip" (active caches only), which prints the same slip as "Cache hidden!". The code is loaded from `cache_secrets` only when "Print slip" is pressed; the list never selects it. Find counts and ratings are hidden for now (see decisions).
+- Edit cache (`/caches/:cacheId/edit`), using the same form pieces as Hide a cache (`components/cacheForm/`). The secret code is shown locked, with "Print slip" (the shared slip). "Take down cache" asks first, in the page ("Take it down?"), then sets `is_active = false`; a taken-down cache has "Put it back on the map" (`is_active = true`). Caches are never deleted. With unsaved changes, closing the tab and "Cancel" ask first (header links don't yet; see decisions).
 - Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
 - Score and leaderboard: points are the difficulty of every cache you've found, added up. `/leaderboard` ranks everyone with a find (from the `leaderboard` database function; anyone can see it, logged in or not), highlights your own row, and says where you are ("You're #23 with 9 points.") with a button that jumps to your row.
 
@@ -216,6 +216,23 @@ The first three need a logged-in user; `cache_ratings` and `leaderboard` work fo
   (2026-11-28). The list query never selects `secret_code`; "Print slip"
   reads that one cache's code from `cache_secrets` (creator-only by RLS)
   when it's pressed, and prints the shared slip (`components/CacheSlip.jsx`).
+- **Edit cache saves within today's grants, in steps** (2026-11-28). The
+  caches row is updated first, then the hints: existing ones get a
+  text-only update, new ones are inserted, extra ones deleted (owners
+  can't UPDATE `hints.cache_id`, so an upsert fails). Every update asks for
+  its row back and counts zero rows as a failure, since RLS blocks updates
+  silently. It isn't atomic; an `update_cache` RPC is planned on its own
+  branch.
+- **My caches hides find counts and ratings for now** (2026-11-28). The
+  `finds` SELECT policy is own-rows only, so embedding a cache's finds
+  always came back empty. A totals-only database function (count and
+  average rating per cache) comes on its own branch; then they come back.
+- **Leaving Edit cache with unsaved changes** (2026-11-28) asks first on
+  close/reload (`beforeunload`) and on "Cancel" (in the page). In-app
+  navigation (header links, Back) isn't blocked: React Router's
+  `useBlocker` needs a data router (`createBrowserRouter`), and the app
+  uses `<BrowserRouter>`; switching is a site-wide change for its own
+  branch.
 - **Taking a cache down asks first, in the page,** not with a browser
   pop-up, and can be undone: "Put it back on the map" sets `is_active`
   back to true (owners can already update `is_active`; no database change).

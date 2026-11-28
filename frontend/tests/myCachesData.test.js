@@ -40,7 +40,8 @@ test('loadMyCaches asks only for the signed-in user’s caches and never the sec
 
   assert.deepEqual(calls[0], ['from', 'caches'])
   assert.ok(!calls[1][1].includes('secret_code'))
-  assert.ok(calls[1][1].includes('finds(rating)'))
+  // finds are own-rows only (RLS), so the embed always came back empty.
+  assert.ok(!calls[1][1].includes('finds'))
   assert.deepEqual(calls[2], ['eq', 'created_by', 'user-1'])
 })
 
@@ -72,20 +73,11 @@ test('loadMyCaches throws Supabase errors so the page can show them', async () =
   await assert.rejects(loadMyCaches(client, 'user-1'), /nope/)
 })
 
-test('describeCacheStats matches the design copy', () => {
-  assert.equal(
-    describeCacheStats({ location_name: 'Back Bay Fens', finds: [{ rating: 4 }, { rating: 4 }] }),
-    'Back Bay Fens · 2 finds · Rated 4.0 on average',
-  )
-  assert.equal(describeCacheStats({ location_name: null, finds: [] }), 'No finds yet')
-})
-
-test('describeCacheStats handles one find and finds without ratings', () => {
-  assert.equal(describeCacheStats({ location_name: 'Quad', finds: [{ rating: null }] }), 'Quad · 1 find')
-  assert.equal(
-    describeCacheStats({ finds: [{ rating: 5 }, { rating: null }, { rating: 4 }] }),
-    '3 finds · Rated 4.5 on average',
-  )
+test('describeCacheStats shows just the place, never a false "No finds yet"', () => {
+  assert.equal(describeCacheStats({ location_name: 'Back Bay Fens' }), 'Back Bay Fens')
+  assert.equal(describeCacheStats({ location_name: null }), '')
+  assert.equal(describeCacheStats({ location_name: '   ' }), '')
+  assert.ok(!describeCacheStats({ location_name: 'Quad', finds: [] }).includes('finds'))
 })
 
 // A fake client for the one-row cache_secrets lookup.

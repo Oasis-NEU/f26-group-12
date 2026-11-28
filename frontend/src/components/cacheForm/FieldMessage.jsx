@@ -1,7 +1,8 @@
 import { FADE_IN } from './formStyles.js'
 
 // An error or help line under a field, with the "!" icon for errors (as
-// in TextField). A new error fades in.
+// in TextField: the same 18px circle and 12px/14px "!", written with the
+// standard scale, size-4.5 and text-xs/3.5). A new error fades in.
 function FieldMessage({ id, error, help }) {
   if (!error && !help) return null
   return (
@@ -9,7 +10,7 @@ function FieldMessage({ id, error, help }) {
       {error && (
         <span
           aria-hidden="true"
-          className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-error font-display text-[12px]/[14px] font-bold text-text-on-accent"
+          className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-error font-display text-xs/3.5 font-bold text-text-on-accent"
         >
           !
         </span>

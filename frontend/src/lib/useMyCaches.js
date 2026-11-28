@@ -4,7 +4,8 @@ import { supabase } from './supabaseClient.js'
 
 // Everything the My caches page loads, in one hook:
 //   - who's signed in (signed out, the page opens the login dialog)
-//   - the caches they've hidden, active first, each with its finds' ratings
+//   - the caches they've hidden, active first (no finds or ratings yet; see
+//     pages/myCachesData.js)
 // plus secretCode(cacheId), which loads one cache's code only when they
 // press "Print slip". The list itself never selects secret_code; the
 // queries live in pages/myCachesData.js.
