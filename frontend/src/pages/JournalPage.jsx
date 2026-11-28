@@ -7,7 +7,6 @@ import DifficultyMeter from '../components/DifficultyMeter.jsx'
 import FavoriteButton from '../components/FavoriteButton.jsx'
 import { FOCUS_RING } from '../components/focusRing.js'
 import SiteHeader from '../components/SiteHeader.jsx'
-import StarRating from '../components/StarRating.jsx'
 import { placeName } from '../lib/cacheSearch.js'
 import { describeFindSaveError, foundDateText, foundLabel, journalTotals, pointsLabel } from '../lib/journal.js'
 import { NOTE_MAX_LENGTH } from '../lib/logFind.js'
@@ -245,8 +244,60 @@ function SaveProblem({ problem, what }) {
   )
 }
 
+// Your rating as five 20px stars, drawn like the Rating Summary's star
+// (Star Gold fill with an ink outline when filled, a Border Input outline
+// when empty). Each star sits in a 32px square, so the picker's stars are
+// big enough to tap while the row stays small, and the read-only row and the
+// picker are exactly the same size: nothing grows when you change it.
+// (The shared Star Rating is 28px; these are smaller on purpose.)
+//
+// Without onPick it's a picture ("Your rating: 4 out of 5 stars"). With
+// onPick, each star is a button ("3 stars", pressed on the chosen one), and
+// a mouse hovering a star previews that rating.
+function JournalStars({ value = 0, onPick, label }) {
+  const [hovered, setHovered] = useState(null)
+  const shown = hovered ?? value
+  const star = (filled) => (
+    <Star
+      aria-hidden="true"
+      size={20}
+      strokeWidth={1.75}
+      className={filled ? 'fill-highlight text-text-primary' : 'fill-transparent text-border-input'}
+    />
+  )
+  if (!onPick) {
+    return (
+      <span role="img" aria-label={`${label}: ${value} out of 5 stars`} className="flex">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <span key={n} className="flex size-8 items-center justify-center">
+            {star(n <= value)}
+          </span>
+        ))}
+      </span>
+    )
+  }
+  return (
+    <span role="group" aria-label={label} className="flex" onPointerLeave={() => setHovered(null)}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onPick(n)}
+          // Only preview for a real mouse: on a phone a tap would leave it stuck.
+          onPointerEnter={(event) => event.pointerType === 'mouse' && setHovered(n)}
+          aria-label={`${n} ${n === 1 ? 'star' : 'stars'}`}
+          aria-pressed={n === value}
+          className={`flex size-8 cursor-pointer items-center justify-center rounded-lg ${FOCUS_RING}`}
+        >
+          {star(n <= shown)}
+        </button>
+      ))}
+    </span>
+  )
+}
+
 // The stars, open for picking (from "Rate it" or "Change rating"): the
-// same 28px stars as the read-only ones, so nothing grows, with Cancel on
+// same 20px stars as the read-only ones, so nothing grows, with Cancel on
 // the same line. Picking one saves it straight away. Focus starts on the
 // star chosen now (the first if none); a held Enter can't repeat onto it
 // (useHeldKeyGuard), and a click right after opening is ignored
@@ -290,7 +341,7 @@ function RatingPicker({ value, title, saving, onPick, onCancel }) {
       </span>
       <span className="flex items-center gap-2">
         <span aria-busy={saving || undefined} aria-disabled={saving || undefined} className={saving ? 'pointer-events-none opacity-60' : ''}>
-          <StarRating value={picked} onChange={pick} label={`Your rating for ${title}`} />
+          <JournalStars value={picked} onPick={pick} label={`Your rating for ${title}`} />
         </span>
         <button type="button" onClick={() => !saving && onCancel()} aria-disabled={saving || undefined} className={saving ? QUIET_BUTTON_LOCKED : QUIET_BUTTON}>
           Cancel
@@ -398,7 +449,7 @@ const ACTION = QUIET_BUTTON.replace('-my-2.5 ', '')
 // One find, as a card: its photo across the top (when there is one), then
 // the name, the place and the day you found it, your note (in your voice,
 // with a thin rule on its left), the cache's difficulty and your rating
-// (the same 28px stars whether you're looking or changing them), and one
+// (the same 20px stars whether you're looking or changing them), and one
 // row of actions along the bottom, under a thin line: "Add a note" / "Edit
 // note" and "Rate it" / "Change rating". Either opens its editor right in
 // the card (the actions row steps aside while it's open), and focus comes
@@ -482,7 +533,7 @@ function JournalEntry({ find, onRate, onSaveNote }) {
         <span aria-hidden="true" className="text-small text-text-secondary">
           Your rating
         </span>
-        <StarRating value={find.rating} label="Your rating" />
+        <JournalStars value={find.rating} label="Your rating" />
       </span>
     )
   } else if (open) {
