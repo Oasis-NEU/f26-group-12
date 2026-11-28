@@ -22,6 +22,15 @@ const HEADING_ID = 'leaderboard-heading'
 const TEXT_LINK = `-my-1 rounded-sm py-1 font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
 const CARD_BORDER = 'border-border-subtle contrast-more:border-border-input'
 
+// Motion: the board arrives a moment after the page (it's loaded from the
+// database), so it fades in once, all together (200ms, the shared ease-out),
+// instead of popping in over the loading notice. No rise, no row-by-row
+// stagger and no pulse on your row: it's a list to read, not a celebration.
+// Only opacity changes, so it's the same with reduced motion on. starting:
+// is the style it fades from (CSS @starting-style), which runs each time the
+// wrapper below is put on the page.
+const ARRIVE = 'transition-opacity duration-200 ease-out starting:opacity-0'
+
 // One person on the board: rank, avatar initials, name and finds, points.
 // Your own row gets the selected-card look (a 2px ink edge, drawn as a 1px
 // border plus a 1px inset ring so it doesn't grow) on the Subtle fill, and
@@ -126,6 +135,8 @@ function LeaderboardPage() {
   const board = useLeaderboard()
   const onBoard = board.rows.some((person) => person.isMe) || Boolean(board.ownRowBelow)
 
+  // What fills the page under the intro: the loading notice (no fade; it's
+  // there from the start), then whatever loaded, which fades in.
   let content
   if (board.loading) {
     content = <Notice>Loading the leaderboard…</Notice>
@@ -195,7 +206,15 @@ function LeaderboardPage() {
             <p className="text-small text-text-secondary lg:text-body">
               Points are the difficulty of every cache you’ve found, added up.
             </p>
-            {content}
+            {board.loading ? (
+              content
+            ) : (
+              // Try again goes back through loading, so the board (or the error)
+              // fades in afresh each time.
+              <div className={`flex flex-col gap-4 ${ARRIVE}`}>
+                {content}
+              </div>
+            )}
           </div>
         </div>
       </main>

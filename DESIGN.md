@@ -453,6 +453,7 @@ The home of hunting: phones get a full-screen map with search and the filters fl
 - **Your row:** the selected-card look: the Subtle fill with a 2px Border Strong edge (a 1px border plus a 1px inset ring), a white avatar so it still shows on the fill, and "(you)" after your name, which is never cut off. If you're on the board but outside the top 50, your row (with your real rank) sits under the list after a "Your place" label (Label, Text Secondary).
 - **Joining:** signed out, a Small line above the list says "Log in to see where you rank." with "Log in" as a link; logged in with no finds yet, "You're not on the board yet. Find a cache to earn your first points.", with "Find a cache" linking to the map.
 - **States:** "Loading the leaderboard…" in a white notice; if it can't load (offline, or the database function isn't set up yet), "We couldn't load the leaderboard. Try again" with Try again as a button. With nobody on the board yet, a white card says "Nobody's on the board yet" (Body Strong) and "Find a cache and log it to earn the first points." (Small) with a Secondary "Go to the map".
+- **Motion:** the board loads a moment after the page, so when it arrives (or the error, or the empty card) it fades in once, all together (200ms, shared ease-out), replacing the loading notice. No rise, no row-by-row stagger and nothing on your row: it's a list to read, not a celebration. It's opacity only, so reduced motion leaves it as it is.
 
 ## Do's and Don'ts
 
