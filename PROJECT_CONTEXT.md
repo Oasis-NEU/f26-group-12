@@ -15,7 +15,7 @@ Core:
 - Map of campus/Boston showing existing caches
 - Find a cache and log it (confirmed with a secret code, see Decisions)
 - Hints per cache (up to 3, revealed in order)
-- Journal of each user's finds with difficulty and star rating
+- Journal of each user's finds with difficulty and star rating (a find you haven't rated has a "Rate it" button that opens the stars in place), plus their points and caches found
 - Rate caches after finding them
 - Log in and sign up with email (log in with a password, or with a 6-digit code emailed to you)
 - Forgot password (reset by an emailed link)
@@ -24,7 +24,7 @@ Core:
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
 - Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
-- Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
+- Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. The Journal has a Favorites tab beside Finds.
 
 Next:
 - Score and leaderboard (points based on cache difficulty)
@@ -71,7 +71,7 @@ Defined in `frontend/src/App.jsx`. Every route sits inside `Layout` (`frontend/s
 | `/caches/:cacheId` | `CacheDetailPage` | |
 | `/caches/:cacheId/log` | `LogFindPage` | shows the "Find logged!" success state after saving |
 | `/caches/:cacheId/edit` | `EditCachePage` | |
-| `/journal` | `JournalPage` | |
+| `/journal` | `JournalPage` | tabs: Finds, and Favorites (`?tab=favorites`) |
 | `/login` | `LoginPage` | |
 | `/leaderboard` | `LeaderboardPage` | |
 | `/my-caches` | `MyCachesPage` | |
