@@ -40,8 +40,8 @@ const ARRIVE = 'transition-opacity duration-200 ease-out starting:opacity-0'
 // One person on the board: rank, avatar initials (desktop), name and finds,
 // points. Your own row gets the selected-card look (a 2px ink edge, drawn as
 // a 1px border plus a 1px inset ring so it doesn't grow) on the Subtle fill,
-// "(you)" after your name, so it never rests on colour alone, and your
-// points on Star Gold Soft. It also gets an id and tabIndex={-1}, so "Show
+// "(you)" after your name, so it never rests on colour alone. It also gets
+// an id and tabIndex={-1}, so "Show
 // my row" can move focus to it. Its focus ring is the site-wide outline
 // (index.css), 2px outside the row, so it doesn't replace the ink edge the
 // way the shared ring classes (box-shadow rings) would.
@@ -84,14 +84,9 @@ function LeaderboardRow({ person }) {
         </p>
         <p className="text-small text-text-secondary">{findsLabel(person.finds)}</p>
       </div>
-      {/* Plain numbers for everyone else; yours sits on Star Gold Soft, the
-          background DESIGN.md keeps for points earned. -mr-2 pulls the pill
-          out a little, so its number sits nearly in line with the others. */}
-      <p
-        className={`shrink-0 text-right text-body-strong tabular-nums ${
-          you ? '-mr-2 rounded-full bg-highlight-soft px-3 py-1' : ''
-        }`}
-      >
+      {/* Plain numbers for everyone, yours too: your row already stands out
+          with its fill, ink edge and "(you)". */}
+      <p className="shrink-0 text-right text-body-strong tabular-nums">
         {person.points}
         <span aria-hidden="true"> {unit.short}</span>
         <span className="sr-only"> {unit.spoken}</span>
