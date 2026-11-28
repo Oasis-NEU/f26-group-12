@@ -250,8 +250,7 @@ function SaveProblem({ problem, what }) {
 }
 
 // Your rating as five 20px stars, drawn like the Rating Summary's star
-// (Star Gold fill with an ink outline when filled, a Border Input outline
-// when empty). Each star sits in a 32px square, so the picker's stars are
+// (solid ink when filled, a Border Input outline when empty). Each star sits in a 32px square, so the picker's stars are
 // big enough to tap while the row stays small, and the read-only row and the
 // picker are exactly the same size: nothing grows when you change it.
 // (The shared Star Rating is 28px; these are smaller on purpose.)
@@ -267,7 +266,7 @@ function JournalStars({ value = 0, onPick, label }) {
       aria-hidden="true"
       size={20}
       strokeWidth={1.75}
-      className={filled ? 'fill-highlight text-text-primary' : 'fill-transparent text-border-input'}
+      className={filled ? 'fill-text-primary text-text-primary' : 'fill-transparent text-border-input'}
     />
   )
   if (!onPick) {

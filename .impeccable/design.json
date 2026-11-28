@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-26T06:17:52+00:00",
+  "generatedAt": "2026-11-28T16:59:09+00:00",
   "title": "Design System: HuskyCache",
   "extensions": {
     "colorMeta": {
@@ -81,7 +81,7 @@
       },
       "highlight": {
         "role": "tertiary",
-        "displayName": "Star Gold",
+        "displayName": "Pin Gold",
         "canonical": "oklch(80.6% 0.147 79)",
         "tonalRamp": [
           "oklch(15% 0.071 79)",
@@ -94,19 +94,19 @@
           "oklch(95% 0.071 79)"
         ]
       },
-      "highlight-soft": {
+      "favorite": {
         "role": "tertiary",
-        "displayName": "Star Gold Soft",
-        "canonical": "oklch(96.6% 0.032 87)",
+        "displayName": "Favorite Pink",
+        "canonical": "oklch(58.8% 0.201 5)",
         "tonalRamp": [
-          "oklch(15% 0.015 87)",
-          "oklch(26% 0.020 87)",
-          "oklch(38% 0.025 87)",
-          "oklch(49% 0.030 87)",
-          "oklch(61% 0.030 87)",
-          "oklch(72% 0.025 87)",
-          "oklch(84% 0.020 87)",
-          "oklch(95% 0.015 87)"
+          "oklch(15% 0.101 5)",
+          "oklch(26% 0.135 5)",
+          "oklch(38% 0.167 5)",
+          "oklch(49% 0.201 5)",
+          "oklch(61% 0.201 5)",
+          "oklch(72% 0.167 5)",
+          "oklch(84% 0.135 5)",
+          "oklch(95% 0.101 5)"
         ]
       },
       "bg-page": {
@@ -311,6 +311,10 @@
         "displayName": "Heading",
         "purpose": "section headings in a page, such as \"Hints\"; also the phone wordmark and phone menu links."
       },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The \"HuskyCache\" name beside the logo in the header."
+      },
       "body-large": {
         "displayName": "Body Large",
         "purpose": "larger reading text. No component uses it yet."
@@ -348,7 +352,7 @@
       {
         "name": "pin",
         "value": "0 1px 3px 0 rgb(0 0 0 / 0.2)",
-        "purpose": "Map pins only, so they stand out from the map. Figma style: Shadow / Pin."
+        "purpose": "Map pins, and a control floating over a photo (the heart's white circle on a cache card photo)."
       },
       {
         "name": "overlay",
@@ -435,9 +439,9 @@
       "name": "Cache Card",
       "kind": "card",
       "refersTo": "cache-card",
-      "description": "A cache in a list: title, found tag, location and difficulty.",
-      "html": "<a class=\"ds-card\" href=\"#\"><span class=\"ds-card-top\"><span class=\"ds-card-title\">Quad riddle</span><span class=\"ds-found-tag\"><svg width=\"11.75\" height=\"8.75001\" viewBox=\"0 0 11.75 8.75001\" fill=\"none\" aria-hidden=\"true\"><path d=\"M0.875012 4.72501L4.47501 7.87501L10.875 0.875005\" stroke=\"#2D6A4F\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>Found by you</span></span><span class=\"ds-card-meta\"><span class=\"ds-card-place\">Krentzman Quad</span><span class=\"ds-meter\"><span class=\"ds-meter-bars\" aria-hidden=\"true\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i></span><span class=\"ds-meter-label\">Difficulty 4</span></span></span></a>",
-      "css": ".ds-card { display: flex; flex-direction: column; gap: 8px; width: 352px; padding: 16px; border: 1px solid var(--color-border-subtle, #d6dad3); border-radius: var(--radius-2xl, 16px); background: var(--color-bg-surface, #ffffff); color: inherit; text-decoration: none; } .ds-card:hover { background: var(--color-bg-subtle, #e8eae5); } .ds-card:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-card-top { display: flex; align-items: flex-start; gap: 12px; } .ds-card-title { flex: 1; font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; font-weight: 700; color: var(--color-text-primary, #171b18); } .ds-card-meta { display: flex; align-items: center; gap: 16px; } .ds-card-place { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; color: var(--color-text-secondary, #565e54); } .ds-found-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px 3px 8px; border-radius: 9999px; background: var(--color-found-soft, #e3f0e8); color: var(--color-found, #2d6a4f); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.75rem; line-height: 1rem; font-weight: 700; white-space: nowrap; } .ds-meter { display: inline-flex; align-items: center; gap: 8px; } .ds-meter-bars { display: flex; gap: 3px; } .ds-meter-bars i { display: block; width: 7px; height: 14px; background: var(--color-border-subtle, #d6dad3); } .ds-meter-bars i.on { background: var(--color-text-primary, #171b18); } .ds-meter-label { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; font-weight: 700; color: var(--color-text-primary, #171b18); }"
+      "description": "A cache in a list: a flat 3:1 photo across the top (none when there's no photo), the heart on a white circle over it, then the name, place and difficulty with the rating. The title is the link, stretched over the card.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-photo\"></div><button class=\"ds-card-heart\" aria-pressed=\"true\" aria-label=\"Favorite Snell Study Break\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/></svg></button><div class=\"ds-card-body\"><a class=\"ds-card-title\" href=\"#\">Snell Study Break</a><span class=\"ds-card-place\">Near Snell Library</span><span class=\"ds-card-meta\"><span class=\"ds-bars\"><i class=\"on\"></i><i></i><i></i><i></i><i></i></span><b>Difficulty 1</b><span class=\"ds-card-rating\">★ <b>4.6</b> (12)</span></span></div></div>",
+      "css": ".ds-card { position: relative; display: flex; flex-direction: column; width: 352px; border: 1px solid var(--color-border-subtle, #d6dad3); border-radius: var(--radius-2xl, 16px); background: var(--color-bg-surface, #ffffff); transition: background-color 150ms cubic-bezier(0.23,1,0.32,1), scale 150ms cubic-bezier(0.23,1,0.32,1); } .ds-card:hover { background: var(--color-bg-subtle, #e8eae5); } .ds-card:hover .ds-card-photo { filter: brightness(0.95); } .ds-card:active { scale: 0.98; } .ds-card-photo { aspect-ratio: 3 / 1; border-radius: 15px 15px 0 0; background: linear-gradient(160deg, #9fb3a6, #5e7266); transition: filter 150ms cubic-bezier(0.23,1,0.32,1); } .ds-card-heart { position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 9999px; background: var(--color-bg-surface, #ffffff); color: var(--color-favorite, #d6336c); box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 0 0 1px rgb(23 27 24 / 0.15); cursor: pointer; } .ds-card-heart:focus-visible { outline: 2px solid var(--color-focus, #1d5faf); outline-offset: 2px; } .ds-card-body { display: flex; flex-direction: column; gap: 4px; padding: 12px; } .ds-card-title { font: 700 1rem/1.5rem var(--font-sans, sans-serif); color: var(--color-text-primary, #171b18); text-decoration: none; } .ds-card-title:focus-visible { outline: 2px solid var(--color-focus, #1d5faf); outline-offset: 2px; } .ds-card-place { font: 400 0.875rem/1.25rem var(--font-sans, sans-serif); color: var(--color-text-secondary, #565e54); } .ds-card-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; font: 400 0.875rem/1.25rem var(--font-sans, sans-serif); color: var(--color-text-secondary, #565e54); } .ds-card-meta b { color: var(--color-text-primary, #171b18); } .ds-bars { display: inline-flex; gap: 2px; } .ds-bars i { width: 8px; height: 16px; background: var(--color-border-subtle, #d6dad3); } .ds-bars i.on { background: var(--color-text-primary, #171b18); } .ds-card-rating { margin-left: 6px; color: var(--color-text-primary, #171b18); }"
     },
     {
       "name": "Hint Row (locked)",
@@ -445,7 +449,7 @@
       "refersTo": "hint-row-locked",
       "description": "A hint waiting to be revealed; hints unlock in order.",
       "html": "<button class=\"ds-hint\"><span class=\"ds-hint-name\">Hint 2</span><span class=\"ds-hint-action\">Tap to reveal</span></button>",
-      "css": ".ds-hint { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 360px; height: 48px; padding: 0 16px; border: none; border-radius: var(--radius-lg, 8px); background: var(--color-bg-subtle, #e8eae5); cursor: pointer; text-align: left; } .ds-hint:hover { background: var(--color-border-subtle, #d6dad3); } .ds-hint:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-hint-name { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; font-weight: 700; color: var(--color-text-primary, #171b18); } .ds-hint-action { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; color: var(--color-text-secondary, #565e54); }"
+      "css": ".ds-hint { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 360px; height: 48px; padding: 0 16px; border: none; border-radius: var(--radius-lg, 8px); background: var(--color-bg-subtle, #e8eae5); box-shadow: inset 0 0 0 1px var(--color-border-input, #767e73); cursor: pointer; text-align: left; } .ds-hint:hover { background: var(--color-border-subtle, #d6dad3); } .ds-hint:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-hint-name { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; font-weight: 700; color: var(--color-text-primary, #171b18); } .ds-hint-action { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; color: var(--color-text-secondary, #565e54); }"
     },
     {
       "name": "Map Pin (unfound)",
@@ -459,19 +463,27 @@
       "name": "Nav Bar",
       "kind": "nav",
       "refersTo": "nav-bar",
-      "description": "Logged-out desktop nav bar with the brand, links and Log in.",
-      "html": "<header class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\"><span class=\"ds-nav-mark\" aria-hidden=\"true\">N</span><span class=\"ds-nav-word\">HuskyCache</span></a><nav class=\"ds-nav-links\"><a href=\"#\" aria-current=\"page\">Map</a><a href=\"#\">Hide a cache</a><a href=\"#\">Journal</a><a href=\"#\">Leaderboard</a><a class=\"ds-nav-login\" href=\"#\">Log in</a></nav></header>",
-      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 32px; background: var(--color-bg-surface, #ffffff); border-bottom: 1px solid var(--color-border-subtle, #d6dad3); } .ds-nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; } .ds-nav-mark { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--color-accent, #c8102e); color: var(--color-text-on-accent, #ffffff); font-family: var(--font-display, \"Bricolage Grotesque\", sans-serif); font-size: 1.125rem; line-height: 1; font-weight: 800; } .ds-nav-word { font-family: var(--font-display, \"Bricolage Grotesque\", sans-serif); font-size: 1.375rem; line-height: 1.75rem; font-weight: 800; color: var(--color-text-primary, #171b18); } .ds-nav-links { display: flex; align-items: center; gap: 32px; } .ds-nav-links a { font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 1rem; line-height: 1.5rem; color: var(--color-text-secondary, #565e54); text-decoration: none; border-radius: 8px; } .ds-nav-links a:hover, .ds-nav-links a[aria-current=page] { color: var(--color-text-primary, #171b18); } .ds-nav-links a[aria-current=page] { text-decoration: underline; text-underline-offset: 4px; } .ds-nav-links a:focus-visible, .ds-nav-brand:focus-visible { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus, #1d5faf); } .ds-nav-links a.ds-nav-login { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 20px; border-radius: var(--radius-lg, 8px); font-family: var(--font-sans, \"Atkinson Hyperlegible Next\", system-ui, sans-serif); font-size: 0.875rem; line-height: 1.25rem; font-weight: 700; cursor: pointer; white-space: nowrap; border: 1px solid var(--color-border-strong, #171b18); background: var(--color-bg-surface, #ffffff); color: var(--color-text-primary, #171b18); text-decoration: none; } .ds-nav-links a.ds-nav-login:hover { background: var(--color-bg-subtle, #e8eae5); }"
+      "description": "The site header: the logo on the left, the cache search filling the middle, page pills (the current page filled Subtle) and a Secondary \"Log in\" on the right. 64px on desktop; phones get 56px with a menu button.",
+      "html": "<header class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z\" fill=\"#c8102e\"/><rect x=\"8.5\" y=\"7\" width=\"7\" height=\"5.5\" rx=\"1\" fill=\"#fff\"/></svg><span>HuskyCache</span></a><label class=\"ds-nav-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg><input placeholder=\"Search caches\" aria-label=\"Search caches\"></label><nav class=\"ds-nav-pills\"><a href=\"#\" aria-current=\"page\">Map</a><a href=\"#\">Hide a cache</a><a href=\"#\">Journal</a><a href=\"#\">Leaderboard</a></nav><a class=\"ds-nav-login\" href=\"#\">Log in</a></header>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 24px; height: 64px; padding: 0 24px; background: var(--color-bg-surface, #ffffff); border-bottom: 1px solid var(--color-border-subtle, #d6dad3); } .ds-nav-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--color-text-primary, #171b18); font: 800 1.375rem/1.75rem var(--font-display, sans-serif); } .ds-nav-search { flex: 1; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--color-border-input, #767e73); border-radius: 9999px; color: var(--color-text-secondary, #565e54); } .ds-nav-search:focus-within { outline: 2px solid var(--color-focus, #1d5faf); outline-offset: 2px; } .ds-nav-search input { flex: 1; border: none; outline: none; background: transparent; font: 400 1rem/1.5rem var(--font-sans, sans-serif); color: var(--color-text-primary, #171b18); } .ds-nav-pills { display: flex; gap: 4px; } .ds-nav-pills a { display: flex; align-items: center; height: 40px; padding: 0 12px; border-radius: 9999px; text-decoration: none; font: 700 0.875rem/1.25rem var(--font-sans, sans-serif); color: var(--color-text-secondary, #565e54); transition: background-color 150ms cubic-bezier(0.23,1,0.32,1), color 150ms cubic-bezier(0.23,1,0.32,1); } .ds-nav-pills a:hover { background: var(--color-bg-subtle, #e8eae5); color: var(--color-text-primary, #171b18); } .ds-nav-pills a[aria-current=page] { background: var(--color-bg-subtle, #e8eae5); color: var(--color-text-primary, #171b18); } .ds-nav-pills a:focus-visible, .ds-nav-login:focus-visible { outline: 2px solid var(--color-focus, #1d5faf); outline-offset: 2px; } .ds-nav-login { display: flex; align-items: center; height: 40px; padding: 0 16px; border: 1px solid var(--color-border-strong, #171b18); border-radius: 8px; text-decoration: none; font: 700 0.875rem/1.25rem var(--font-sans, sans-serif); color: var(--color-text-primary, #171b18); } .ds-nav-login:hover { background: var(--color-bg-subtle, #e8eae5); }"
+    },
+    {
+      "name": "Favorite Button",
+      "kind": "button",
+      "refersTo": "favorite-button",
+      "description": "The heart: a 40px round button, an ink outline when it's not a favorite and solid Favorite Pink when it is (the only place pink is used). Hover fills it Subtle; pressing shrinks it to 97%.",
+      "html": "<div class=\"ds-hearts\"><button class=\"ds-heart\" aria-pressed=\"false\" aria-label=\"Favorite Quad riddle\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/></svg></button><button class=\"ds-heart is-on\" aria-pressed=\"true\" aria-label=\"Favorite Krentzman Corner\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\"/></svg></button></div>",
+      "css": ".ds-hearts { display: flex; gap: 8px; } .ds-heart { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 9999px; background: transparent; color: var(--color-text-primary, #171b18); cursor: pointer; transition: background-color 150ms cubic-bezier(0.23,1,0.32,1), scale 150ms cubic-bezier(0.23,1,0.32,1); } .ds-heart.is-on { color: var(--color-favorite, #d6336c); } .ds-heart:hover { background: var(--color-bg-subtle, #e8eae5); } .ds-heart:active { scale: 0.97; } .ds-heart:focus-visible { outline: 2px solid var(--color-focus, #1d5faf); outline-offset: 2px; }"
     }
   ],
   "narrative": {
     "northStar": "The Campus Field Guide",
-    "overview": "HuskyCache looks like a pocket field guide a student takes outside: calm, paper-toned pages, bold headings that name the place, and a few strong marks that say what to do next. Husky Red marks what's still out there to find, Found Green ticks off what you've found, and Star Gold records how good it was. Everything else stays in the background so those marks read at a glance, on a phone, outdoors, in daylight.\n\nComponents are friendly and sturdy. Corners are softly rounded, borders are thin, and fills are plain. Targets are big enough to hit while walking (48px buttons, fields and hint rows; 28px stars). Type does the expressive work: Bricolage Grotesque gives headings a little character, and Atkinson Hyperlegible Next keeps everything people read and tap as legible as possible.\n\nThe look is confident but never official. HuskyCache is an unofficial student project, so it nods to campus life without borrowing a university's crests, seals or institutional layouts. It also stays away from two other directions: the dense, gradient-card look of a corporate dashboard, and the mascots, confetti and candy colors of a kids' game.",
+    "overview": "HuskyCache looks like a pocket field guide a student takes outside: calm, paper-toned pages, bold headings that name the place, and a few strong marks that say what to do next. Husky Red marks what's still out there to find, Found Green ticks off what you've found, and solid ink stars record how good it was. Everything else stays in the background so those marks read at a glance, on a phone, outdoors, in daylight.\n\nComponents are friendly and sturdy. Corners are softly rounded, borders are thin, and fills are plain. Targets are big enough to hit while walking (48px buttons, fields and hint rows; 28px stars). Type does the expressive work: Bricolage Grotesque gives headings a little character, and Atkinson Hyperlegible Next keeps everything people read and tap as legible as possible.\n\nThe look is confident but never official. HuskyCache is an unofficial student project, so it nods to campus life without borrowing a university's crests, seals or institutional layouts. It also stays away from two other directions: the dense, gradient-card look of a corporate dashboard, and the mascots, confetti and candy colors of a kids' game.",
     "keyCharacteristics": [
       "Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.",
-      "Four meaning colors, each with one job: red (to find, the main action), green (found), gold (ratings and selection), blue (keyboard focus).",
-      "Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars and pill tags.",
-      "Flat surfaces; only things that float above the page cast a shadow: map pins and overlays (popups, the map card, menus).",
+      "Five meaning colors, each with one job: red (to find, the main action), green (found), gold (the selected map pin), pink (a favorite), blue (keyboard focus).",
+      "Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars, pill tags, icon buttons (the heart) and the header's search and pages.",
+      "Flat surfaces; only things that float above the page cast a shadow: map pins, the heart's white circle on a photo, and overlays (popups, the map card, menus, the login dialog).",
       "Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.",
       "Mobile-first, built for one-handed, outdoor use; desktop is the same system with more room."
     ],
@@ -483,12 +495,17 @@
       },
       {
         "name": "The One Meaning Rule",
-        "body": "Red, green, gold and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something \"pop\".",
+        "body": "Red, green, gold, pink and blue each mean exactly one thing. Never use them for decoration, for headings, or to make something \"pop\".",
         "section": "colors"
       },
       {
         "name": "The One Red Button Rule",
         "body": "A page has at most one Husky Red button. Every other action is Secondary.",
+        "section": "colors"
+      },
+      {
+        "name": "The Links Go Places Rule",
+        "body": "A link takes you to another page and sits inside a sentence (\"…on the cache's edit page.\"). Anything that does something (saves, prints, copies, adds, starts over) is a button, and so is anything standing on its own line. Actions step down in weight: Primary (one per page), then Secondary, then a quiet button with no outline for anything lesser. A page full of underlined links reads as clutter, so when one stands alone, make it a button.",
         "section": "colors"
       },
       {
@@ -513,13 +530,13 @@
       },
       {
         "name": "The Flat Field Rule",
-        "body": "Cards, buttons and fields never cast shadows. If something needs to stand out, give it a border or a fill.",
+        "body": "Cards, buttons and fields never cast shadows. If something needs to stand out, give it a border or a fill. The one exception is a control floating over a photo, which has no page under it to stand out from: it takes the Pin shadow.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** keep each meaning color to its one job: Husky Red for to-find and the main action, Found Green for found, Star Gold for ratings and the selected pin, Focus Blue for keyboard focus.",
-      "**Do** show difficulty as bars plus \"Difficulty N\", and ratings as gold stars, so the two are never confused.",
+      "**Do** keep each meaning color to its one job: Husky Red for to-find and the main action, Found Green for found, Pin Gold for the selected pin, Favorite Pink for favorited hearts, Focus Blue for keyboard focus.",
+      "**Do** show difficulty as bars plus \"Difficulty N\", and ratings as stars, so the two are never confused.",
       "**Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.",
       "**Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.",
       "**Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.",
@@ -532,11 +549,11 @@
       "**Don't** make it look like a corporate dashboard: no dense data panels, gradient cards or enterprise styling.",
       "**Don't** make it look like a kids' game: no cartoon mascots, confetti bursts or candy colors.",
       "**Don't** put more than one Husky Red button on a page.",
-      "**Don't** add shadows to cards, buttons or fields; shadows are only for map pins and floating overlays (popups, the map card, menus).",
-      "**Don't** use Star Gold for text.",
+      "**Don't** add shadows to cards, buttons or fields; shadows are only for map pins and floating overlays (popups, the map card, menus, the login dialog), plus the Pin shadow on a control floating over a photo (The Flat Field Rule).",
+      "**Don't** use Pin Gold for text, or for anything but the selected pin.",
       "**Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.",
       "**Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast.",
-      "**Don't** animate decoration (such as the contour rings), stagger page entrances, smooth-scroll when focus moves, or give a hover effect to something that can't be clicked. Save celebrations for the moment they happen (the \"Find logged!\" screen), not for states seen later, like \"Found by you\"."
+      "**Don't** animate decoration (such as the contour rings), stagger page entrances, smooth-scroll when focus moves, or give a hover effect to something that can't be clicked. Save celebrations for the moment they happen (\"Find logged!\" and \"Cache hidden!\"), not for states seen later, like \"Found by you\"."
     ]
   }
 }

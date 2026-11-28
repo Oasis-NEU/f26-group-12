@@ -41,8 +41,8 @@
   --color-error: #a50d26; /* error text and borders */
   --color-found: #2d6a4f; /* green: found status + checkmark */
   --color-found-soft: #e3f0e8; /* found-state supporting surface */
-  --color-highlight: #f2b33d; /* gold: ratings and the selected pin ring */
-  --color-highlight-soft: #fdf3dc; /* points earned background */
+  --color-highlight: #f2b33d; /* gold: the selected pin ring only */
+  --color-favorite: #d6336c; /* rose pink: a favorited (filled) heart only */
   --color-focus: #1d5faf; /* blue: keyboard focus ring */
 
   /* Corners: gently rounded controls and cards; fully round only for pins,
@@ -53,7 +53,7 @@
 
   /* Shadows: only things that float above the page have one. Names match
      the Figma effect styles "Shadow / Pin" and "Shadow / Overlay". */
-  --shadow-pin: 0 1px 3px 0 rgb(0 0 0 / 0.2); /* map pins */
+  --shadow-pin: 0 1px 3px 0 rgb(0 0 0 / 0.2); /* map pins, and the heart's circle on a photo */
   --shadow-overlay: 0 6px 20px 0 rgb(23 27 24 / 0.14); /* popups, the map card, menus */
 
   /* Motion: one strong ease-out for every UI animation (things appearing,

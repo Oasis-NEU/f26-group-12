@@ -13,8 +13,9 @@ import { FOCUS_RING } from './focusRing.js'
 //   Value: 0-5 -> value={3}
 //
 // Ratings are always stars, never bars, so they can't be confused with
-// difficulty. The star pictures are the exact SVGs exported from Figma
-// (one per value) in src/assets/figma.
+// difficulty. The star pictures are the SVGs exported from Figma (one per
+// value) in src/assets/figma, recoloured: filled stars are solid ink (they
+// were gold), empty ones Border Input outlines.
 //
 // Two ways to use it:
 //   <StarRating value={4} />                          shows a rating
