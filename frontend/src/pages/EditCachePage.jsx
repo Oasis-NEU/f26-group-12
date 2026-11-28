@@ -8,7 +8,7 @@ import FieldMessage from '../components/cacheForm/FieldMessage.jsx'
 import FormSection from '../components/cacheForm/FormSection.jsx'
 import HintsSection from '../components/cacheForm/HintsSection.jsx'
 import WhereSection from '../components/cacheForm/WhereSection.jsx'
-import { DIFFICULTY_FIRST_ID, LOCATION_BUTTON_ID, moveToNextField } from '../components/cacheForm/formStyles.js'
+import { DIFFICULTY_FIRST_ID, FADE_IN, LOCATION_BUTTON_ID, moveToNextField } from '../components/cacheForm/formStyles.js'
 import { FOCUS_RING } from '../components/focusRing.js'
 import LoginRequired from '../components/login/LoginRequired.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
@@ -42,6 +42,19 @@ import { prepareCacheEdits } from './editCacheData.js'
 
 const FORM_ID = 'edit-cache-form'
 const TAKE_DOWN_BUTTON_ID = 'take-down-button'
+
+// Motion (DESIGN.md): only for changes someone causes, on the shared
+// ease-out, under 300ms. starting: is the style each one animates from (CSS
+// @starting-style), so it runs when the element is put on the page, never
+// on page load here (both only appear after a press).
+//   POP_IN  "Take it down?" fades in and grows from 97% out of its top-left
+//           corner, where "Take down cache" was (150ms), like the Journal's
+//           editors. With reduced motion it only fades.
+//   SETTLE  after taking it down or putting it back, the section's new
+//           words and button fade in (200ms), so the swap reads as the
+//           result of the press rather than a flash. Opacity only.
+const POP_IN = 'origin-top-left transition-[opacity,scale] duration-150 ease-out starting:opacity-0 motion-safe:starting:scale-97'
+const SETTLE = 'transition-opacity duration-200 ease-out starting:opacity-0'
 
 // "K7MQ2X" -> "K 7 M Q 2 X", so screen readers read a code letter by
 // letter instead of trying to say it as a word.
@@ -93,6 +106,9 @@ function TakeDownSection({ active, onTakeDown, onBringBack }) {
   // 'idle' | 'confirming' | 'working'
   const [step, setStep] = useState('idle')
   const [error, setError] = useState('')
+  // Whether it's been taken down or put back on this page yet (lets the
+  // new state fade in; on page load it just appears).
+  const [changed, setChanged] = useState(false)
   const headingId = useId()
   const confirmId = useId()
   const errorId = useId()
@@ -122,6 +138,7 @@ function TakeDownSection({ active, onTakeDown, onBringBack }) {
     setStep('working')
     try {
       await action()
+      setChanged(true)
       setStep('idle')
       focusLater(headingId)
     } catch {
@@ -140,14 +157,15 @@ function TakeDownSection({ active, onTakeDown, onBringBack }) {
 
   if (!active) {
     return (
-      <section aria-labelledby={headingId} className="flex flex-col gap-2 border-t border-border-subtle pt-6 contrast-more:border-border-input">
+      // Keyed, so React draws the new state fresh (and it can fade in).
+      <section key="down" aria-labelledby={headingId} className="flex flex-col gap-2 border-t border-border-subtle pt-6 contrast-more:border-border-input">
         <h2 id={headingId} tabIndex={-1} className="text-body-strong text-text-primary outline-none">
           This cache is taken down
         </h2>
-        <p className="text-small text-text-secondary">
+        <p className={`text-small text-text-secondary ${changed ? SETTLE : ''}`}>
           Finders can’t see it on the map or log it. It’s still in the journals of everyone who found it.
         </p>
-        <div className="flex flex-col gap-2 pt-2">
+        <div className={`flex flex-col gap-2 pt-2 ${changed ? SETTLE : ''}`}>
           <Button
             variant="secondary"
             fullWidth
@@ -165,16 +183,16 @@ function TakeDownSection({ active, onTakeDown, onBringBack }) {
   }
 
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2 border-t border-border-subtle pt-6 contrast-more:border-border-input">
+    <section key="up" aria-labelledby={headingId} className="flex flex-col gap-2 border-t border-border-subtle pt-6 contrast-more:border-border-input">
       <h2 id={headingId} tabIndex={-1} className="text-body-strong text-text-primary outline-none">
         Take down this cache
       </h2>
       {step === 'idle' ? (
         <>
-          <p className="text-small text-text-secondary">
+          <p className={`text-small text-text-secondary ${changed ? SETTLE : ''}`}>
             It disappears from the map, but stays in the journals of everyone who found it.
           </p>
-          <div className="pt-2">
+          <div className={`pt-2 ${changed ? SETTLE : ''}`}>
             <Button id={TAKE_DOWN_BUTTON_ID} variant="secondary" fullWidth onClick={ask} className="lg:w-fit">
               Take down cache
             </Button>
@@ -188,7 +206,7 @@ function TakeDownSection({ active, onTakeDown, onBringBack }) {
           onKeyDown={(event) => {
             if (event.key === 'Escape' && !working) keep()
           }}
-          className="mt-2 flex flex-col gap-4 rounded-2xl border border-border-strong bg-bg-surface p-4 lg:p-5"
+          className={`mt-2 flex flex-col gap-4 rounded-2xl border border-border-strong bg-bg-surface p-4 lg:p-5 ${POP_IN}`}
         >
           <div className="flex flex-col gap-1">
             <h3 id={confirmId} tabIndex={-1} className="text-heading text-text-primary outline-none">
@@ -300,8 +318,9 @@ function EditCacheForm({ cache, initialHints, edit }) {
     )
   }
 
+  // A new save problem fades in (150ms).
   const errorMessage = saveError && (
-    <p role="alert" className="text-small text-error">
+    <p role="alert" className={`text-small text-error ${FADE_IN}`}>
       {saveError}
     </p>
   )

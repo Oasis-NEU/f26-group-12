@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router'
 import Button from '../components/Button.jsx'
 import CacheSlip from '../components/CacheSlip.jsx'
 import FieldMessage from '../components/cacheForm/FieldMessage.jsx'
+import { RISE_IN } from '../components/cacheForm/formStyles.js'
 import { FOCUS_RING } from '../components/focusRing.js'
 import LoginRequired from '../components/login/LoginRequired.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
@@ -32,6 +33,21 @@ import { describeCacheStats } from './myCachesData.js'
 // right.
 
 const CARD = 'rounded-2xl border border-border-subtle bg-bg-surface contrast-more:border-border-input'
+
+// Motion (DESIGN.md): only for changes, on the shared ease-out, under
+// 300ms. starting: is the style each one animates from (CSS
+// @starting-style), which runs when the element is put on the page.
+//   ARRIVE  the list loads a moment after the page, so when it (or the
+//           empty card, or the error) arrives it fades in once, all
+//           together (200ms), replacing the loading notice, like the
+//           Leaderboard. No rise and no row-by-row stagger: it's a list to
+//           work through. Opacity only, so reduced motion keeps it.
+//   RISE_IN "Saved your changes…" is the result of pressing Save on Edit
+//           cache, so it fades in and rises 4px (200ms); with reduced
+//           motion it only fades.
+// The print error line fades in by itself (FieldMessage), and "Print slip"
+// presses like every Button.
+const ARRIVE = 'transition-opacity duration-200 ease-out starting:opacity-0'
 
 // "Active" or "Taken down" as a small pill (rounded-full, so it never reads
 // as one of the 8px-cornered buttons beside it). Active is outlined in ink;
@@ -235,13 +251,15 @@ function MyCachesPage() {
               Caches you’ve hidden. Edit them, print a new slip, or take them down.
             </p>
             {savedTitle && (
-              <p role="status" className={`${CARD} flex items-start gap-2 px-4 py-3 text-body text-text-primary`}>
+              <p role="status" className={`${CARD} flex items-start gap-2 px-4 py-3 text-body text-text-primary ${RISE_IN}`}>
                 {/* Ink, not green: green only ever means "found". */}
                 <Check aria-hidden="true" size={20} strokeWidth={2.5} className="mt-0.5 shrink-0" />
                 <span className="min-w-0 wrap-break-word">Saved your changes to “{savedTitle}”.</span>
               </p>
             )}
-            {content}
+            {/* Try again goes back through loading, so whatever loads fades
+                in afresh each time. */}
+            {mine.loading || !signedIn ? content : <div className={`flex flex-col gap-4 ${ARRIVE}`}>{content}</div>}
           </div>
         </main>
       </div>
