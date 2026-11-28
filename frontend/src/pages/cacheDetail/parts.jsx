@@ -6,6 +6,7 @@ import DifficultyMeter from '../../components/DifficultyMeter.jsx'
 import HintRow from '../../components/HintRow.jsx'
 import RatingSummary from '../../components/RatingSummary.jsx'
 import { FOCUS_RING } from '../../components/focusRing.js'
+import { useLoginDialog } from '../../components/login/loginDialogContext.js'
 import { formatFoundDate } from '../cacheDetailData.js'
 import { cacheCoordinates } from './coords.js'
 import { getHintRows, hintsLeftText } from './hintRows.js'
@@ -228,6 +229,7 @@ export function DirectionsLink({ cache }) {
 // logging needs an account. Only shown while the cache can still be logged by
 // this person (not found yet, not their own cache).
 export function FindHelp({ signedIn, className = '' }) {
+  const { openLogin } = useLoginDialog()
   return (
     // 8px between the lines, so "Log in to log your find." reads as its own
     // line rather than the how-to sentence wrapping.
@@ -241,9 +243,18 @@ export function FindHelp({ signedIn, className = '' }) {
       </p>
       {signedIn === false && (
         <p>
-          <Link to="/login" className={`rounded-sm font-bold text-text-primary underline underline-offset-4 ${FOCUS_RING}`}>
+          {/* It opens the login dialog over this page (an action, so a
+              button, dressed as the sentence's link). After logging in the
+              page shows "I found it" for them. The padding gives it a 28px
+              tap area without moving the text. */}
+          <button
+            type="button"
+            onClick={() => openLogin({ reason: 'Log in to log your find.' })}
+            aria-haspopup="dialog"
+            className={`-my-1 cursor-pointer rounded-sm py-1 font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`}
+          >
             Log in
-          </Link>{' '}
+          </button>{' '}
           to log your find.
         </p>
       )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { useLoginDialog } from '../components/login/loginDialogContext.js'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { describeCacheStats, loadMyCaches } from './myCachesData.js'
@@ -75,6 +76,7 @@ function Notice({ children, role = 'status' }) {
 }
 
 function MyCachesPage() {
+  const { openLogin } = useLoginDialog()
   // undefined = still checking who is signed in; null = signed out.
   const [userId, setUserId] = useState(undefined)
   // The last finished load, tagged with whose caches it holds. If that isn't
@@ -134,9 +136,10 @@ function MyCachesPage() {
   } else if (userId === null) {
     content = (
       <Notice>
-        <Link to="/login" className="font-bold text-black underline">
+        {/* Opens the login dialog over this page; it loads by itself after. */}
+        <button type="button" onClick={() => openLogin({ reason: 'Log in to see the caches you’ve hidden.' })} aria-haspopup="dialog" className="cursor-pointer font-bold text-black underline">
           Log in
-        </Link>{' '}
+        </button>{' '}
         to see the caches you’ve hidden.
       </Notice>
     )

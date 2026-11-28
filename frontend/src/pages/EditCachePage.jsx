@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import LocationPicker from '../components/LocationPicker.jsx'
+import { useLoginDialog } from '../components/login/loginDialogContext.js'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import {
@@ -301,6 +302,7 @@ function Notice({ children, role = 'status' }) {
 }
 
 function EditCachePage() {
+  const { openLogin } = useLoginDialog()
   const { cacheId } = useParams()
   // undefined = still checking who is signed in; null = signed out.
   const [userId, setUserId] = useState(undefined)
@@ -358,9 +360,10 @@ function EditCachePage() {
   } else if (userId === null) {
     content = (
       <Notice>
-        <Link to="/login" className="font-bold text-black underline">
+        {/* Opens the login dialog over this page; it loads by itself after. */}
+        <button type="button" onClick={() => openLogin({ reason: 'Log in to edit your cache.' })} aria-haspopup="dialog" className="cursor-pointer font-bold text-black underline">
           Log in
-        </Link>{' '}
+        </button>{' '}
         to edit your cache.
       </Notice>
     )

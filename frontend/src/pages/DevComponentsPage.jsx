@@ -255,7 +255,7 @@ function DevComponentsPage() {
           <State name="Labelled (cache page)">
             <FavoriteButton labelled title="Quad riddle" signedIn saved={devFavorite} onToggle={() => setDevFavorite((v) => !v)} cacheId="dev-3" />
           </State>
-          <State name="Signed out (a link to Log in)">
+          <State name="Signed out (opens the login dialog)">
             <FavoriteButton title="Quad riddle" signedIn={false} cacheId="dev-4" />
           </State>
           <State name="Loading (not pressable)">
