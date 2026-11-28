@@ -233,14 +233,6 @@ function LeaderboardPage() {
             </ol>
           </section>
         )}
-        {/* The board ends by pointing back outside. Only for people on it:
-            everyone else already has their prompt (log in, or find a first
-            cache) at the top, and two map buttons would be one too many. */}
-        {myRow && (
-          <Button variant="secondary" to="/map" fullWidth className="mt-2 lg:w-auto lg:self-start">
-            Find your next cache
-          </Button>
-        )}
       </>
     )
   }
