@@ -17,7 +17,7 @@ function CacheSlip({ cache }) {
         <p className="font-sans text-[9pt] font-bold uppercase tracking-[2px]">Secret code</p>
         <p className="font-mono text-[28pt] font-bold tracking-[6px]">{cache.secretCode}</p>
         <p className="font-sans text-[9pt] leading-snug">
-          This is a HuskyCache geocache. Log your find on HuskyCache with this code, then put the cache back where you
+          This is a HuskyCache cache. Log your find on HuskyCache with this code, then put the cache back where you
           found it.
         </p>
       </div>

@@ -35,7 +35,7 @@ test('landing page renders its own header and main, the kicker, the hero, the st
   assert.match(markup, /<main id="main-content"/)
   assert.match(markup, /Skip to content/)
   // The kicker says what HuskyCache is, just before the headline.
-  const kicker = markup.indexOf('>Campus geocaching, made by students</p>')
+  const kicker = markup.indexOf('>Hide and find caches around campus</p>')
   assert.ok(kicker > 0)
   assert.ok(kicker < markup.indexOf('<h1'))
   // The no-break space keeps "NU community!" together on the last line.

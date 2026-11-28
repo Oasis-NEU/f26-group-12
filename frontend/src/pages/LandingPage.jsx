@@ -151,7 +151,7 @@ function Hero() {
         {/* The kicker says plainly what this is before the playful headline.
             It's a plain line, not a heading, read just before the headline. */}
         <div className="flex flex-col gap-2">
-          <p className="text-label text-text-secondary">Campus geocaching, made by students</p>
+          <p className="text-label text-text-secondary">Hide and find caches around campus</p>
           {/* Display on phones, Section on tablets (the column is wide) and
               small laptops (where 64px would squeeze into a narrow column),
               Hero from 1280px. text-balance evens out the lines, and the
