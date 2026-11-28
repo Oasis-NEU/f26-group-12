@@ -711,7 +711,7 @@ function FavoritesPanel({ favorites, saved, foundIds, keptIds, onToggle }) {
             // looks unrated by mistake.
             rating={favorites.ratings ? (favorites.ratings[cache.id] ?? { average: null, count: 0 }) : undefined}
             found={foundIds.includes(cache.id)}
-            wide
+            roomy
             corner={
               <FavoriteButton
                 title={cache.title}
