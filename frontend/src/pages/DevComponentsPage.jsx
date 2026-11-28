@@ -163,7 +163,7 @@ function DevComponentsPage() {
           </State>
         </Section>
 
-        <Section title="CacheCard" note="Cards with to= or onClick are hoverable. No photo shows the empty dashed box; no rating prop hides the rating. The last two are clickable: click one to select it.">
+        <Section title="CacheCard" note="Cards with to= or onClick are hoverable. With a photo it runs across the top; with none there is no photo area; no rating prop hides the rating. The last two are clickable: click one to select it.">
           <State name="Default (hover me)" wide>
             <CacheCard title="Quad riddle" location="Krentzman Quad" difficulty={4} to="/dev/components" />
           </State>
