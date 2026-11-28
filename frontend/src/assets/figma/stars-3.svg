@@ -1,21 +1,21 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="172" height="28" viewBox="0 0 172 28" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="StarRating">
 <g id="Star 1">
-<use xlink:href="#stroke0_0_22" fill="#F2B33D"/>
+<use xlink:href="#stroke0_0_22" fill="#171B18"/>
 <mask id="stroke1_0_22" fill="white">
 <use xlink:href="#stroke0_0_22"/>
 </mask>
 <path d="M14 0L17.703 8.90319L27.3148 9.67376L19.9917 15.9468L22.229 25.3262L14 20.3L5.77101 25.3262L8.00834 15.9468L0.685208 9.67376L10.297 8.90319L14 0Z" stroke-width="2.5" stroke-linejoin="round" stroke="#171B18" mask="url(#stroke1_0_22)"/>
 </g>
 <g id="Star 2">
-<use xlink:href="#stroke2_0_22" fill="#F2B33D"/>
+<use xlink:href="#stroke2_0_22" fill="#171B18"/>
 <mask id="stroke3_0_22" fill="white">
 <use xlink:href="#stroke2_0_22"/>
 </mask>
 <path d="M50 0L53.703 8.90319L63.3148 9.67376L55.9917 15.9468L58.229 25.3262L50 20.3L41.771 25.3262L44.0083 15.9468L36.6852 9.67376L46.297 8.90319L50 0Z" stroke-width="2.5" stroke-linejoin="round" stroke="#171B18" mask="url(#stroke3_0_22)"/>
 </g>
 <g id="Star 3">
-<use xlink:href="#stroke4_0_22" fill="#F2B33D"/>
+<use xlink:href="#stroke4_0_22" fill="#171B18"/>
 <mask id="stroke5_0_22" fill="white">
 <use xlink:href="#stroke4_0_22"/>
 </mask>

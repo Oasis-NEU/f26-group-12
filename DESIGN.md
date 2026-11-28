@@ -19,7 +19,6 @@ colors:
   found: "#2d6a4f"
   found-soft: "#e3f0e8"
   highlight: "#f2b33d"
-  highlight-soft: "#fdf3dc"
   focus: "#1d5faf"
 typography:
   hero:
@@ -200,7 +199,7 @@ components:
 
 **Creative North Star: "The Campus Field Guide"**
 
-HuskyCache looks like a pocket field guide a student takes outside: calm, paper-toned pages, bold headings that name the place, and a few strong marks that say what to do next. Husky Red marks what's still out there to find, Found Green ticks off what you've found, and Star Gold records how good it was. Everything else stays in the background so those marks read at a glance, on a phone, outdoors, in daylight.
+HuskyCache looks like a pocket field guide a student takes outside: calm, paper-toned pages, bold headings that name the place, and a few strong marks that say what to do next. Husky Red marks what's still out there to find, Found Green ticks off what you've found, and solid ink stars record how good it was. Everything else stays in the background so those marks read at a glance, on a phone, outdoors, in daylight.
 
 Components are friendly and sturdy. Corners are softly rounded, borders are thin, and fills are plain. Targets are big enough to hit while walking (48px buttons, fields and hint rows; 28px stars). Type does the expressive work: Bricolage Grotesque gives headings a little character, and Atkinson Hyperlegible Next keeps everything people read and tap as legible as possible.
 
@@ -208,7 +207,7 @@ The look is confident but never official. HuskyCache is an unofficial student pr
 
 **Key Characteristics:**
 - Sage-tinted neutrals: an off-white page, white surfaces, gray-green borders, near-black ink.
-- Four meaning colors, each with one job: red (to find, the main action), green (found), gold (ratings and selection), blue (keyboard focus).
+- Four meaning colors, each with one job: red (to find, the main action), green (found), gold (the selected map pin), blue (keyboard focus).
 - Gently rounded controls (8px) and cards (16px); fully round only for pins, avatars, pill tags and the header's search and pages.
 - Flat surfaces; only things that float above the page cast a shadow: map pins and overlays (popups, the map card, menus, the login dialog).
 - Bricolage Grotesque headings, Atkinson Hyperlegible Next for everything else, JetBrains Mono only for secret codes.
@@ -225,7 +224,7 @@ A quiet sage-gray field with four saturated marks, each reserved for one meaning
 - **Found Green** (`found`): anything you've found. Found pins, the checkmark and the "Found by you" text. **Found Green Soft** (`found-soft`) is the pill behind "Found by you".
 
 ### Tertiary
-- **Star Gold** (`highlight`): star ratings and the ring around the selected map pin. **Star Gold Soft** (`highlight-soft`) is the background for points earned. Gold is a fill, never text; on white it's too light to read.
+- **Pin Gold** (`highlight`): only the ring around the selected map pin. Gold is a fill, never text; on white it's too light to read. (Ratings used to be gold; since 2026-11-28 stars are solid ink, which reads better in sun and fits the ink heart, and points earned sit on a plain white card.)
 
 ### Neutral
 - **Page** (`bg-page`): the background behind everything, a barely green off-white.
@@ -357,17 +356,17 @@ Big, friendly and plain.
 Five 7 × 14px bars, 3px apart: filled bars in Text, empty ones in Border Subtle, followed by "Difficulty N" in Label. The label can be hidden visually but always stays for screen readers.
 
 ### Star Rating
-Five 28px gold stars with 8px gaps, using Figma's exported star images (filled stars are Star Gold with a dark outline; empty ones are gray outlines). When picking a rating, each star is a button, and hovering with a mouse previews that rating.
+Five 28px stars with 8px gaps, using Figma's exported star images recoloured (filled stars are solid ink; empty ones are Border Input outlines). When picking a rating, each star is a button, and hovering with a mouse previews that rating.
 
 ### Favorite Button
-A cache's heart, for adding it to your favorites (they stay favorites after you find them). The heart is ink, never red: red, green and gold each already mean something. Outline when it's not a favorite, solid ink when it is, 20px.
+A cache's heart, for adding it to your favorites (they stay favorites after you find them). The heart is ink, never red: red, green and gold each already mean something. Filled stars are ink too: ink is the app's neutral "yes" mark, not a meaning colour. Outline when it's not a favorite, solid ink when it is, 20px.
 - **Icon (cards, the map's popup and phone card):** a 40px round button; hover fills it with Subtle and pressing shrinks it to 97%. Screen readers hear "Favorite Krentzman Corner" with pressed on or off. In a cache card it sits in the top-right corner (8px from the right; see Cache card); in the popup and phone card it sits beside ×, 8px apart, so their tap areas don't overlap.
 - **Labelled (the cache page):** a 40px outlined button (Border Strong, 8px corners) with an 18px heart and "Favorite" / "Favorited" in Label text, right after the cache's name (on a long name it drops to the next line). Not on a taken-down cache.
 - **States:** while we're checking who's logged in or loading their favorites, the heart shows but can't be pressed (no hover or press). Signed out, it's a button that opens the Login Dialog ("Log in to add Krentzman Corner to your favorites."); once they've logged in, that cache becomes a favorite by itself: the heart they tapped fills (with its pop) as soon as their favorites have loaded, and focus goes back to it (if that heart is gone, the first one for that cache that's on screen does it, never a hidden copy). If they close the dialog instead, nothing changes. Tapping flips the heart at once; quick taps are sent one at a time, newest last. If it fails, it flips back and a small Inverse note ("Couldn't add it to your favorites. Try again.") shows under the button that was tapped, for 4 seconds, and is read out.
 - **Motion, only after a tap:** the fill eases in or out (150ms) and adding pops the heart in from 75%; the failure note fades in and grows from 97% out of the button's corner. Hearts already filled when a page loads just appear. With reduced motion only the fill and the fade stay.
 
 ### Rating Summary
-A cache's average rating, wherever it's listed: one 14px Star Gold star with a dark outline (like the Star Rating's filled stars), the average to one decimal in bold Text, and the number of ratings in Text Secondary, all in Small: "★ 4.6 (12)", or "★ 4.6 (12 ratings)" on the cache page. A cache nobody has rated says "No ratings yet" (Small, Text Secondary). If the ratings couldn't load, nothing is shown, so a cache never looks unrated by mistake. On the cache page it fades in (150ms), since it arrives after the rest; on the map's cards it doesn't, since it comes with them. Screen readers hear "Rated 4.6 out of 5 from 12 ratings". The numbers come from the `cache_ratings` database function: totals only, never who rated what.
+A cache's average rating, wherever it's listed: one 14px solid ink star (like the Star Rating's filled stars), the average to one decimal in bold Text, and the number of ratings in Text Secondary, all in Small: "★ 4.6 (12)", or "★ 4.6 (12 ratings)" on the cache page. A cache nobody has rated says "No ratings yet" (Small, Text Secondary). If the ratings couldn't load, nothing is shown, so a cache never looks unrated by mistake. On the cache page it fades in (150ms), since it arrives after the rest; on the map's cards it doesn't, since it comes with them. Screen readers hear "Rated 4.6 out of 5 from 12 ratings". The numbers come from the `cache_ratings` database function: totals only, never who rated what.
 
 ### Hint Row
 Every hint starts locked, including Hint 1, so nothing is given away before someone asks. Hint 1 loads with the cache, and after each reveal the next hint loads quietly in the background but stays locked, so revealing is instant even on a weak signal. Revealed hints are remembered for that browser tab (sessionStorage: on the phone only, no location, gone when the tab closes), so they come back if the tab reloads, e.g. on the way back from Google Maps.
@@ -377,7 +376,7 @@ Every hint starts locked, including Hint 1, so nothing is given away before some
 ### Map Pin
 - **Unfound:** a 28px Husky Red circle with a 2px white border and the pin shadow.
 - **Found:** a 28px Found Green circle with a white check (Figma's exported image).
-- **Selected:** grows to 40px with a 4px Star Gold ring.
+- **Selected:** grows to 40px with a 4px Pin Gold ring.
 - **Hover:** clickable pins (a pin button, or a pin inside a map marker) grow to 110%, animated only when reduced motion is off. Decorative pins, like the one on the empty photo frame or at the end of the hint trail, stay still: growing on hover promises a click.
 
 ### Hint Trail
@@ -441,7 +440,7 @@ Logging in without leaving the page: the Log in page's own screens (log in, log 
 - **Secret code box:** 56px tall, the code in Code (JetBrains Mono, upper case). Help: "6 letters and numbers, written on the slip inside the cache." Before sending, it checks for 6 characters and none of 0, O, 1, I or L, with a message saying exactly what's wrong.
 - **Wrong code:** stays on the page, keeps what they typed, outlines the box in Error and shows "That code doesn't match. Check the slip inside the cache and try again." with the "!" icon. The message fades in and the outline eases to red (150ms).
 - **States:** each has its own heading: "This is your cache" (hiders can't log their own), "You took this cache down", "This cache was taken down", "You've already found this cache" (with the date), and "Log in again to save your find" if the login runs out mid-form, which keeps the code for that tab; its "Log in" opens the Login Dialog and the form comes back with the code. Signed-out visitors stay on the page: "Log in to log your find" ("Your finds and points are saved to your account. Log in, then enter the code from the slip.") with the Login Dialog open over it (see Login Dialog → Pages that need an account). If "Log find" gets no answer within 15 seconds, it says to check the signal.
-- **Find logged!:** one of the app's two celebrations (with "Cache hidden!"), made to look like the cache's spot on the map turning to found. The Found Green MapPin at twice its map size (56px) sits at the top of contour rings, like the cache page's backdrop; the rings fade out just below the pin, so no line runs behind the text, and they don't animate. Then "Find logged!" in Display, the cache name in Title, "Found by you on Nov 27, 2026" in Label, Found Green, and the points earned on Star Gold Soft ("+3 points", Heading; "You now have 11 points.", Small).
+- **Find logged!:** one of the app's two celebrations (with "Cache hidden!"), made to look like the cache's spot on the map turning to found. The Found Green MapPin at twice its map size (56px) sits at the top of contour rings, like the cache page's backdrop; the rings fade out just below the pin, so no line runs behind the text, and they don't animate. Then "Find logged!" in Display, the cache name in Title, "Found by you on Nov 27, 2026" in Label, Found Green, and the points earned on a white card with a Border Subtle edge (Border Input with Increase Contrast) ("+3 points", Heading; "You now have 11 points.", Small).
 - **Add it to your journal:** a white card under the points, optional: Star Rating (with Clear) and "Journal note" (112px; "N characters left" in its last 50 characters). A Secondary "Add to journal" appears once there's something to save; then "Added to your journal."
 - **Where next:** "Back to the map" is the Primary button (getting people to the next cache comes first), "See your journal" is Secondary.
 - **Motion:** the pin grows in from 90% (250ms), then the points and the journal card rise 4px (200ms, from 100ms), all done by about 300ms on the shared ease-out. With reduced motion they only fade.
@@ -464,7 +463,7 @@ Logging in without leaving the page: the Log in page's own screens (log in, log 
 - **Summary:** one plain row on the page (no box or tint): your points and caches found, each a Title number followed by its words in Small Text Secondary ("4 points", "4 caches found"), then "Each find earns its difficulty in points." (Small, Text Secondary). Points are worked out from your finds (each found cache's difficulty, added up), like the account menu. While the finds load it holds its space, so nothing jumps; it goes once they've loaded with none (or failed to load).
 - **Tabs:** "Finds" and "Favorites", 40px, 8px corners, Label text, 8px apart: the chosen one in the Inverse fill with white text, the other white with a Border Strong edge (the map's filter chips, taller). They're real tabs (arrow keys, Home and End move between them; only the chosen tab points at its panel, and the panel can take focus), and the chosen one is kept in the address (`?tab=favorites`), so coming back from a cache opens the same tab.
 - **A find:** a white card (Border Subtle, 16px corners), with its photo across the top (yours if the find has one, otherwise the cache's; 2:1 on phones, 3:1 on desktop, fading in over a Subtle band). With no photo there's no photo area, and the card starts with the name. Then, 16px in (20px on desktop): the name (Body Strong), and on one line the place (Small, Text Secondary, first letter capitalized) and the date, "Found Oct 30", in Label Text (the year only shows for an earlier year). Then your journal note, in your voice: Body, set off by a 2px Border Subtle rule on its left, 12px in. Then the difficulty meter and your rating side by side (wrapping on narrow screens). Last, under a thin Border Subtle line, one row of quiet actions: "Add a note" (+) / "Edit note" (pencil) and "Rate it" / "Change rating" (an outline star). Like a cache card, the name is the link to the cache's page, stretched over the card (hover fills it Subtle, pressing shrinks it to 98%; screen readers hear the place, date and difficulty after the name), while the editors and actions stay their own buttons. The list just ends; there's no closing button.
-- **Your rating:** a rated find shows "Your rating" and five 20px stars (drawn like the Rating Summary's star: Star Gold with an ink outline, empty ones a Border Input outline), each in a 32px square, the same size as when you change them, so nothing grows (smaller than the shared 28px Star Rating on purpose); an unrated one says "Not rated yet" (Small, Text Secondary). "Rate it" / "Change rating" opens the five stars in place, with focus on the star that's chosen now (the first star if none) and a quiet "Cancel" on the same line; the actions row steps aside while it's open. Escape also closes it, and focus goes back to the button. Picking a star saves it straight away; only the rating is sent, so the note is never touched. A key held down from opening it can't pick a star (its repeats are ignored until a fresh press), and a click in the first 300ms after it opens is ignored, so a double-click on "Rate it" can't save 1 star.
+- **Your rating:** a rated find shows "Your rating" and five 20px stars (drawn like the Rating Summary's star: solid ink, empty ones a Border Input outline), each in a 32px square, the same size as when you change them, so nothing grows (smaller than the shared 28px Star Rating on purpose); an unrated one says "Not rated yet" (Small, Text Secondary). "Rate it" / "Change rating" opens the five stars in place, with focus on the star that's chosen now (the first star if none) and a quiet "Cancel" on the same line; the actions row steps aside while it's open. Escape also closes it, and focus goes back to the button. Picking a star saves it straight away; only the rating is sent, so the note is never touched. A key held down from opening it can't pick a star (its repeats are ignored until a fresh press), and a click in the first 300ms after it opens is ignored, so a double-click on "Rate it" can't save 1 star.
 - **A journal note:** "Add a note" / "Edit note" opens the same note box as the Log a find page in place of the note: "Journal note" label, a 112px box with "What was it like?", the same 500-character limit and "N characters left" in its last 50 characters (a longer note from before says how far over it is), then a Secondary "Save note" (40px) and a quiet "Cancel"; the actions row steps aside while it's open. Focus moves into the box (at the end of the text) and back to the button on Cancel or Escape. Only the note is sent; an empty note is saved as no note. A held Enter from opening it can't type into the box.
 - **Saving (rating or note):** while it saves, it's locked: the stars dim and can't be pressed, the box is read-only, "Save note" and "Cancel" do nothing, and Escape is ignored. "Saving…", then "Rating saved." or "Note saved.", are said to screen readers only (a status line that's always on the page; nothing extra shows), and focus goes back to the button that opened it. If it fails, the stars or box stay open with the "!" error line under the card's details: when nothing was saved (the login ran out), "Log in again to save your rating.", where "Log in again" opens the Login Dialog (then they pick the stars or save the note again); otherwise "Your rating didn't save. Check your connection and try again." (the same for a note).
 - **Taken-down caches:** finders can't read a taken-down cache, so its find is called "A taken-down cache" (or by its name, if it can be read), says "Its hider took it down, so its page can't be opened.", isn't a link, can't be rated or re-rated, and leaves out the difficulty when it's unknown (its points can't be counted either, as in the account menu). Your rating stays, and your note stays and can still be edited (it's yours, not the cache's).
@@ -485,8 +484,8 @@ Logging in without leaving the page: the Log in page's own screens (log in, log 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep each meaning color to its one job: Husky Red for to-find and the main action, Found Green for found, Star Gold for ratings and the selected pin, Focus Blue for keyboard focus.
-- **Do** show difficulty as bars plus "Difficulty N", and ratings as gold stars, so the two are never confused.
+- **Do** keep each meaning color to its one job: Husky Red for to-find and the main action, Found Green for found, Pin Gold for the selected pin, Focus Blue for keyboard focus.
+- **Do** show difficulty as bars plus "Difficulty N", and ratings as stars, so the two are never confused.
 - **Do** pair every color signal with a shape or words: a check for found, a label for difficulty, an icon and message for errors.
 - **Do** keep tap targets at least 28px, and buttons, fields and hint rows at 48px.
 - **Do** use the shared focus ring (2px Focus Blue, 2px gap) on everything focusable.
@@ -500,7 +499,7 @@ Logging in without leaving the page: the Log in page's own screens (log in, log 
 - **Don't** make it look like a kids' game: no cartoon mascots, confetti bursts or candy colors.
 - **Don't** put more than one Husky Red button on a page.
 - **Don't** add shadows to cards, buttons or fields; shadows are only for map pins and floating overlays (popups, the map card, menus, the login dialog), plus the Pin shadow on a control floating over a photo (The Flat Field Rule).
-- **Don't** use Star Gold for text.
+- **Don't** use Pin Gold for text, or for anything but the selected pin.
 - **Don't** add a fourth typeface, or use JetBrains Mono for anything but secret codes.
 - **Don't** put information in the contour backdrop or use it as a fill; it's mood, and it disappears with Increase Contrast.
 - **Don't** animate decoration (such as the contour rings), stagger page entrances, smooth-scroll when focus moves, or give a hover effect to something that can't be clicked. Save celebrations for the moment they happen ("Find logged!" and "Cache hidden!"), not for states seen later, like "Found by you".

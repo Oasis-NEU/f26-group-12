@@ -332,10 +332,11 @@ function FindLogged({ cache, cacheId, userId, totalPoints }) {
         <p className="wrap-break-word text-title text-text-primary">{cache.title}</p>
         <p className="text-label text-found">Found by you on {foundOn}</p>
       </div>
-      {/* Star Gold Soft: the background DESIGN.md keeps for points earned. */}
+      {/* The points earned, on a white card like the rest (no tint: the
+          meaning colours each have one job, and points aren't one). */}
       <div
         id="find-logged-points"
-        className={`flex w-full flex-col items-center gap-1 rounded-2xl bg-highlight-soft p-5 ${RISE_IN}`}
+        className={`flex w-full flex-col items-center gap-1 rounded-2xl border border-border-subtle bg-bg-surface p-5 contrast-more:border-border-input ${RISE_IN}`}
       >
         <p className="text-heading text-text-primary">{pointsText(earned)}</p>
         {/* The total arrives a moment later; its line keeps its space, so
