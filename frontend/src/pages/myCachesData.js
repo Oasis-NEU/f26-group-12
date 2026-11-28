@@ -1,5 +1,6 @@
 // Data helpers for the My caches page. Kept separate from the page so they
-// can be tested without React.
+// can be tested without React. useMyCaches (src/lib) decides when to run
+// them.
 
 // Never select secret_code here: this list doesn't need it.
 // "finds(rating)" asks Supabase to also return each cache's finds (just the
@@ -52,4 +53,24 @@ export function describeCacheStats(cache) {
   }
 
   return parts.join(' · ')
+}
+
+// The secret code for one cache, for printing its slip. Only loaded when the
+// hider presses "Print slip", never with the list above. The code lives in
+// its own table, cache_secrets, which RLS only lets the cache's creator read,
+// so anyone else just gets no row (and this throws).
+export async function loadSecretCode(supabase, cacheId) {
+  const { data, error } = await supabase
+    .from('cache_secrets')
+    .select('secret_code')
+    .eq('cache_id', cacheId)
+    .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+  if (!data?.secret_code) {
+    throw new Error('No secret code for this cache.')
+  }
+  return data.secret_code
 }

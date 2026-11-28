@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  bringBackCache,
   loadCacheForEdit,
   prepareCacheEdits,
   saveCacheEdits,
@@ -154,4 +155,22 @@ test('takeDownCache sets is_active to false instead of deleting', async () => {
 
   assert.ok(calls.some((call) => call[0] === 'update' && call[1].is_active === false))
   assert.ok(!calls.some((call) => call[0] === 'delete'))
+})
+
+test('bringBackCache sets is_active back to true on that cache only', async () => {
+  const { calls, client } = createSupabaseStub([])
+
+  await bringBackCache(client, 'c1')
+
+  assert.deepEqual(calls[0], ['from', 'caches'])
+  const update = calls.find((call) => call[0] === 'update')
+  assert.deepEqual(update[1], { is_active: true })
+  assert.ok(calls.some((call) => call[0] === 'eq' && call[1] === 'id' && call[2] === 'c1'))
+  assert.ok(!calls.some((call) => call[0] === 'delete'))
+})
+
+test('bringBackCache throws if the update fails', async () => {
+  const { client } = createSupabaseStub([{ data: null, error: new Error('denied') }])
+
+  await assert.rejects(bringBackCache(client, 'c1'), /denied/)
 })

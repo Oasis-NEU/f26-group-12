@@ -32,6 +32,8 @@ function Layout() {
     isLoginPage ||
     isLogFindPage ||
     isHideCachePage ||
+    isCacheEditPath(pathname) ||
+    pathname === '/my-caches' ||
     pathname === '/journal' ||
     pathname === '/leaderboard'
 

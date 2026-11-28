@@ -24,6 +24,8 @@ Core:
 - Success screen where person hiding the cache has to see code so they can put it on the slip.
 - Print a slip: the cache's name, its code and one line telling finders what to do (no QR code until the site is deployed)
 - Page not found for unfindable pages
+- My caches page (`/my-caches`): the caches you've hidden, active first, each with its finds and average rating, "Edit", and "Print slip" (active caches only), which prints the same slip as "Cache hidden!". The code is loaded from `cache_secrets` only when "Print slip" is pressed; the list never selects it.
+- Edit cache (`/caches/:cacheId/edit`), using the same form pieces as Hide a cache (`components/cacheForm/`). The secret code is shown locked. "Take down cache" asks first, in the page ("Take it down?"), then sets `is_active = false`; a taken-down cache has "Put it back on the map" (`is_active = true`). Caches are never deleted.
 - Favorites: an ink heart on each cache card, the map's popup and phone card, and a labelled "Favorite" button on the cache page; a "Favorites" map filter. Found caches stay favorites. Stored in `saved_caches`. (A Favorites tab in the Journal comes with the Journal rebuild.)
 - Score and leaderboard: points are the difficulty of every cache you've found, added up. `/leaderboard` ranks everyone with a find (from the `leaderboard` database function; anyone can see it, logged in or not), highlights your own row, and says where you are ("You're #23 with 9 points.") with a button that jumps to your row.
 
@@ -31,8 +33,6 @@ Next:
 - "Found" tab in the UI separating caches you've found from ones you haven't
 - Log in with Google, plus the “Choose a username”
 - Map filters (All / To find / My finds): this replaces the “Found” tab already listed under Next.
-- My caches page
-- Edit cache and take down
 - Landing page
 - Street addresses and named places in the header search (with the map
   work): picking one opens the map there, nearest caches first; picking a
@@ -212,6 +212,13 @@ The first three need a logged-in user; `cache_ratings` and `leaderboard` work fo
   (`?next=`). Setting a new password is only on the page. After sign-up,
   confirming the email in another tab of the same browser logs the dialog's
   tab in too (Supabase tells every tab), so it finishes what they were doing.
+- **Secret codes on My caches are loaded one at a time, on demand**
+  (2026-11-28). The list query never selects `secret_code`; "Print slip"
+  reads that one cache's code from `cache_secrets` (creator-only by RLS)
+  when it's pressed, and prints the shared slip (`components/CacheSlip.jsx`).
+- **Taking a cache down asks first, in the page,** not with a browser
+  pop-up, and can be undone: "Put it back on the map" sets `is_active`
+  back to true (owners can already update `is_active`; no database change).
 - **Links go places; buttons do things.** Underlined links only inside a
   sentence, to another page. Actions, and anything on its own line, are
   buttons: Primary (one per page), Secondary, then a quiet button with no

@@ -1,21 +1,21 @@
-import { Check, Copy, LocateFixed, Plus, RefreshCw, X } from 'lucide-react'
+import { Check, Copy, Plus, RefreshCw } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import Button from '../components/Button.jsx'
-import DifficultyMeter from '../components/DifficultyMeter.jsx'
+import CacheSlip from '../components/CacheSlip.jsx'
+import DescriptionField from '../components/cacheForm/DescriptionField.jsx'
+import DifficultyPicker from '../components/cacheForm/DifficultyPicker.jsx'
+import FormSection from '../components/cacheForm/FormSection.jsx'
+import HintsSection from '../components/cacheForm/HintsSection.jsx'
+import WhereSection from '../components/cacheForm/WhereSection.jsx'
+import { DIFFICULTY_FIRST_ID, LOCATION_BUTTON_ID, RISE_IN, moveToNextField } from '../components/cacheForm/formStyles.js'
 import { FOCUS_RING } from '../components/focusRing.js'
-import LocationPicker from '../components/LocationPicker.jsx'
 import { useLoginDialog } from '../components/login/loginDialogContext.js'
 import LoginRequired from '../components/login/LoginRequired.jsx'
 import MapPin from '../components/MapPin.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import TextField from '../components/TextField.jsx'
 import {
-  DESCRIPTION_MAX_LENGTH,
-  DIFFICULTY_MEANINGS,
-  HINT_MAX_LENGTH,
-  LOCATION_MAX_LENGTH,
-  MAX_HINTS,
   SAVE_TIMEOUT_MS,
   TITLE_MAX_LENGTH,
   checkCacheForm,
@@ -41,7 +41,9 @@ import { contourRing } from './cacheDetail/contours.js'
 // a secret code (the refresh button inside its box makes another).
 // create_cache saves it all together. Then "Cache hidden!" shows the code
 // once more, with a copy button for phones and "Print a slip" (a page with
-// the cache's name, its code and a line telling finders what to do).
+// the cache’s name, its code and a line telling finders what to do; the
+// form pieces and the slip are shared with Edit cache and My caches, in
+// components/cacheForm/ and components/CacheSlip.jsx).
 //
 // The form is kept for this tab as they type, and so is "Cache hidden!"
 // after saving, so a reload or a dropped tab never loses the code or makes
@@ -55,330 +57,14 @@ import { contourRing } from './cacheDetail/contours.js'
 // form on the left and "Where is it?" on the right, with "Hide this cache"
 // and "Cancel" under the form.
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const FORM_ID = 'hide-cache-form'
 const HEADING_ID = 'hide-cache-heading'
-const LOCATION_BUTTON_ID = 'use-my-location'
-// GPS readings rougher than this get a warning (metres).
-const ROUGH_ACCURACY_M = 30
 const TEXT_LINK = `-my-1 w-fit cursor-pointer rounded-sm py-1 text-label text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
-// Something that just appeared fades in and rises 4px (200ms, the shared
-// ease-out), like a hint being revealed; with reduced motion it only
-// fades. starting: is the style it animates from (CSS @starting-style).
-const RISE_IN =
-  'transition-[opacity,translate] duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0'
-// A message that just appeared fades in (150ms).
-const FADE_IN = 'transition-opacity duration-150 ease-out starting:opacity-0'
-const FIELD_BOX = `w-full rounded-lg border border-border-input bg-bg-surface px-4 text-body text-text-primary placeholder:text-text-secondary ${FOCUS_RING}`
 
 // "K7MQ2X" -> "K 7 M Q 2 X", so screen readers read a code letter by
 // letter instead of trying to say it as a word.
 function spelled(code) {
   return code.split('').join(' ')
-}
-
-// A part of the form ("Where is it?", "What is it?"...), labelled by its heading.
-function Section({ title, children }) {
-  const id = useId()
-  return (
-    <section aria-labelledby={id} className="flex flex-col gap-4">
-      <h2 id={id} className="text-heading text-text-primary">
-        {title}
-      </h2>
-      {children}
-    </section>
-  )
-}
-
-// An error or help line under a field, with the "!" icon for errors (as
-// in TextField). A new error fades in.
-function FieldMessage({ id, error, help }) {
-  if (!error && !help) return null
-  return (
-    <div id={id} key={error || 'help'} className={`flex items-start gap-2 ${error ? FADE_IN : ''}`}>
-      {error && (
-        <span
-          aria-hidden="true"
-          className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-error font-display text-[12px]/[14px] font-bold text-text-on-accent"
-        >
-          !
-        </span>
-      )}
-      <p className={`text-small ${error ? 'text-error' : 'text-text-secondary'}`}>{error || help}</p>
-    </div>
-  )
-}
-
-// The description: a 96px box, same look as a text field.
-function DescriptionField({ value, onChange }) {
-  const id = useId()
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-label text-text-primary">
-        Description (optional)
-      </label>
-      <textarea
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder="e.g. A small mint tin with a sticker on the lid."
-        maxLength={DESCRIPTION_MAX_LENGTH}
-        rows={3}
-        aria-describedby={`${id}-help`}
-        className={`min-h-24 resize-y py-3 ${FIELD_BOX}`}
-      />
-      <p id={`${id}-help`} className="text-small text-text-secondary">
-        What to look for, not where it is: its size and what it looks like.
-      </p>
-    </div>
-  )
-}
-
-// Difficulty 1-5: five big options, one picked at a time (radio buttons,
-// so arrow keys move between them). The picked one is the Inverse fill,
-// bars beside the label show it the way difficulty always appears, and the
-// line under the options says what it means. (The legend has to be the
-// fieldset's first child to name the group, so it's for screen readers;
-// the visible row repeats it with the bars.)
-function DifficultyPicker({ value, onChange, error }) {
-  const messageId = useId()
-  return (
-    <fieldset aria-describedby={messageId} aria-required="true" className="flex flex-col gap-2">
-      <legend className="sr-only">Difficulty</legend>
-      <div aria-hidden="true" className="flex items-center justify-between gap-4">
-        <span className="text-label text-text-primary">Difficulty</span>
-        {value && <DifficultyMeter level={value} showLabel={false} />}
-      </div>
-      <div className="flex gap-2">
-        {[1, 2, 3, 4, 5].map((level) => (
-          <label
-            key={level}
-            // The fill eases in (150ms) and the option shrinks to 97% while
-            // pressed, like a Button, so a tap feels heard. With an error,
-            // the outline turns red and is drawn 2px, like a field's.
-            className={`flex h-12 flex-1 cursor-pointer items-center justify-center rounded-lg border text-body-strong active:scale-97 motion-safe:transition-[background-color,border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out has-focus-visible:ring-2 has-focus-visible:ring-focus has-focus-visible:ring-offset-2 ${
-              value === level
-                ? 'border-bg-inverse bg-bg-inverse text-text-on-accent'
-                : `bg-bg-surface text-text-primary hover:bg-bg-subtle ${
-                    error ? 'border-error inset-ring-1 inset-ring-error' : 'border-border-strong'
-                  }`
-            }`}
-          >
-            <input
-              id={level === 1 ? 'difficulty-1' : undefined}
-              type="radio"
-              name="difficulty"
-              value={level}
-              checked={value === level}
-              onChange={() => onChange(level)}
-              aria-invalid={error ? true : undefined}
-              className="sr-only"
-            />
-            {level}
-            {/* Each option's full name for screen readers: "1, easy to spot". */}
-            <span className="sr-only">, {DIFFICULTY_MEANINGS[level].toLowerCase()}</span>
-          </label>
-        ))}
-      </div>
-      <FieldMessage
-        id={messageId}
-        error={error}
-        help={value ? `Difficulty ${value}: ${DIFFICULTY_MEANINGS[value]}` : '1 = easy to spot, 5 = a real challenge'}
-      />
-    </fieldset>
-  )
-}
-
-// "Where is it?": the map to place the pin (when Google Maps is set up),
-// and "Use my current location", which works without a map and is quickest
-// when you're standing at the spot. The browser asks first; the location
-// only sets the pin (saved as the cache's spot), and says how accurate it
-// is, warning when it's rough.
-function WhereSection({ position, onPosition, locationName, onLocationName, error }) {
-  const [locating, setLocating] = useState('idle')
-  // How accurate the last location was, in metres (not saved anywhere).
-  const [accuracy, setAccuracy] = useState(null)
-  const messageId = useId()
-
-  function useMyLocation() {
-    if (locating === 'locating') return
-    if (!('geolocation' in navigator)) {
-      setLocating('unavailable')
-      return
-    }
-    setLocating('locating')
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        onPosition({ lat: coords.latitude, lng: coords.longitude })
-        setAccuracy(Number.isFinite(coords.accuracy) ? Math.round(coords.accuracy) : null)
-        setLocating('idle')
-      },
-      (failure) => setLocating(failure.code === failure.PERMISSION_DENIED ? 'denied' : 'unavailable'),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
-    )
-  }
-
-  let help = 'Sets the pin to where you’re standing.'
-  if (locating === 'locating') help = 'Finding where you are…'
-  else if (locating === 'denied') {
-    help = 'Location is off for this site. Allow it in your browser’s settings, or place the pin on the map.'
-  } else if (locating === 'unavailable') {
-    help = 'Your location isn’t available right now. Try again outside, or place the pin on the map.'
-  } else if (accuracy !== null && position) {
-    help =
-      accuracy > ROUGH_ACCURACY_M
-        ? `That’s only accurate to about ${accuracy} m. Step into the open, wait a moment, then try again.`
-        : `Pin set to where you’re standing (accurate to about ${accuracy} m).`
-  }
-
-  return (
-    <Section title="Where is it?">
-      {GOOGLE_MAPS_API_KEY ? (
-        <LocationPicker
-          position={position}
-          onChange={(value) => {
-            onPosition(value)
-            setAccuracy(null)
-          }}
-          className="h-[180px] overflow-hidden rounded-2xl lg:h-[360px]"
-        />
-      ) : (
-        // No map here yet: a frame like the cache page's "no photo" one,
-        // pointing to the location button below.
-        <div className="flex h-[180px] flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border-input px-6 text-center contrast-more:border-text-secondary lg:h-[360px]">
-          <p className="text-body-strong text-text-primary">
-            {position ? 'Pin set to your location' : 'The map isn’t set up here yet'}
-          </p>
-          <p className="text-small text-text-secondary">
-            {position ? 'Use your location again to move it.' : 'Stand at the cache and use your current location.'}
-          </p>
-        </div>
-      )}
-      <div className="flex flex-col gap-2">
-        <Button
-          id={LOCATION_BUTTON_ID}
-          variant="secondary"
-          fullWidth
-          onClick={useMyLocation}
-          aria-disabled={locating === 'locating' || undefined}
-          aria-describedby={messageId}
-          className="gap-2 aria-disabled:cursor-wait lg:w-fit"
-        >
-          <LocateFixed aria-hidden="true" size={18} />
-          {position ? 'Use my current location again' : 'Use my current location'}
-        </Button>
-        <div aria-live="polite">
-          <FieldMessage id={messageId} error={error} help={help} />
-        </div>
-      </div>
-      <TextField
-        label="Location name (optional)"
-        placeholder="e.g. near Snell Library"
-        help="The general area finders head for."
-        maxLength={LOCATION_MAX_LENGTH}
-        enterKeyHint="next"
-        value={locationName}
-        onChange={(event) => onLocationName(event.target.value)}
-      />
-    </Section>
-  )
-}
-
-// Hints: up to 3, in order: just the fields, one under another, with no
-// labels above them (each is still called "Hint 1", "Hint 2"... for screen
-// readers, and the placeholders step up from vague to nearly giving it
-// away). The next hint waits as a dashed "Add another hint" box in the spot
-// its field will take, so adding one swaps the box for the field with
-// nothing moving. Hints after the first have an × inside the field to
-// remove them.
-//
-// Motion: when a hint is added, the next dashed box rises in (200ms). On
-// page load everything just appears; with reduced motion it only fades.
-//
-// Each field gets a stable key, so removing hint 2 removes hint 2's field.
-
-const HINT_PLACEHOLDERS = ['e.g. Sit on the steps and look down', 'A little more specific', 'Nearly gives it away']
-
-function HintsSection({ hints, onChange }) {
-  const listId = useId()
-  const nextKey = useRef(hints.length)
-  const [keys, setKeys] = useState(() => hints.map((_, index) => index))
-  // Whether anything has been added or removed yet (lets the dashed box
-  // rise in; on page load it just appears).
-  const [changed, setChanged] = useState(false)
-
-  function setHint(index, text) {
-    onChange(hints.map((hint, i) => (i === index ? text : hint)))
-  }
-
-  function addHint() {
-    const key = nextKey.current++
-    setKeys((current) => [...current, key])
-    setChanged(true)
-    onChange([...hints, ''])
-    // Move to the new field, so they can type straight away.
-    requestAnimationFrame(() => document.getElementById(`${listId}-${hints.length}`)?.focus())
-  }
-
-  function removeHint(index) {
-    setKeys((current) => current.filter((_, i) => i !== index))
-    setChanged(true)
-    onChange(hints.filter((_, i) => i !== index))
-    requestAnimationFrame(() => document.getElementById(`${listId}-${Math.max(0, index - 1)}`)?.focus())
-  }
-
-  return (
-    <Section title="Hints (optional)">
-      <p className="-mt-2 text-small text-text-secondary">
-        Up to 3. Start vague, and make each one give away a little more of where it is.
-      </p>
-      <ol className="flex flex-col gap-3">
-        {hints.map((hint, index) => {
-          const id = `${listId}-${index}`
-          return (
-            <li key={keys[index]} className="relative">
-              <label htmlFor={id} className="sr-only">
-                Hint {index + 1}
-              </label>
-              <input
-                id={id}
-                value={hint}
-                onChange={(event) => setHint(index, event.target.value)}
-                placeholder={HINT_PLACEHOLDERS[index]}
-                maxLength={HINT_MAX_LENGTH}
-                enterKeyHint="next"
-                className={`h-12 ${index > 0 ? 'pr-13' : ''} ${FIELD_BOX}`}
-              />
-              {index > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeHint(index)}
-                  aria-label={`Remove hint ${index + 1}`}
-                  className={`absolute right-1 top-1 flex size-10 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
-                >
-                  <X aria-hidden="true" size={18} />
-                </button>
-              )}
-            </li>
-          )
-        })}
-        {/* The next hint's dashed box, keyed by the hint count so each new
-            one rises in. */}
-        {hints.length < MAX_HINTS && (
-          <li key={`next-${hints.length}`} className={changed ? RISE_IN : ''}>
-            <button
-              type="button"
-              onClick={addHint}
-              className={`flex h-12 w-full cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-border-input px-4 text-label text-text-secondary hover:border-text-secondary hover:text-text-primary active:scale-97 contrast-more:border-text-secondary motion-safe:transition-[border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
-            >
-              <Plus aria-hidden="true" size={18} strokeWidth={2.25} />
-              Add another hint
-            </button>
-          </li>
-        )}
-      </ol>
-    </Section>
-  )
 }
 
 // A 48px icon button that sits inside or beside a box (the code's refresh
@@ -402,7 +88,7 @@ function SecretCodeSection({ code, onChangeCode }) {
   }
 
   return (
-    <Section title="Secret code">
+    <FormSection title="Secret code">
       <div className="flex flex-col gap-2">
         <div className="relative">
           <output
@@ -443,7 +129,7 @@ function SecretCodeSection({ code, onChangeCode }) {
           Finders type it in to prove they found it.
         </p>
       </div>
-    </Section>
+    </FormSection>
   )
 }
 
@@ -552,7 +238,7 @@ function CacheHidden({ cache, onHideAnother }) {
         </p>
       </div>
       <div className="flex w-full flex-col gap-3">
-        {/* Prints just the slip (see Slip below). */}
+        {/* Prints just the slip (CacheSlip, at the bottom of the page). */}
         <Button fullWidth onClick={() => window.print()}>
           Print a slip
         </Button>
@@ -585,27 +271,6 @@ function CacheHidden({ cache, onHideAnother }) {
   )
 }
 
-// The printed slip: the cache's name, its code and one line telling
-// whoever opens the container what to do, inside a dashed cut line, black
-// on white. It's hidden on screen and is the only thing on the page when
-// printing (everything else is print:hidden). No link or QR code until the
-// site is deployed.
-function Slip({ cache }) {
-  return (
-    <div className="hidden print:flex print:justify-center print:pt-8">
-      <div className="flex w-[3.5in] flex-col items-center gap-2 border-2 border-dashed border-black p-6 text-center text-black">
-        <p className="wrap-break-word font-display text-[16pt] font-bold leading-tight">{cache.title}</p>
-        <p className="font-sans text-[9pt] font-bold uppercase tracking-[2px]">Secret code</p>
-        <p className="font-mono text-[28pt] font-bold tracking-[6px]">{cache.secretCode}</p>
-        <p className="font-sans text-[9pt] leading-snug">
-          This is a HuskyCache geocache. Log your find on HuskyCache with this code, then put the cache back where you
-          found it.
-        </p>
-      </div>
-    </div>
-  )
-}
-
 function emptyForm() {
   return {
     title: '',
@@ -616,16 +281,6 @@ function emptyForm() {
     hints: [''],
     secretCode: generateSecretCode(),
   }
-}
-
-// Enter in a one-line field moves to the next field instead of saving the
-// whole form (the keyboard's Go would otherwise save half a cache). Only
-// the "Hide this cache" button saves.
-function moveToNextField(event) {
-  if (event.key !== 'Enter' || event.target.tagName !== 'INPUT' || event.target.type === 'radio') return
-  event.preventDefault()
-  const fields = [...event.currentTarget.querySelectorAll('input:not([type="radio"]), textarea')]
-  fields[fields.indexOf(event.target) + 1]?.focus()
 }
 
 function AddCachePage() {
@@ -685,7 +340,7 @@ function AddCachePage() {
     // missing spot that's the location button, which the error describes.
     const first = ['position', 'title', 'difficulty'].find((field) => found[field])
     if (first) {
-      const target = { position: LOCATION_BUTTON_ID, title: 'cache-title', difficulty: 'difficulty-1' }[first]
+      const target = { position: LOCATION_BUTTON_ID, title: 'cache-title', difficulty: DIFFICULTY_FIRST_ID }[first]
       requestAnimationFrame(() => document.getElementById(target)?.focus())
       return
     }
@@ -834,7 +489,7 @@ function AddCachePage() {
               />
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-7">
-              <Section title="What is it?">
+              <FormSection title="What is it?">
                 <TextField
                   id="cache-title"
                   label="Cache name"
@@ -853,7 +508,7 @@ function AddCachePage() {
                   onChange={(value) => update('difficulty', value)}
                   error={problems.difficulty}
                 />
-              </Section>
+              </FormSection>
               <HintsSection hints={form.hints} onChange={(value) => update('hints', value)} />
               <SecretCodeSection code={form.secretCode} onChangeCode={(value) => update('secretCode', value)} />
               {/* Desktop: the buttons sit right under the form, with any save
@@ -903,7 +558,7 @@ function AddCachePage() {
           </div>
         </main>
       </div>
-      {hidden && <Slip cache={hidden} />}
+      {hidden && <CacheSlip cache={hidden} />}
     </>
   )
 }

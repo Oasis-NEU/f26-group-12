@@ -1,5 +1,6 @@
 // Data helpers for the Edit cache page. Kept separate from the page so they
-// can be tested without React.
+// can be tested without React. useEditCache (src/lib) decides when to run
+// them.
 
 export const MAX_HINTS = 3
 
@@ -122,6 +123,16 @@ export async function saveCacheEdits(supabase, cacheId, values, hints) {
 // Caches are never deleted. Taking one down just hides it from the map.
 export async function takeDownCache(supabase, cacheId) {
   const { error } = await supabase.from('caches').update({ is_active: false }).eq('id', cacheId)
+  if (error) {
+    throw error
+  }
+}
+
+// Puts a taken-down cache back on the map. The hider is allowed to change
+// is_active on their own caches (the caches update policy), so this is the
+// same one-column update as taking it down, the other way round.
+export async function bringBackCache(supabase, cacheId) {
+  const { error } = await supabase.from('caches').update({ is_active: true }).eq('id', cacheId)
   if (error) {
     throw error
   }
