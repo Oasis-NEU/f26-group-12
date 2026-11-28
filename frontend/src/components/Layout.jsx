@@ -20,11 +20,13 @@ function Layout() {
     isHideCachePage ||
     isCacheDetailPage ||
     isCacheEditPath(pathname) ||
-    pathname === '/my-caches'
+    pathname === '/my-caches' ||
+    pathname === '/leaderboard'
   // These pages draw their own <main> too, so their header can sit outside
   // it (screen readers only treat a header as the page header when it isn't
   // inside <main>). Add a page here once it has its own <main>.
-  const hasOwnMain = isCacheDetailPage || isMapPage || isLoginPage || isLogFindPage || isHideCachePage
+  const hasOwnMain =
+    isCacheDetailPage || isMapPage || isLoginPage || isLogFindPage || isHideCachePage || pathname === '/leaderboard'
 
   return (
     <>

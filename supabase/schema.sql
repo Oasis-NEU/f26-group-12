@@ -142,6 +142,19 @@ CREATE TRIGGER on_auth_user_created
 -- Totals only (never who rated what), active caches only. SECURITY DEFINER
 -- with an empty search_path, so it can count every find; execute granted to
 -- anon and authenticated.
+--
+-- Full code: supabase/changes/2026-11-27_leaderboard.sql (NOT APPLIED YET)
+-- public.leaderboard(p_limit integer DEFAULT 50)
+--   RETURNS TABLE (rank integer, username text, points integer,
+--   finds integer, is_me boolean, in_top boolean)
+-- Points = sum of found caches' difficulty (taken-down caches still count).
+-- Ties share a rank. Top p_limit people with at least one find (1 to 100;
+-- on equal points, whoever reached the score first, then username), plus
+-- the caller's own row last (in_top false) if they're outside it. No user
+-- ids (is_me marks the caller's row), never which caches anyone found or
+-- when. SECURITY
+-- DEFINER with an empty search_path; execute granted to anon and
+-- authenticated.
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security (RLS)
