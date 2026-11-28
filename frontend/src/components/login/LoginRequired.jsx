@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import Button from '../Button.jsx'
 import { useLoginDialog } from './loginDialogContext.js'
 
@@ -33,7 +33,7 @@ function LoginRequired({ heading, headingId, task, onLoggedIn, children, classNa
   // button. Closing it without logging in leaves focus on the button.
   // (React's development mode opens it twice on arrival; opening an open
   // dialog again changes nothing.)
-  useEffect(() => {
+  const open = useCallback(() => {
     openLogin({
       task,
       showReason: false,
@@ -42,14 +42,9 @@ function LoginRequired({ heading, headingId, task, onLoggedIn, children, classNa
     })
   }, [openLogin, task])
 
-  function open() {
-    openLogin({
-      task,
-      showReason: false,
-      returnFocus: () => buttonRef.current,
-      onLoggedIn: () => onLoggedInRef.current?.(),
-    })
-  }
+  useEffect(() => {
+    open()
+  }, [open])
 
   return (
     <div className={`flex max-w-[28rem] flex-col gap-4 ${className}`}>

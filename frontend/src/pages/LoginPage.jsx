@@ -168,7 +168,6 @@ function LoginPage() {
   const line = switchPrompt(mode, { sent: Boolean(sent), hasSession: Boolean(session) })
   const switchLine = line && <SwitchLine line={line} switchTo={switchTo} />
 
-
   // While checking who's logged in (a moment), or while leaving, show no form.
   const ready = session !== undefined && !(session && mode !== 'reset')
   const shared = { email, onEmailChange: setEmail }

@@ -553,14 +553,6 @@ export function CodeForm({ email, onEmailChange, redirectTo }) {
             Use a different one
           </button>
         </p>
-        {kind === 'signup' && (
-          <p>
-            Confirmed on another device?{' '}
-            <button type="button" onClick={onBack} className={TEXT_LINK}>
-              Log in
-            </button>
-          </p>
-        )}
         {resendStatus && <p>{resendStatus}</p>}
       </div>
       <LiveRegion text={form.announcement} />
