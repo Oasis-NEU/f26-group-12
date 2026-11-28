@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import LocationPicker from '../components/LocationPicker.jsx'
 import { useLoginDialog } from '../components/login/loginDialogContext.js'
+import { TEXT_LINK } from '../components/login/LoginScreens.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import {
@@ -361,7 +362,7 @@ function EditCachePage() {
     content = (
       <Notice>
         {/* Opens the login dialog over this page; it loads by itself after. */}
-        <button type="button" onClick={() => openLogin({ reason: 'Log in to edit your cache.' })} aria-haspopup="dialog" className="cursor-pointer font-bold text-black underline">
+        <button type="button" onClick={() => openLogin({ task: 'edit your cache' })} aria-haspopup="dialog" className={TEXT_LINK}>
           Log in
         </button>{' '}
         to edit your cache.

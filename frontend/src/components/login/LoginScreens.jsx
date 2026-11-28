@@ -149,14 +149,25 @@ function Notice({ children }) {
 
 // Every screen's heading. It can take focus (tabIndex -1) so that after a
 // switch, keyboard and screen-reader users land on the new screen; it has
-// no focus ring because it isn't something to press.
+// no focus ring because it isn't something to press. In the login dialog
+// the line saying what they were doing ("Log in to add Krentzman Corner to
+// your favorites.") sits right under it, in Body.
 function Heading({ children }) {
-  const { idFor, headingLevel } = useLoginScreen()
+  const { idFor, headingLevel, reason } = useLoginScreen()
   const Tag = headingLevel === 2 ? 'h2' : 'h1'
-  return (
+  const heading = (
     <Tag id={idFor('login-heading')} tabIndex={-1} className="text-center text-title text-text-primary outline-none lg:text-display">
       {children}
     </Tag>
+  )
+  if (!reason) return heading
+  return (
+    <div className="flex flex-col gap-2">
+      {heading}
+      <p id={idFor('login-reason')} className="text-balance text-center text-body text-text-primary">
+        {reason}
+      </p>
+    </div>
   )
 }
 
@@ -542,6 +553,14 @@ export function CodeForm({ email, onEmailChange, redirectTo }) {
             Use a different one
           </button>
         </p>
+        {kind === 'signup' && (
+          <p>
+            Confirmed on another device?{' '}
+            <button type="button" onClick={onBack} className={TEXT_LINK}>
+              Log in
+            </button>
+          </p>
+        )}
         {resendStatus && <p>{resendStatus}</p>}
       </div>
       <LiveRegion text={form.announcement} />
@@ -659,9 +678,15 @@ export function ResetForm({ hasSession, onSaved, switchTo }) {
 }
 
 // "Check your email", after sign up (kind="signup") or a reset request
-// (kind="reset"): one sentence and a button back to Log in, plus a way to
-// fix a mistyped email (and, after sign up, to send the link again).
-export function CheckEmail({ kind, email, onBack, onResend, onChangeEmail }) {
+// (kind="reset"), plus a way to fix a mistyped email.
+//   After a reset request: one sentence and a button back to Log in.
+//   After sign up: what happens next, and no big "Log in" button (logging
+//   in before confirming only fails). Opening the link logs them in, in
+//   this tab too (same browser), so in the login dialog it says they can
+//   come back here to carry on with task ("add Krentzman Corner to your
+//   favorites"). Small lines offer to send the link again, and a quiet
+//   "Log in" for someone who confirmed on another device.
+export function CheckEmail({ kind, email, task, onBack, onResend, onChangeEmail }) {
   const [resendStatus, sayResendStatus] = useAnnouncer()
 
   async function handleResend() {
@@ -680,7 +705,10 @@ export function CheckEmail({ kind, email, onBack, onResend, onChangeEmail }) {
       <p className="text-balance text-center text-body text-text-primary">
         {kind === 'signup' ? (
           <>
-            We sent a link to <strong className="wrap-anywhere">{email}</strong>. Open it to confirm your account.
+            We sent a link to <strong className="wrap-anywhere">{email}</strong>.{' '}
+            {task
+              ? `Open it to confirm your account, then come back to this tab to ${task}.`
+              : 'Open it to confirm your account, and you’ll be logged in.'}
           </>
         ) : (
           <>
@@ -689,9 +717,11 @@ export function CheckEmail({ kind, email, onBack, onResend, onChangeEmail }) {
           </>
         )}
       </p>
-      <Button fullWidth onClick={onBack}>
-        Back to log in
-      </Button>
+      {kind === 'reset' && (
+        <Button fullWidth onClick={onBack}>
+          Back to log in
+        </Button>
+      )}
       <div className="flex flex-col items-center gap-2 text-center text-small text-text-secondary">
         {kind === 'signup' && (
           <p>
@@ -707,6 +737,14 @@ export function CheckEmail({ kind, email, onBack, onResend, onChangeEmail }) {
             Use a different one
           </button>
         </p>
+        {kind === 'signup' && (
+          <p>
+            Confirmed on another device?{' '}
+            <button type="button" onClick={onBack} className={TEXT_LINK}>
+              Log in
+            </button>
+          </p>
+        )}
         {resendStatus && <p>{resendStatus}</p>}
       </div>
       {/* Always there, so screen readers hear each change. */}

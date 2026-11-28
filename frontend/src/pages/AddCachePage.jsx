@@ -808,7 +808,7 @@ function AddCachePage() {
         <LoginRequired
           heading="Log in to hide a cache"
           headingId={HEADING_ID}
-          reason="Log in to hide a cache."
+          task="hide a cache"
           onLoggedIn={() => setNeedsLogin(false)}
         >
           Hiding a cache needs an account, so it’s saved as yours and you can edit it later.
@@ -829,7 +829,7 @@ function AddCachePage() {
             as they left it. */}
         <Button
           onClick={() =>
-            openLogin({ reason: 'Log in again to hide your cache.', onLoggedIn: () => setNeedsLogin(false) })
+            openLogin({ task: 'hide your cache', expired: true, onLoggedIn: () => setNeedsLogin(false) })
           }
           aria-haspopup="dialog"
           fullWidth

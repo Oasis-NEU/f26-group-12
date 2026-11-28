@@ -5,7 +5,7 @@ import { resendConfirmation, safeNextPath } from '../../lib/auth.js'
 import { supabase } from '../../lib/supabaseClient.js'
 import { FOCUS_RING } from '../focusRing.js'
 import { LoginDialogContext } from './loginDialogContext.js'
-import { dialogMode, isNewLogin, loginRedirects, switchPrompt } from './loginFlow.js'
+import { dialogMode, isNewLogin, loginRedirects, loginSnapshot, reasonFor, switchPrompt } from './loginFlow.js'
 import { DIALOG_SCREEN, LoginScreenContext } from './loginScreenContext.js'
 import { CheckEmail, CodeForm, ForgotForm, LoginForm, SCREEN_ENTER, SignUpForm, SwitchLine } from './LoginScreens.jsx'
 
@@ -20,12 +20,17 @@ import { CheckEmail, CodeForm, ForgotForm, LoginForm, SCREEN_ENTER, SignUpForm, 
 // Setting a new password stays on the Log in page, where the emailed link
 // lands. The header's "Log in" still goes to that page too.
 //
-// Phones (the base styles): a sheet from the bottom of the screen, most of
-// its height, with rounded top corners; it scrolls inside, and the switch
-// line ("Not a member? Join now") sits at its bottom, as on the Log in page.
-// Desktop (lg:): a centred 448px card, like the Log in page's card. Both
-// float above a dimmed page, so they're one of the few things with the
-// Overlay shadow.
+// Under the heading, a line says what they were doing ("Log in to add
+// Krentzman Corner to your favorites."), from the task the opener passes.
+//
+// Phones (the base styles): a sheet from the bottom of the screen, only as
+// tall as what's on it (so the page they were on still shows above it),
+// with rounded top corners; it scrolls inside when it's taller than the
+// screen. The switch line ("Not a member? Join now") comes right under the
+// form. Desktop (lg:): a 448px card, like the Log in page's card, a fixed
+// distance from the top (not centred, so it doesn't jump when the screen
+// inside changes). Both float above a dimmed page, so they're one of the
+// few things with the Overlay shadow.
 //
 // Motion: see OPEN_MOTION below. Switching screens inside reuses the Log in
 // page's fade-and-rise (SCREEN_ENTER).
@@ -33,12 +38,14 @@ import { CheckEmail, CodeForm, ForgotForm, LoginForm, SCREEN_ENTER, SignUpForm, 
 // It's a native <dialog> opened with showModal(): the browser keeps focus
 // inside it, makes the page behind unreachable, and closes it on Escape.
 // Focus starts on its heading, and goes back to whatever opened it.
-// When someone logs in, it closes by itself and runs onLoggedIn.
+// When someone logs in, it closes by itself and runs onLoggedIn. The email
+// they typed is kept while they stay on the page, so closing it by mistake
+// doesn't mean typing it again (passwords never are).
 
 // Motion (DESIGN.md: on the shared ease-out, under 300ms, reduced motion
 // fades only). Opening is something someone did, so it shows where the
 // dialog came from: the phone sheet slides up from the bottom edge (250ms;
-// a full-height sheet needs a little longer to travel), and the desktop
+// a sheet has further to travel than a menu), and the desktop
 // card fades in and grows from 97% out of the middle (200ms), like the
 // account menu but centred, since it isn't attached to what opened it.
 // The dimmed backdrop fades in alongside. starting: is the style it
@@ -57,15 +64,19 @@ const OPEN_MOTION = [
 ].join(' ')
 
 const HEADING_ID = DIALOG_SCREEN.idFor('login-heading')
-const REASON_ID = 'login-dialog-reason'
+const REASON_ID = DIALOG_SCREEN.idFor('login-reason')
 
 // What's inside the dialog while it's open. Re-mounted on each opening, so
-// it always starts fresh.
-function LoginDialogContent({ initialMode, reason, onClose }) {
+// it starts on the screen asked for (the email lives in the provider).
+//   task        what they were doing ("add Krentzman Corner to your
+//               favorites"), for the line under the heading and "Check your
+//               email"
+//   showReason  false on the pages that need an account, whose own heading
+//               already says it ("Log in to hide a cache")
+//   expired     their login ran out mid-task ("Log in again to …")
+function LoginDialogContent({ initialMode, task, showReason, expired, email, setEmail, onClose }) {
   const location = useLocation()
   const [mode, setMode] = useState(() => dialogMode(initialMode))
-  // The email typed on any screen, shared so switching never means retyping.
-  const [email, setEmail] = useState('')
   // After sign up or a reset request: { kind, email } for "Check your email".
   const [sent, setSent] = useState(null)
   // Bumped on each switch: the new screen animates in and its heading takes
@@ -99,6 +110,7 @@ function LoginDialogContent({ initialMode, reason, onClose }) {
       <CheckEmail
         kind={sent.kind}
         email={sent.email}
+        task={task}
         onBack={() => switchTo('login')}
         onResend={() => resendConfirmation(supabase, { email: sent.email, redirectTo: redirects.confirm })}
         onChangeEmail={() => switchTo(sent.kind === 'signup' ? 'signup' : 'forgot')}
@@ -124,19 +136,20 @@ function LoginDialogContent({ initialMode, reason, onClose }) {
   const line = switchPrompt(mode, { sent: Boolean(sent) })
   const screenKey = sent ? `sent-${sent.kind}` : mode
   const enter = switches ? SCREEN_ENTER : ''
+  // The line under the heading (Heading in LoginScreens.jsx shows it).
+  const reason = showReason && !sent ? reasonFor(mode, task, { expired }) : null
+  const screenContext = useMemo(() => ({ ...DIALOG_SCREEN, reason }), [reason])
 
   return (
-    <LoginScreenContext.Provider value={DIALOG_SCREEN}>
-      {/* The top row: why they're being asked to log in, and the close button. */}
-      <div className="flex shrink-0 items-start gap-3 px-4 pt-3 lg:px-8 lg:pt-5">
-        <p id={REASON_ID} className="min-w-0 flex-1 pt-2.5 text-small text-text-secondary">
-          {reason}
-        </p>
+    <LoginScreenContext.Provider value={screenContext}>
+      {/* The top row: the close button. Pressing shrinks it to 97%, like
+          the other icon buttons. */}
+      <div className="flex shrink-0 justify-end px-4 pt-3 lg:px-8 lg:pt-5">
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className={`-mr-2 flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-bg-subtle hover:text-text-primary ${FOCUS_RING}`}
+          className={`-mr-2 flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-bg-subtle hover:text-text-primary active:scale-97 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
         >
           <X aria-hidden="true" size={20} />
         </button>
@@ -144,15 +157,15 @@ function LoginDialogContent({ initialMode, reason, onClose }) {
       {/* The screen, scrolling inside the sheet when it's taller than the
           screen (the phone keyboard, large text). overscroll-contain keeps
           a scroll at its end from moving the page behind. */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-2 lg:px-8 lg:pb-8">
-        <div className="mx-auto flex w-full max-w-[28rem] flex-1 flex-col gap-6">
+      <div className="min-h-0 shrink overflow-y-auto overscroll-contain px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:px-8 lg:pb-8">
+        <div className="mx-auto flex w-full max-w-[28rem] flex-col gap-6">
           <div key={screenKey} className={enter}>
             {screen}
           </div>
           {line && (
-            // At the bottom of the phone sheet (mt-auto), as on the Log in
-            // page; right under the form in the desktop card.
-            <p key={`${screenKey}-switch`} className={`mt-auto text-center text-label text-text-secondary ${enter}`}>
+            // Right under the form, so the way in for newcomers ("Not a
+            // member? Join now") is in view, not at the far end of a sheet.
+            <p key={`${screenKey}-switch`} className={`text-center text-label text-text-secondary ${enter}`}>
               <SwitchLine line={line} switchTo={switchTo} />
             </p>
           )}
@@ -176,6 +189,16 @@ function LoginDialogProvider({ children }) {
   const focusAfterCloseRef = useRef(null)
   // Whether the current click started on the backdrop (see handleClick).
   const pressedBackdrop = useRef(false)
+  // Who's logged in right now, kept up to date by the auth listener below,
+  // so each opening can note who was logged in when it opened.
+  const sessionRef = useRef(null)
+  // The email typed in the dialog, kept across openings on the same page.
+  const [email, setEmail] = useState('')
+  const [emailPage, setEmailPage] = useState(pathname)
+  if (emailPage !== pathname) {
+    setEmailPage(pathname)
+    setEmail('')
+  }
 
   const openLogin = useCallback((options = {}) => {
     const current = requestRef.current
@@ -188,7 +211,12 @@ function LoginDialogProvider({ children }) {
     const next = {
       key: openings.current,
       mode: current ? current.mode : options.mode,
-      reason: options.reason ?? '',
+      task: options.task ?? null,
+      showReason: options.showReason ?? true,
+      expired: options.expired ?? false,
+      // Who was logged in when it opened (usually nobody), so only a new
+      // login closes it (isNewLogin).
+      before: current ? current.before : loginSnapshot(sessionRef.current),
       onLoggedIn: options.onLoggedIn,
       onClose: options.onClose,
       returnFocus: options.returnFocus,
@@ -207,7 +235,10 @@ function LoginDialogProvider({ children }) {
     focusAfterCloseRef.current = { returnFocus: current.returnFocus, opener: openerRef.current }
     setRequest(null)
     if (dialogRef.current?.open) dialogRef.current.close()
-    if (loggedIn) current.onLoggedIn?.()
+    // After a login this runs from inside Supabase's login event, where
+    // Supabase says not to call it again (it can stall), so onLoggedIn
+    // waits for that event to finish first.
+    if (loggedIn) setTimeout(() => current.onLoggedIn?.(), 0)
     else current.onClose?.()
   }, [])
 
@@ -244,13 +275,17 @@ function LoginDialogProvider({ children }) {
     else document.getElementById('main-content')?.focus({ preventScroll: true })
   }, [isOpen])
 
-  // Logged in (password, code, or a sign-up that needed no email check):
-  // close and finish what they were doing.
+  // Logged in (password, code, a sign-up that needed no email check, or the
+  // sign-up confirmation link opened in another tab): close and finish what
+  // they were doing. Supabase restoring the same login (when the tab comes
+  // back into view) doesn't count; see isNewLogin.
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (requestRef.current && isNewLogin(event, session)) finish(true)
+      const current = requestRef.current
+      if (current && isNewLogin(event, session, current.before)) finish(true)
+      sessionRef.current = session ?? null
     })
     return () => subscription.unsubscribe()
   }, [finish])
@@ -287,15 +322,24 @@ function LoginDialogProvider({ children }) {
       <dialog
         ref={dialogRef}
         aria-labelledby={HEADING_ID}
-        aria-describedby={request?.reason ? REASON_ID : undefined}
+        aria-describedby={request?.task && request.showReason ? REASON_ID : undefined}
         onClose={() => finish(false)}
         onPointerDown={handlePointerDown}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        className={`fixed inset-x-0 bottom-0 top-auto m-0 h-[calc(100dvh-3rem)] max-h-none w-full max-w-none overflow-hidden rounded-t-2xl border-0 bg-bg-surface p-0 text-text-primary shadow-overlay backdrop:bg-bg-inverse/40 open:flex open:flex-col lg:inset-0 lg:m-auto lg:h-fit lg:max-h-[calc(100dvh-4rem)] lg:max-w-[28rem] lg:rounded-2xl lg:border lg:border-border-subtle lg:contrast-more:border-border-input ${OPEN_MOTION}`}
+        className={`fixed inset-x-0 bottom-0 top-auto m-0 h-auto max-h-[calc(100dvh-3rem)] w-full max-w-none overflow-hidden rounded-t-2xl border-0 bg-bg-surface p-0 text-text-primary shadow-overlay backdrop:bg-bg-inverse/40 open:flex open:flex-col lg:inset-x-0 lg:top-0 lg:bottom-auto lg:mx-auto lg:mb-0 lg:mt-24 lg:max-h-[calc(100dvh-8rem)] lg:max-w-[28rem] lg:rounded-2xl lg:border lg:border-border-subtle lg:contrast-more:border-border-input ${OPEN_MOTION}`}
       >
         {request && (
-          <LoginDialogContent key={request.key} initialMode={request.mode} reason={request.reason} onClose={closeLogin} />
+          <LoginDialogContent
+            key={request.key}
+            initialMode={request.mode}
+            task={request.task}
+            showReason={request.showReason}
+            expired={request.expired}
+            email={email}
+            setEmail={setEmail}
+            onClose={closeLogin}
+          />
         )}
       </dialog>
     </LoginDialogContext.Provider>

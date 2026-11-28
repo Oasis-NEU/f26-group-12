@@ -12,12 +12,15 @@ import { useLoginDialog } from './loginDialogContext.js'
 //   heading    the page's heading for this state ("Log in to hide a cache"),
 //              or leave it out when the page already shows its own <h1>
 //   headingId  the heading's id (so the page can focus it)
-//   reason     the line at the top of the dialog ("Log in to hide a cache.")
+//   task       what they came to do ("hide a cache"). The dialog doesn't
+//              repeat it under its heading (this page's heading already
+//              says it), but uses it after sign-up ("…then come back to
+//              this tab to hide a cache.")
 //   onLoggedIn optional: runs once they've logged in (e.g. to clear an
 //              earlier "Log in again" state)
 //   children   one or two sentences saying why an account is needed
 
-function LoginRequired({ heading, headingId, reason, onLoggedIn, children, className = '' }) {
+function LoginRequired({ heading, headingId, task, onLoggedIn, children, className = '' }) {
   const { openLogin } = useLoginDialog()
   const buttonRef = useRef(null)
   // The latest onLoggedIn, read only after logging in (not while drawing).
@@ -31,11 +34,21 @@ function LoginRequired({ heading, headingId, reason, onLoggedIn, children, class
   // (React's development mode opens it twice on arrival; opening an open
   // dialog again changes nothing.)
   useEffect(() => {
-    openLogin({ reason, returnFocus: () => buttonRef.current, onLoggedIn: () => onLoggedInRef.current?.() })
-  }, [openLogin, reason])
+    openLogin({
+      task,
+      showReason: false,
+      returnFocus: () => buttonRef.current,
+      onLoggedIn: () => onLoggedInRef.current?.(),
+    })
+  }, [openLogin, task])
 
   function open() {
-    openLogin({ reason, returnFocus: () => buttonRef.current, onLoggedIn: () => onLoggedInRef.current?.() })
+    openLogin({
+      task,
+      showReason: false,
+      returnFocus: () => buttonRef.current,
+      onLoggedIn: () => onLoggedInRef.current?.(),
+    })
   }
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { useLoginDialog } from '../components/login/loginDialogContext.js'
+import { TEXT_LINK } from '../components/login/LoginScreens.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { describeCacheStats, loadMyCaches } from './myCachesData.js'
@@ -137,7 +138,7 @@ function MyCachesPage() {
     content = (
       <Notice>
         {/* Opens the login dialog over this page; it loads by itself after. */}
-        <button type="button" onClick={() => openLogin({ reason: 'Log in to see the caches you’ve hidden.' })} aria-haspopup="dialog" className="cursor-pointer font-bold text-black underline">
+        <button type="button" onClick={() => openLogin({ task: 'see the caches you’ve hidden' })} aria-haspopup="dialog" className={TEXT_LINK}>
           Log in
         </button>{' '}
         to see the caches you’ve hidden.

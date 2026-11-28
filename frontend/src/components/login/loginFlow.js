@@ -55,8 +55,55 @@ export function dialogMode(mode) {
   return DIALOG_MODES.includes(mode) ? mode : 'login'
 }
 
+// What the dialog remembers about who was logged in when it opened (null
+// if nobody), so isNewLogin can tell a real login from Supabase restoring
+// the same login.
+export function loginSnapshot(session) {
+  if (!session?.user) return null
+  return { userId: session.user.id, signedInAt: session.user.last_sign_in_at ?? null }
+}
+
+// How a session was logged in, from its access token's "amr" claim (the
+// newest method): "password", "otp", "recovery" and so on. null if unknown.
+export function loginMethod(session) {
+  try {
+    const payload = session.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const amr = JSON.parse(atob(payload)).amr
+    if (!Array.isArray(amr) || !amr.length) return null
+    const newest = amr.reduce((a, b) => ((b.timestamp ?? 0) > (a.timestamp ?? 0) ? b : a))
+    return newest.method ?? null
+  } catch {
+    return null
+  }
+}
+
 // Whether a Supabase auth event means someone just logged in, so the open
-// dialog can close and finish what they were doing.
-export function isNewLogin(event, session) {
-  return Boolean(session) && event === 'SIGNED_IN'
+// dialog can close and finish what they were doing. before is
+// loginSnapshot() from when the dialog opened.
+//
+// Supabase also says SIGNED_IN when it only restores a login (e.g. when the
+// tab comes back into view), so that alone isn't enough: it has to be a
+// different person, or a newer login, than when the dialog opened. And a
+// password-reset link's login (opened in another tab) never counts: it's
+// only for setting a new password, and the Log in page logs out after it.
+// A login in another tab of the same browser (e.g. the sign-up
+// confirmation link) does count: it logs this tab in too.
+export function isNewLogin(event, session, before = null) {
+  if (event !== 'SIGNED_IN' || !session?.user) return false
+  if (loginMethod(session) === 'recovery') return false
+  const now = loginSnapshot(session)
+  if (!before) return true
+  return now.userId !== before.userId || now.signedInAt !== before.signedInAt
+}
+
+// The line under the dialog's heading saying why they're being asked, from
+// the task they were in the middle of ("add Krentzman Corner to your
+// favorites"), or null. Only on the screens where it helps: Log in and
+// Create your account (not the code, reset or "Check your email" screens,
+// which follow on from those). expired: their login ran out mid-task.
+export function reasonFor(mode, task, { expired = false } = {}) {
+  if (!task) return null
+  if (mode === 'login') return expired ? `Your login ran out. Log in again to ${task}.` : `Log in to ${task}.`
+  if (mode === 'signup' && !expired) return `Create an account to ${task}.`
+  return null
 }

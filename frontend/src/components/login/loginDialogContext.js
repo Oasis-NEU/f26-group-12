@@ -6,9 +6,15 @@ import { safeNextPath } from '../../lib/auth.js'
 //
 //   const { openLogin } = useLoginDialog()
 //   openLogin({
-//     reason: 'Log in to add this to your favorites.',  // a line at the top
+//     task: 'add Krentzman Corner to your favorites',
+//                                 // what they were doing: shown under the heading
+//                                 // ("Log in to …", "Create an account to …") and
+//                                 // after sign-up ("…come back to this tab to …")
+//     expired: true,              // their login ran out: "Your login ran out. Log in again to …"
+//     showReason: false,          // don't show the task under the heading (the page already says it)
 //     mode: 'signup',             // the first screen: login (default), code, signup or forgot
-//     onLoggedIn: () => { ... },  // runs once they've logged in (the dialog closes itself)
+//     onLoggedIn: () => { ... },  // runs once they've logged in (the dialog closes itself).
+//                                 // It runs just after Supabase's login event, so it may call Supabase.
 //     onClose: () => { ... },     // runs if they close it without logging in
 //     returnFocus: () => element, // where focus goes afterwards (default: what opened it)
 //   })

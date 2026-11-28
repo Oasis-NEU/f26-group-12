@@ -532,7 +532,7 @@ function LogFindPage() {
         <LoginRequired
           heading="Log in to log your find"
           headingId={HEADING_ID}
-          reason="Log in to log your find."
+          task="log your find"
           onLoggedIn={() => setOutcome(null)}
         >
           Your finds and points are saved to your account. Log in, then enter the code from the slip.
@@ -578,7 +578,7 @@ function LogFindPage() {
           // with the code they typed.
           <Button
             onClick={() =>
-              openLogin({ reason: 'Log in again to save your find.', onLoggedIn: () => setOutcome(null) })
+              openLogin({ task: 'save your find', expired: true, onLoggedIn: () => setOutcome(null) })
             }
             aria-haspopup="dialog"
             fullWidth

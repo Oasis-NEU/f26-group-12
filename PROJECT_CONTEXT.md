@@ -209,7 +209,9 @@ The first three need a logged-in user; `cache_ratings` and `leaderboard` work fo
   (`components/login/LoginScreens.jsx`). `/login` stays a full page: the
   header's "Log in" goes there, and the emailed links (confirm, reset, the
   code email's link) land there, then go back to the page they started on
-  (`?next=`). Setting a new password is only on the page.
+  (`?next=`). Setting a new password is only on the page. After sign-up,
+  confirming the email in another tab of the same browser logs the dialog's
+  tab in too (Supabase tells every tab), so it finishes what they were doing.
 - **Links go places; buttons do things.** Underlined links only inside a
   sentence, to another page. Actions, and anything on its own line, are
   buttons: Primary (one per page), Secondary, then a quiet button with no

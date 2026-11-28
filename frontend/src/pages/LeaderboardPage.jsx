@@ -158,7 +158,7 @@ function TopLine({ signedIn, myRow }) {
         {/* Opens the login dialog over the board (an action, so a button
             dressed as the sentence's link); after logging in, this line
             becomes their rank. */}
-        <button type="button" onClick={() => openLogin({ reason: 'Log in to see where you rank.' })} aria-haspopup="dialog" className={TEXT_LINK}>
+        <button type="button" onClick={() => openLogin({ task: 'see where you rank' })} aria-haspopup="dialog" className={TEXT_LINK}>
           Log in
         </button>{' '}
         to see where you rank.

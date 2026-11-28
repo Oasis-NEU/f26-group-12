@@ -249,7 +249,7 @@ export function FindHelp({ signedIn, className = '' }) {
               tap area without moving the text. */}
           <button
             type="button"
-            onClick={() => openLogin({ reason: 'Log in to log your find.' })}
+            onClick={() => openLogin({ task: 'log your find' })}
             aria-haspopup="dialog"
             className={`-my-1 cursor-pointer rounded-sm py-1 font-bold text-text-primary underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`}
           >

@@ -70,7 +70,7 @@ const QUIET_BUTTON = `-my-2.5 inline-flex h-10 shrink-0 cursor-pointer items-cen
 // The same button while a save is under way: it stays put (so nothing
 // moves) but does nothing, with no hover or press.
 const QUIET_BUTTON_LOCKED = '-my-2.5 inline-flex h-10 shrink-0 cursor-default items-center gap-1.5 rounded-lg px-2.5 text-label text-text-secondary'
-const TEXT_LINK = `rounded-sm font-bold underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
+const TEXT_LINK = `-my-1 rounded-sm py-1 font-bold underline underline-offset-4 hover:decoration-2 ${FOCUS_RING}`
 
 // Loading, errors and empty lists: a short message in a white box.
 function Notice({ children, role = 'status' }) {
@@ -233,7 +233,7 @@ function SaveProblem({ problem, what }) {
           <>
             <button
               type="button"
-              onClick={() => openLogin({ reason: `Your login ran out. Log in again to save your ${what}.` })}
+              onClick={() => openLogin({ task: `save your ${what}`, expired: true })}
               aria-haspopup="dialog"
               className={`cursor-pointer ${TEXT_LINK}`}
             >
@@ -787,7 +787,7 @@ function JournalPage() {
           {journal.userId === null ? (
             // Signed out: the login dialog opens over the page, and the
             // journal appears once they've logged in (useJournal notices).
-            <LoginRequired reason="Log in to see your journal.">
+            <LoginRequired task="see your journal">
               Your journal keeps the caches you’ve found, your ratings and notes, and your favorites. Log in to see it.
             </LoginRequired>
           ) : !signedIn ? (
