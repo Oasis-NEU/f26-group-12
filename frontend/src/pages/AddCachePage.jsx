@@ -284,33 +284,27 @@ function WhereSection({ position, onPosition, locationName, onLocationName, erro
   )
 }
 
-// Hints: up to 3, in order, drawn like the hint trail on a cache's page:
-// numbered stops joined by a line. Each stop is ink once it has text and
-// an ink ring while empty. The next hint waits as a dashed "Add another
-// hint" row at the end of a dashed line, in the spot its field will take,
-// so adding one swaps the row for the field with nothing moving. Each field
-// is still called "Hint 1", "Hint 2"... for screen readers.
+// Hints: up to 3, in order: just the fields, one under another, with no
+// labels above them (each is still called "Hint 1", "Hint 2"... for screen
+// readers, and the placeholders step up from vague to nearly giving it
+// away). The next hint waits as a dashed "Add another hint" box in the spot
+// its field will take, so adding one swaps the box for the field with
+// nothing moving. Hints after the first have an × inside the field to
+// remove them.
 //
-// Motion: when a hint is added, the line to it draws itself solid (250ms,
-// clip-path, like the trail) and the next dashed row rises in (200ms). On
-// page load everything just appears; with reduced motion nothing moves.
+// Motion: when a hint is added, the next dashed box rises in (200ms). On
+// page load everything just appears; with reduced motion it only fades.
 //
 // Each field gets a stable key, so removing hint 2 removes hint 2's field.
 
 const HINT_PLACEHOLDERS = ['e.g. Sit on the steps and look down', 'A little more specific', 'Nearly gives it away']
-// The 2px line from the stop above to this one: from that stop's bottom
-// (1.75rem up: the 1rem gap plus 0.75rem below its centre) to this stop's
-// top, on the centre of the 1.5rem stops.
-const HINT_LINE = 'absolute -top-7 left-[calc(0.75rem-1px)] h-10 border-l-2'
-const LINE_AHEAD = 'border-dashed border-border-input contrast-more:border-text-secondary'
 
 function HintsSection({ hints, onChange }) {
   const listId = useId()
   const nextKey = useRef(hints.length)
   const [keys, setKeys] = useState(() => hints.map((_, index) => index))
-  // Hints added here (their line draws in), and whether anything has been
-  // added or removed yet (lets the dashed row rise in).
-  const [added, setAdded] = useState(() => new Set())
+  // Whether anything has been added or removed yet (lets the dashed box
+  // rise in; on page load it just appears).
   const [changed, setChanged] = useState(false)
 
   function setHint(index, text) {
@@ -320,7 +314,6 @@ function HintsSection({ hints, onChange }) {
   function addHint() {
     const key = nextKey.current++
     setKeys((current) => [...current, key])
-    setAdded((current) => new Set(current).add(key))
     setChanged(true)
     onChange([...hints, ''])
     // Move to the new field, so they can type straight away.
@@ -339,77 +332,46 @@ function HintsSection({ hints, onChange }) {
       <p className="-mt-2 text-small text-text-secondary">
         Up to 3. Start vague, and make each one give away a little more of where it is.
       </p>
-      <ol className="flex flex-col gap-4">
+      <ol className="flex flex-col gap-3">
         {hints.map((hint, index) => {
           const id = `${listId}-${index}`
           return (
-            <li key={keys[index]} className="relative flex items-center gap-3">
+            <li key={keys[index]} className="relative">
+              <label htmlFor={id} className="sr-only">
+                Hint {index + 1}
+              </label>
+              <input
+                id={id}
+                value={hint}
+                onChange={(event) => setHint(index, event.target.value)}
+                placeholder={HINT_PLACEHOLDERS[index]}
+                maxLength={HINT_MAX_LENGTH}
+                enterKeyHint="next"
+                className={`h-12 ${index > 0 ? 'pr-13' : ''} ${FIELD_BOX}`}
+              />
               {index > 0 && (
-                // A dashed line with the solid one on top. For a hint just
-                // added, the solid one opens downward from the stop above.
-                <>
-                  <span aria-hidden="true" className={`${HINT_LINE} ${LINE_AHEAD}`} />
-                  <span
-                    aria-hidden="true"
-                    className={`${HINT_LINE} border-solid border-text-primary [clip-path:inset(0)] ${
-                      added.has(keys[index])
-                        ? 'motion-safe:transition-[clip-path] motion-safe:duration-250 motion-safe:ease-out motion-safe:starting:[clip-path:inset(0_0_100%_0)]'
-                        : ''
-                    }`}
-                  />
-                </>
+                <button
+                  type="button"
+                  onClick={() => removeHint(index)}
+                  aria-label={`Remove hint ${index + 1}`}
+                  className={`absolute right-1 top-1 flex size-10 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
+                >
+                  <X aria-hidden="true" size={18} />
+                </button>
               )}
-              <span
-                aria-hidden="true"
-                className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-text-primary text-[0.75rem]/none font-bold motion-safe:transition-colors motion-safe:duration-150 motion-safe:ease-out ${
-                  hint.trim() ? 'bg-bg-inverse text-text-on-accent' : 'bg-bg-page text-text-primary'
-                }`}
-              >
-                {index + 1}
-              </span>
-              <div className="relative min-w-0 flex-1">
-                <label htmlFor={id} className="sr-only">
-                  Hint {index + 1}
-                </label>
-                <input
-                  id={id}
-                  value={hint}
-                  onChange={(event) => setHint(index, event.target.value)}
-                  placeholder={HINT_PLACEHOLDERS[index]}
-                  maxLength={HINT_MAX_LENGTH}
-                  enterKeyHint="next"
-                  className={`h-12 ${index > 0 ? 'pr-13' : ''} ${FIELD_BOX}`}
-                />
-                {index > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => removeHint(index)}
-                    aria-label={`Remove hint ${index + 1}`}
-                    className={`absolute right-1 top-1 flex size-10 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:text-text-primary ${FOCUS_RING}`}
-                  >
-                    <X aria-hidden="true" size={18} />
-                  </button>
-                )}
-              </div>
             </li>
           )
         })}
-        {/* The next hint's dashed row, keyed by the hint count so each new
+        {/* The next hint's dashed box, keyed by the hint count so each new
             one rises in. */}
         {hints.length < MAX_HINTS && (
-          <li key={`next-${hints.length}`} className={`relative flex items-center gap-3 ${changed ? RISE_IN : ''}`}>
-            <span aria-hidden="true" className={`${HINT_LINE} ${LINE_AHEAD}`} />
-            <span
-              aria-hidden="true"
-              className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-border-input text-text-secondary contrast-more:border-text-secondary"
-            >
-              <Plus size={14} strokeWidth={2.5} />
-            </span>
+          <li key={`next-${hints.length}`} className={changed ? RISE_IN : ''}>
             <button
               type="button"
               onClick={addHint}
-              className={`flex h-12 min-w-0 flex-1 cursor-pointer items-center rounded-lg border-2 border-dashed border-border-input px-4 text-label text-text-secondary hover:border-text-secondary hover:text-text-primary active:scale-97 contrast-more:border-text-secondary motion-safe:transition-[border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
+              className={`flex h-12 w-full cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-border-input px-4 text-label text-text-secondary hover:border-text-secondary hover:text-text-primary active:scale-97 contrast-more:border-text-secondary motion-safe:transition-[border-color,color,scale] motion-safe:duration-150 motion-safe:ease-out ${FOCUS_RING}`}
             >
+              <Plus aria-hidden="true" size={18} strokeWidth={2.25} />
               Add another hint
             </button>
           </li>
