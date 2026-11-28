@@ -17,15 +17,16 @@ import { useSavedCaches } from '../lib/useSavedCaches.js'
 // Your journal: /journal. From the Figma section "Journal · /journal".
 //
 // Two tabs:
-//   Finds      every cache you've found, newest first: its photo, name and
-//              place, the day you found it, your journal note, its
-//              difficulty (bars + "Difficulty N") and your rating (stars).
-//              "Rate it" (or "Change") opens the stars right there in the
-//              entry, and picking one saves it; "Add a note" (or "Edit
-//              note") opens the same note box as the Log a find page.
+//   Finds      every cache you've found, newest first, as cards with the
+//              photo on top: name, place, the day you found it, your
+//              journal note, its difficulty (bars + "Difficulty N") and
+//              your rating (stars), and a row of actions: "Rate it" /
+//              "Change rating" opens the stars right in the card, and
+//              picking one saves it; "Add a note" / "Edit note" opens the
+//              same note box as the Log a find page.
 //   Favorites  the caches you've hearted, as cache cards (photo, place,
 //              difficulty, average rating) with the heart in the corner.
-// Above them, a small summary of your points and how many caches you've
+// Above them, a plain row with your points and how many caches you've
 // found (points = each found cache's difficulty, added up).
 //
 // The tab is kept in the address (/journal?tab=favorites), so coming back
@@ -33,10 +34,9 @@ import { useSavedCaches } from '../lib/useSavedCaches.js'
 // and come back here. The data comes from useJournal (src/lib), which never
 // loads secret_code.
 //
-// Phones (the base styles): one column with 16px margins; in each find,
-// the note, difficulty and rating use the card's full width under the
-// photo and name. Desktop (lg:): a centred 768px column, with everything
-// beside the photo and the difficulty and rating side by side.
+// Phones (the base styles): one column with 16px margins; the photo is 2:1
+// across the top of each card. Desktop (lg:): a centred 768px column, the
+// photo 3:1.
 
 const CARD = 'rounded-2xl border border-border-subtle bg-bg-surface contrast-more:border-border-input'
 const TABS = [
@@ -57,8 +57,8 @@ const NOTE_WARN_AT = 50
 // Motion (DESIGN.md): only for changes someone causes, on the shared
 // ease-out, under 300ms. The stars and the note box fade in and grow from
 // 97% out of their top-left corner, where the button was (150ms); with
-// reduced motion they only fade. New lines ("Saving…", "Rating saved.",
-// an error) fade in (150ms). Closing is instant, and switching tabs
+// reduced motion they only fade. An error line fades in (150ms). Closing
+// is instant, and switching tabs
 // doesn't animate (arrow keys can do it, and lists don't animate when a
 // filter changes). starting: is the style it animates from (CSS
 // @starting-style), so this only plays when the element appears.
@@ -93,12 +93,11 @@ function RetryButton({ onClick }) {
   )
 }
 
-// Your points and caches found, in one quiet row on Star Gold Soft (the
-// points background; the text stays ink, never gold), with a line saying
-// where points come from. A <dl> pairs each number with its words for
-// screen readers ("points: 4"); flex-row-reverse shows the number first.
-// While the finds load it holds its space (an invisible copy), so nothing
-// jumps when they arrive.
+// Your points and caches found, as one plain row on the page (no box or
+// tint), with a line saying where points come from. A <dl> pairs each
+// number with its words for screen readers ("points: 4"); flex-row-reverse
+// shows the number first. While the finds load it holds its space (an
+// invisible copy), so nothing jumps when they arrive.
 function Summary({ finds, loading }) {
   const { points, found } = journalTotals(finds)
   const stats = [
@@ -108,9 +107,9 @@ function Summary({ finds, loading }) {
   return (
     <div
       aria-hidden={loading || undefined}
-      className="flex flex-wrap items-baseline gap-x-6 gap-y-1 rounded-2xl bg-highlight-soft px-4 py-3 lg:px-5"
+      className={`flex flex-wrap items-baseline gap-x-6 gap-y-1 ${loading ? 'invisible' : ''}`}
     >
-      <dl className={`flex flex-wrap items-baseline gap-x-6 gap-y-1 ${loading ? 'invisible' : ''}`}>
+      <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-row-reverse items-baseline justify-end gap-1.5">
             <dt className="text-small text-text-secondary">{stat.label}</dt>
@@ -118,10 +117,7 @@ function Summary({ finds, loading }) {
           </div>
         ))}
       </dl>
-      {/* At the far end on desktop; under the numbers on phones. */}
-      <p className={`text-small text-text-secondary lg:ml-auto ${loading ? 'invisible' : ''}`}>
-        Each find earns its difficulty in points.
-      </p>
+      <p className="text-small text-text-secondary">Each find earns its difficulty in points.</p>
     </div>
   )
 }
@@ -176,33 +172,28 @@ function Tabs({ value, onChange, idFor }) {
   )
 }
 
-// The entry's photo: yours if you added one to the find, otherwise the
-// cache's. With neither (or one that won't load), the quiet dashed box the
-// cache cards use. 80px, like the cache cards on the Favorites tab. It
-// fades in over a Subtle square as it arrives.
-function EntryPhoto({ src, className = '' }) {
+// The entry's photo, across the top of the card: yours if you added one to
+// the find, otherwise the cache's. With neither (or one that won't load),
+// there's no photo area at all, so the card starts with the name. It fades
+// in over a Subtle band as it arrives, and the band holds its space.
+function EntryPhoto({ src }) {
   const [state, setState] = useState('loading')
-  const box = `size-20 shrink-0 rounded-lg ${className}`
-  if (src && state !== 'failed') {
-    return (
-      <span className={`${box} overflow-hidden bg-bg-subtle`}>
-        <img
-          src={src}
-          alt=""
-          width={80}
-          height={80}
-          loading="lazy"
-          decoding="async"
-          onLoad={() => setState('loaded')}
-          onError={() => setState('failed')}
-          className={`size-full object-cover transition-opacity duration-200 ease-out ${
-            state === 'loaded' ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-      </span>
-    )
-  }
-  return <span aria-hidden="true" className={`${box} border-2 border-dashed border-border-subtle contrast-more:border-border-input`} />
+  if (!src || state === 'failed') return null
+  return (
+    <div className="aspect-[2/1] w-full overflow-hidden bg-bg-subtle lg:aspect-[3/1]">
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setState('loaded')}
+        onError={() => setState('failed')}
+        className={`size-full object-cover transition-opacity duration-200 ease-out ${
+          state === 'loaded' ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+    </div>
+  )
 }
 
 // Stops a held key from doing anything in something that just opened.
@@ -254,178 +245,72 @@ function SaveProblem({ problem, what }) {
   )
 }
 
-// "Saving…", "Rating saved." and so on. Always on the page (empty until
-// something happens), so screen readers announce each change.
-function SaveStatus({ text }) {
-  return (
-    <p role="status" className="text-small text-text-secondary [&:not(:empty)]:mt-1">
-      {text}
-    </p>
-  )
-}
-
-// "Your rating" and the stars, with a quiet "Change" button; on a find you
-// haven't rated, a quiet "Rate it" button instead. Either opens the five
-// 28px stars right here, and picking one saves it straight away. Cancel
-// or Escape closes them again. While a rating saves, the stars and Cancel
-// are locked and Escape does nothing, so nothing can interrupt it.
-function YourRating({ find, title, canRate, onRate }) {
-  const [mode, setMode] = useState('closed') // 'closed' | 'picking' | 'saving'
-  const [picked, setPicked] = useState(0)
-  const [problem, setProblem] = useState(null)
-  const [status, setStatus] = useState('')
-  const openButtonRef = useRef(null)
-  const pickerRef = useRef(null)
+// The stars, open for picking (from "Rate it" or "Change rating"): the
+// same 28px stars as the read-only ones, so nothing grows, with Cancel on
+// the same line. Picking one saves it straight away. Focus starts on the
+// star chosen now (the first if none); a held Enter can't repeat onto it
+// (useHeldKeyGuard), and a click right after opening is ignored
+// (OPEN_GUARD_MS). While it saves, the stars and Cancel are locked and
+// Escape does nothing.
+function RatingPicker({ value, title, saving, onPick, onCancel }) {
+  const [picked, setPicked] = useState(value || 0)
+  const ref = useRef(null)
   const openedAt = useRef(0)
-  // Where focus should go after the next change of mode.
-  const focusNext = useRef(null) // 'stars' | 'button' | null
   const heldKey = useHeldKeyGuard()
-  const saving = mode === 'saving'
 
-  // Opening: the button goes away, so focus moves to the star that's
-  // chosen now (the first star if none). Closing: back to the button.
+  // When the stars opened, for the OPEN_GUARD_MS check.
   useEffect(() => {
-    const target = focusNext.current
-    if (target === 'stars' && mode === 'picking') {
-      focusNext.current = null
-      const stars = pickerRef.current?.querySelectorAll('[role="group"] button')
-      stars?.[Math.max(0, (find.rating || 1) - 1)]?.focus()
-    } else if (target === 'button' && mode === 'closed') {
-      focusNext.current = null
-      openButtonRef.current?.focus()
-    }
-  }, [mode, find.rating])
-
-  function open() {
     openedAt.current = Date.now()
-    heldKey.reset()
-    focusNext.current = 'stars'
-    setPicked(find.rating || 0)
-    setProblem(null)
-    setStatus('')
-    setMode('picking')
-  }
+  }, [])
 
-  function close() {
-    if (saving) return
-    focusNext.current = 'button'
-    setProblem(null)
-    setMode('closed')
-  }
+  useEffect(() => {
+    const stars = ref.current?.querySelectorAll('[role="group"] button')
+    stars?.[Math.max(0, (value || 1) - 1)]?.focus()
+  }, [value])
 
-  async function pick(star) {
-    // Locked while saving, and a click right after opening is ignored (see
-    // OPEN_GUARD_MS).
-    if (mode !== 'picking' || Date.now() - openedAt.current < OPEN_GUARD_MS) return
+  function pick(star) {
+    if (saving || Date.now() - openedAt.current < OPEN_GUARD_MS) return
     setPicked(star)
-    setMode('saving')
-    setProblem(null)
-    setStatus('Saving…')
-    try {
-      await onRate(star)
-      focusNext.current = 'button'
-      setMode('closed')
-      setStatus('Rating saved.')
-    } catch (error) {
-      setMode('picking')
-      setStatus('')
-      setProblem(describeFindSaveError(error, 'rating'))
-    }
+    onPick(star)
   }
 
-  // A taken-down cache can't be rated any more (its stars still show).
-  if (!find.rating && !canRate) return null
-
-  const label = (
-    <span aria-hidden="true" className="text-small text-text-secondary">
-      Your rating
-    </span>
-  )
-  const isOpen = mode !== 'closed'
-  let controls
-  if (isOpen) {
-    // The stars and Cancel stay together on one line (they wrap under the
-    // label as a pair on very narrow screens), so Cancel never jumps.
-    controls = (
+  return (
+    <span
+      ref={ref}
+      onKeyDownCapture={heldKey.onKeyDownCapture}
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape') return
+        event.stopPropagation()
+        if (!saving) onCancel()
+      }}
+      className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${OPEN_IN}`}
+    >
+      <span aria-hidden="true" className="text-small text-text-secondary">
+        Your rating
+      </span>
       <span className="flex items-center gap-2">
         <span aria-busy={saving || undefined} aria-disabled={saving || undefined} className={saving ? 'pointer-events-none opacity-60' : ''}>
           <StarRating value={picked} onChange={pick} label={`Your rating for ${title}`} />
         </span>
-        <button
-          type="button"
-          onClick={close}
-          aria-disabled={saving || undefined}
-          className={saving ? QUIET_BUTTON_LOCKED : QUIET_BUTTON}
-        >
+        <button type="button" onClick={() => !saving && onCancel()} aria-disabled={saving || undefined} className={saving ? QUIET_BUTTON_LOCKED : QUIET_BUTTON}>
           Cancel
         </button>
       </span>
-    )
-  } else if (find.rating) {
-    // Read-only stars at 20px (the picker's 28px are only needed to tap).
-    controls = (
-      <span className="flex items-center gap-2">
-        <StarRating value={find.rating} label="Your rating" className="h-5 w-auto" />
-        {canRate && (
-          <button type="button" ref={openButtonRef} onClick={open} className={QUIET_BUTTON}>
-            Change<span className="sr-only"> your rating for {title}</span>
-          </button>
-        )}
-      </span>
-    )
-  } else {
-    controls = (
-      <button type="button" ref={openButtonRef} onClick={open} className={QUIET_BUTTON}>
-        <Star aria-hidden="true" size={16} strokeWidth={2} />
-        Rate it<span className="sr-only"> for {title}</span>
-      </button>
-    )
-  }
-
-  return (
-    <div
-      className="flex flex-col"
-      onKeyDown={(event) => {
-        if (event.key === 'Escape' && isOpen) {
-          event.stopPropagation()
-          close()
-        }
-      }}
-    >
-      {/* Keyed, so opening the stars plays their entrance (and only then). */}
-      <div
-        key={isOpen ? 'open' : 'closed'}
-        ref={pickerRef}
-        onKeyDownCapture={isOpen ? heldKey.onKeyDownCapture : undefined}
-        // min-h-7: as tall as the open stars, so the difficulty beside it
-        // (desktop) stays level whether they're open or not.
-        className={`flex min-h-7 flex-wrap items-center gap-x-2 gap-y-1 ${isOpen ? OPEN_IN : ''}`}
-      >
-        {label}
-        {controls}
-      </div>
-      <SaveStatus text={status} />
-      {problem && <SaveProblem key={problem.message} problem={problem} what="rating" />}
-    </div>
+    </span>
   )
 }
 
-// Your journal note, in your voice: set off by a thin rule on its left. A
-// quiet "Add a note" / "Edit note" button opens the same note box as the
-// Log a find page (112px, "N characters left" near the limit), with
-// "Save note" and Cancel. Same rules as the stars: focus moves into the box
-// and back, it's locked while saving, and a held Enter can't type into it.
-function JournalNote({ find, title, onSave }) {
-  const [mode, setMode] = useState('closed') // 'closed' | 'editing' | 'saving'
-  const [draft, setDraft] = useState('')
-  const [problem, setProblem] = useState(null)
-  const [status, setStatus] = useState('')
-  const openButtonRef = useRef(null)
+// The note box, open in place of the note (from "Add a note" or "Edit
+// note"): the same box as the Log a find page (112px, "N characters left"
+// near the limit), with "Save note" and Cancel. Focus goes into the box (at
+// the end of the text); a held Enter can't type into it; it's locked while
+// saving.
+function NoteEditor({ initial, saving, onSave, onCancel }) {
+  const [draft, setDraft] = useState(initial)
+  const [tooLong, setTooLong] = useState(false)
   const boxRef = useRef(null)
-  const focusNext = useRef(null) // 'box' | 'button' | null
   const heldKey = useHeldKeyGuard()
   const fieldId = useId()
-  const saving = mode === 'saving'
   const left = NOTE_MAX_LENGTH - draft.length
   // A note saved before the limit (or elsewhere) can be longer than it; then
   // it says how much to cut instead.
@@ -434,192 +319,259 @@ function JournalNote({ find, title, onSave }) {
   else if (left <= NOTE_WARN_AT) leftText = `${left} ${left === 1 ? 'character' : 'characters'} left`
 
   useEffect(() => {
-    const target = focusNext.current
-    if (target === 'box' && mode === 'editing') {
-      focusNext.current = null
-      const box = boxRef.current
-      box?.focus()
-      // Start typing at the end of what's there.
-      box?.setSelectionRange(box.value.length, box.value.length)
-    } else if (target === 'button' && mode === 'closed') {
-      focusNext.current = null
-      openButtonRef.current?.focus()
-    }
-  }, [mode])
+    const box = boxRef.current
+    box?.focus()
+    box?.setSelectionRange(box.value.length, box.value.length)
+  }, [])
 
-  function open() {
-    heldKey.reset()
-    focusNext.current = 'box'
-    setDraft(find.note)
-    setProblem(null)
-    setStatus('')
-    setMode('editing')
-  }
-
-  function close() {
+  function save() {
     if (saving) return
-    focusNext.current = 'button'
-    setProblem(null)
-    setMode('closed')
-  }
-
-  async function save() {
-    if (mode !== 'editing') return
     if (draft.trim().length > NOTE_MAX_LENGTH) {
-      setProblem({ needsLogin: false, message: `Notes can be up to ${NOTE_MAX_LENGTH} characters. Shorten it to save.` })
+      setTooLong(true)
       return
     }
-    setMode('saving')
-    setProblem(null)
-    setStatus('Saving…')
-    try {
-      await onSave(draft)
-      focusNext.current = 'button'
-      setMode('closed')
-      setStatus('Note saved.')
-    } catch (error) {
-      setMode('editing')
-      setStatus('')
-      setProblem(describeFindSaveError(error, 'note'))
-    }
+    setTooLong(false)
+    onSave(draft)
   }
-
-  const isOpen = mode !== 'closed'
 
   return (
     <div
-      className="flex flex-col"
+      onKeyDownCapture={heldKey.onKeyDownCapture}
       onKeyDown={(event) => {
-        if (event.key === 'Escape' && isOpen) {
-          event.stopPropagation()
-          close()
-        }
+        if (event.key !== 'Escape') return
+        event.stopPropagation()
+        if (!saving) onCancel()
       }}
+      className={`relative z-10 flex flex-col gap-2 ${OPEN_IN}`}
     >
-      {isOpen ? (
-        <div key="open" onKeyDownCapture={heldKey.onKeyDownCapture} className={`flex flex-col gap-2 ${OPEN_IN}`}>
-          <label htmlFor={fieldId} className="text-label text-text-primary">
-            Journal note
-          </label>
-          <textarea
-            id={fieldId}
-            ref={boxRef}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            readOnly={saving}
-            aria-busy={saving || undefined}
-            placeholder="What was it like?"
-            maxLength={NOTE_MAX_LENGTH}
-            rows={4}
-            aria-describedby={`${fieldId}-left`}
-            className={`min-h-28 w-full resize-y rounded-lg border border-border-input bg-bg-surface px-4 py-3 text-body text-text-primary placeholder:text-text-secondary ${
-              saving ? 'opacity-60' : ''
-            } ${FOCUS_RING}`}
-          />
-          {leftText && <p className="text-small text-text-secondary">{leftText}</p>}
-          {/* Always there (hidden), so screen readers hear the count once it shows. */}
-          <p id={`${fieldId}-left`} className="sr-only" aria-live="polite">
-            {leftText}
-          </p>
-          <div className="mt-1 flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="small"
-              onClick={save}
-              aria-disabled={saving || undefined}
-              className={saving ? 'pointer-events-none opacity-60' : ''}
-            >
-              Save note
-            </Button>
-            <button type="button" onClick={close} aria-disabled={saving || undefined} className={saving ? QUIET_BUTTON_LOCKED : QUIET_BUTTON}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div key="closed" className="flex flex-col items-start gap-2">
-          {find.note && (
-            <p className="w-full whitespace-pre-line wrap-break-word border-l-2 border-border-subtle pl-3 text-body text-text-primary contrast-more:border-border-input">
-              {find.note}
-            </p>
-          )}
-          {/* -mx-2.5 lines its words up with the text above. */}
-          <button type="button" ref={openButtonRef} onClick={open} className={`${QUIET_BUTTON} -mx-2.5`}>
-            {find.note ? <Pencil aria-hidden="true" size={16} strokeWidth={2} /> : <Plus aria-hidden="true" size={16} strokeWidth={2} />}
-            {find.note ? 'Edit note' : 'Add a note'}
-            <span className="sr-only"> for {title}</span>
-          </button>
-        </div>
+      <label htmlFor={fieldId} className="text-label text-text-primary">
+        Journal note
+      </label>
+      <textarea
+        id={fieldId}
+        ref={boxRef}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        readOnly={saving}
+        aria-busy={saving || undefined}
+        placeholder="What was it like?"
+        maxLength={NOTE_MAX_LENGTH}
+        rows={4}
+        aria-describedby={`${fieldId}-left`}
+        className={`min-h-28 w-full resize-y rounded-lg border border-border-input bg-bg-surface px-4 py-3 text-body text-text-primary placeholder:text-text-secondary ${
+          saving ? 'opacity-60' : ''
+        } ${FOCUS_RING}`}
+      />
+      {leftText && <p className="text-small text-text-secondary">{leftText}</p>}
+      {/* Always there (hidden), so screen readers hear the count once it shows. */}
+      <p id={`${fieldId}-left`} className="sr-only" aria-live="polite">
+        {leftText}
+      </p>
+      {tooLong && (
+        <SaveProblem
+          key="too-long"
+          problem={{ needsLogin: false, message: `Notes can be up to ${NOTE_MAX_LENGTH} characters. Shorten it to save.` }}
+          what="note"
+        />
       )}
-      <SaveStatus text={status} />
-      {problem && <SaveProblem key={problem.message} problem={problem} what="note" />}
+      <div className="mt-1 flex items-center gap-2">
+        <Button
+          variant="secondary"
+          size="small"
+          onClick={save}
+          aria-disabled={saving || undefined}
+          className={saving ? 'pointer-events-none opacity-60' : ''}
+        >
+          Save note
+        </Button>
+        <button type="button" onClick={() => !saving && onCancel()} aria-disabled={saving || undefined} className={saving ? QUIET_BUTTON_LOCKED : QUIET_BUTTON}>
+          Cancel
+        </button>
+      </div>
     </div>
   )
 }
 
-// One find. Like a cache card, the name is the link to the cache's page,
-// stretched over the whole entry, so clicking anywhere opens it; the note
-// and rating controls sit above that layer and stay their own buttons. A
-// taken-down cache can't be opened, so its entry isn't a link and says why.
+// A quiet button in the card's bottom row (no outline, Subtle fill on hover).
+const ACTION = QUIET_BUTTON.replace('-my-2.5 ', '')
+
+// One find, as a card: its photo across the top (when there is one), then
+// the name, the place and the day you found it, your note (in your voice,
+// with a thin rule on its left), the cache's difficulty and your rating
+// (the same 28px stars whether you're looking or changing them), and one
+// row of actions along the bottom, under a thin line: "Add a note" / "Edit
+// note" and "Rate it" / "Change rating". Either opens its editor right in
+// the card (the actions row steps aside while it's open), and focus comes
+// back to the button afterwards.
 //
-// A grid: the photo and the name, place and date on top; under them, the
-// note, difficulty and rating across the full width on phones, and beside
-// the photo (under the name) on desktop.
+// Like a cache card, the name is the link to the cache's page, stretched
+// over the whole card, so clicking anywhere opens it; the editors and
+// actions sit above that layer and stay their own buttons. A taken-down
+// cache can't be opened or rated, so its card isn't a link and says why.
+//
+// Saving: "Saving…" and "Rating saved." / "Note saved." are said to screen
+// readers only (a status line that's always on the page); a failed save
+// shows its message under the card's details.
 function JournalEntry({ find, onRate, onSaveNote }) {
   const { cache } = find
   const open = Boolean(cache?.is_active)
   const title = cache?.title ?? 'A taken-down cache'
   const metaId = useId()
   const difficultyId = useId()
-  const hasDetails = Boolean(cache) || Boolean(find.rating) || open
   const titleText = 'wrap-break-word text-body-strong text-text-primary'
+  const [editing, setEditing] = useState(null) // 'note' | 'rating' | null
+  const [saving, setSaving] = useState(false)
+  const [problem, setProblem] = useState(null) // { what, needsLogin, message }
+  const [status, setStatus] = useState('')
+  const noteButtonRef = useRef(null)
+  const ratingButtonRef = useRef(null)
+  // Which action button gets focus back once its editor closes.
+  const returnTo = useRef(null)
+
+  useEffect(() => {
+    if (editing !== null || !returnTo.current) return
+    const target = returnTo.current === 'note' ? noteButtonRef : ratingButtonRef
+    returnTo.current = null
+    target.current?.focus()
+  }, [editing])
+
+  function start(what) {
+    setProblem(null)
+    setStatus('')
+    setEditing(what)
+  }
+
+  function cancel() {
+    if (saving) return
+    returnTo.current = editing
+    setProblem(null)
+    setEditing(null)
+  }
+
+  async function save(what, request) {
+    setSaving(true)
+    setProblem(null)
+    setStatus('Saving…')
+    try {
+      await request()
+      returnTo.current = what
+      setEditing(null)
+      setStatus(what === 'rating' ? 'Rating saved.' : 'Note saved.')
+    } catch (error) {
+      setStatus('')
+      setProblem({ what, ...describeFindSaveError(error, what) })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  let rating = null
+  if (editing === 'rating') {
+    rating = (
+      <RatingPicker
+        value={find.rating}
+        title={title}
+        saving={saving}
+        onPick={(star) => save('rating', () => onRate(find.id, star))}
+        onCancel={cancel}
+      />
+    )
+  } else if (find.rating) {
+    rating = (
+      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span aria-hidden="true" className="text-small text-text-secondary">
+          Your rating
+        </span>
+        <StarRating value={find.rating} label="Your rating" />
+      </span>
+    )
+  } else if (open) {
+    rating = <span className="text-small text-text-secondary">Not rated yet</span>
+  }
 
   return (
     <li
-      className={`${CARD} relative grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-3 p-3 lg:gap-x-4 lg:gap-y-2 lg:p-4 ${
+      className={`${CARD} relative flex flex-col overflow-hidden ${
         open
           ? 'has-[[data-card-action]:hover]:bg-bg-subtle has-[[data-card-action]:active]:scale-98 has-[[data-card-action]:focus-visible]:ring-2 has-[[data-card-action]:focus-visible]:ring-focus has-[[data-card-action]:focus-visible]:ring-offset-2 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:ease-out'
           : ''
       }`}
     >
-      <EntryPhoto key={find.photo || cache?.image || 'none'} src={find.photo || cache?.image} className="lg:row-span-2" />
-      <div className="flex min-w-0 flex-col gap-1 pt-0.5">
-        <h2 className={titleText}>
-          {open ? (
-            <Link
-              to={`/caches/${cache.id}`}
-              data-card-action
-              // Screen readers hear the name first, then the place, date and
-              // difficulty (as on a cache card).
-              aria-describedby={`${metaId} ${difficultyId}`}
-              className={`${titleText} cursor-pointer focus-visible:outline-hidden after:absolute after:inset-0 after:rounded-2xl after:content-['']`}
-            >
-              {title}
-            </Link>
-          ) : (
-            title
-          )}
-        </h2>
-        <div id={metaId} className="flex flex-col gap-1">
-          {cache?.location_name && <p className="wrap-anywhere text-small text-text-secondary">{placeName(cache.location_name)}</p>}
-          <p className="text-label text-text-primary">{foundDateText(find.foundAt)}</p>
+      <EntryPhoto key={find.photo || cache?.image || 'none'} src={find.photo || cache?.image} />
+      <div className="flex flex-col gap-3 p-4 lg:p-5">
+        <div className="flex flex-col gap-1">
+          <h2 className={titleText}>
+            {open ? (
+              <Link
+                to={`/caches/${cache.id}`}
+                data-card-action
+                // Screen readers hear the name first, then the place, date and
+                // difficulty (as on a cache card).
+                aria-describedby={`${metaId} ${difficultyId}`}
+                className={`${titleText} cursor-pointer focus-visible:outline-hidden after:absolute after:inset-0 after:rounded-2xl after:content-['']`}
+              >
+                {title}
+              </Link>
+            ) : (
+              title
+            )}
+          </h2>
+          <p id={metaId} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            {cache?.location_name && <span className="wrap-anywhere text-small text-text-secondary">{placeName(cache.location_name)}</span>}
+            <span className="text-label text-text-primary">{foundDateText(find.foundAt)}</span>
+          </p>
+          {!open && <p className="text-small text-text-primary">Its hider took it down, so its page can’t be opened.</p>}
         </div>
-        {!open && <p className="text-small text-text-primary">Its hider took it down, so its page can’t be opened.</p>}
-      </div>
-      {/* Above the stretched link, so its buttons get their own clicks. */}
-      {/* Two groups: your note (with its button), then the cache's
-          difficulty and your rating, 16px apart. */}
-      <div className="relative z-10 col-span-2 flex min-w-0 flex-col gap-4 lg:col-span-1 lg:col-start-2">
-        <JournalNote find={find} title={title} onSave={(note) => onSaveNote(find.id, note)} />
-        {/* Phones: difficulty above the rating. Desktop: side by side. */}
-        {hasDetails && (
-          <div className="flex flex-col items-start gap-1 lg:flex-row lg:flex-wrap lg:items-start lg:gap-x-6">
+
+        {editing === 'note' ? (
+          <NoteEditor
+            initial={find.note}
+            saving={saving}
+            onSave={(draft) => save('note', () => onSaveNote(find.id, draft))}
+            onCancel={cancel}
+          />
+        ) : (
+          find.note && (
+            <p className="whitespace-pre-line wrap-break-word border-l-2 border-border-subtle pl-3 text-body text-text-primary contrast-more:border-border-input">
+              {find.note}
+            </p>
+          )
+        )}
+
+        {(cache || rating) && (
+          <div className="relative z-10 flex flex-wrap items-center gap-x-6 gap-y-2">
             {cache && (
               <span id={difficultyId} className="flex min-h-7 items-center">
                 <DifficultyMeter level={cache.difficulty} />
               </span>
             )}
-            <YourRating find={find} title={title} canRate={open} onRate={(rating) => onRate(find.id, rating)} />
+            {rating}
+          </div>
+        )}
+
+        {problem && <SaveProblem key={problem.message} problem={problem} what={problem.what} />}
+        {/* "Saving…", "Rating saved." and so on: for screen readers only,
+            always on the page so each change is announced. */}
+        <p role="status" className="sr-only">
+          {status}
+        </p>
+
+        {/* The card's actions, in one row under a thin line. They step aside
+            while an editor is open (it has its own Save / Cancel). */}
+        {editing === null && (
+          <div className="relative z-10 -mb-1 flex flex-wrap items-center gap-1 border-t border-border-subtle pt-2 contrast-more:border-border-input">
+            <button type="button" ref={noteButtonRef} onClick={() => start('note')} className={`${ACTION} -ml-2.5`}>
+              {find.note ? <Pencil aria-hidden="true" size={16} strokeWidth={2} /> : <Plus aria-hidden="true" size={16} strokeWidth={2} />}
+              {find.note ? 'Edit note' : 'Add a note'}
+              <span className="sr-only"> for {title}</span>
+            </button>
+            {open && (
+              <button type="button" ref={ratingButtonRef} onClick={() => start('rating')} className={ACTION}>
+                <Star aria-hidden="true" size={16} strokeWidth={2} />
+                {find.rating ? 'Change rating' : 'Rate it'}
+                <span className="sr-only"> for {title}</span>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -649,18 +601,11 @@ function FindsPanel({ finds, onRate, onSaveNote }) {
     )
   }
   return (
-    <div className="flex flex-col items-start gap-6">
-      <ul className="flex w-full flex-col gap-4">
-        {finds.items.map((find) => (
-          <JournalEntry key={find.id} find={find} onRate={onRate} onSaveNote={onSaveNote} />
-        ))}
-      </ul>
-      {/* Back out to the next one (Secondary: the journal has no red button
-          once it has finds). */}
-      <Button to="/map" variant="secondary" className="max-lg:w-full">
-        Find your next cache
-      </Button>
-    </div>
+    <ul className="flex w-full flex-col gap-4">
+      {finds.items.map((find) => (
+        <JournalEntry key={find.id} find={find} onRate={onRate} onSaveNote={onSaveNote} />
+      ))}
+    </ul>
   )
 }
 
